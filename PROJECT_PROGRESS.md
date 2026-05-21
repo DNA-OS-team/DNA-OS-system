@@ -1623,6 +1623,7 @@ Current Step: Phase 1 — Identity & Tenant Foundation
 
 ```txt
 Next Step: Configure valid DATABASE_URL / DIRECT_URL, then run Prisma migration
+Pending: Identity foundation models and migration file are ready, but tables are not marked created until database credentials pass db:check.
 ```
 
 ---

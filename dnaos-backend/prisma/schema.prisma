@@ -8,89 +8,83 @@ datasource db {
 }
 
 enum CompanyType {
-  CORE_OPERATOR
+  CORE
   CUSTOMER
   SUPPLIER
-  FLEET_PARTNER
+  FLEET
 }
 
 enum CompanyStatus {
   ACTIVE
-  SUSPENDED
   INACTIVE
+  SUSPENDED
 }
 
-enum MemberRole {
-  SUPER_ADMIN
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  INVITED
+}
+
+enum Role {
+  OWNER
   ADMIN
+  ACCOUNTANT
+  PROCUREMENT
   OPERATION
-  FINANCE
-  SALES
-  CUSTOMER_USER
-  SUPPLIER_USER
-  FLEET_USER
+  CUSTOMER
+  SUPPLIER
+  FLEET_OWNER
+  DRIVER
+  VIEWER
 }
 
 model Company {
-  id        String        @id @default(cuid())
-  code      String        @unique
-  name      String
-  type      CompanyType
-  status    CompanyStatus @default(ACTIVE)
-  taxId     String?
-  phone     String?
-  email     String?
-  address   String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  taxId         String?       @map("tax_id")
+  address       String?
+  phone         String?
+  email         String?
+  bankName      String?       @map("bank_name")
+  bankAccountNo String?       @map("bank_account_no")
+  type          CompanyType
+  status        CompanyStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  members   CompanyMember[]
-  auditLogs AuditLog[]
+  members CompanyMember[]
+
+  @@map("companies")
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  fullName       String
-  phone          String?
-  supabaseUserId String?  @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String     @unique
+  name      String?
+  phone     String?
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   memberships CompanyMember[]
-  auditLogs   AuditLog[]
+
+  @@map("users")
 }
 
 model CompanyMember {
-  id        String     @id @default(cuid())
-  companyId String
-  userId    String
-  role      MemberRole
-  isActive  Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId String     @map("company_id") @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  role      Role
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, userId])
   @@index([userId])
-}
-
-model AuditLog {
-  id          String   @id @default(cuid())
-  companyId   String?
-  actorUserId String?
-  action      String
-  entityType  String
-  entityId    String?
-  metadata    Json?
-  createdAt   DateTime @default(now())
-
-  company   Company? @relation(fields: [companyId], references: [id])
-  actorUser User?    @relation(fields: [actorUserId], references: [id])
-
-  @@index([companyId])
-  @@index([actorUserId])
-  @@index([entityType, entityId])
+  @@map("company_members")
 }

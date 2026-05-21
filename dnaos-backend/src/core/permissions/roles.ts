@@ -1,16 +1,18 @@
 export const platformRoles = [
-  "SUPER_ADMIN",
+  "OWNER",
   "ADMIN",
+  "ACCOUNTANT",
+  "PROCUREMENT",
   "OPERATION",
-  "FINANCE",
-  "SALES",
-  "CUSTOMER_USER",
-  "SUPPLIER_USER",
-  "FLEET_USER"
+  "CUSTOMER",
+  "SUPPLIER",
+  "FLEET_OWNER",
+  "DRIVER",
+  "VIEWER"
 ] as const;
 
 export type PlatformRole = (typeof platformRoles)[number];
 
 export function isAdminRole(role: PlatformRole) {
-  return role === "SUPER_ADMIN" || role === "ADMIN";
+  return role === "OWNER" || role === "ADMIN";
 }
