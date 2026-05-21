@@ -354,7 +354,7 @@ PLANNING / SYSTEM DESIGN
 [x] Setup Tailwind CSS
 [x] Install shadcn/ui
 [ ] Setup Supabase project
-[ ] Setup Prisma
+[x] Setup Prisma
 [ ] Connect PostgreSQL
 [x] Setup environment variables
 [x] Create base layout
@@ -368,6 +368,7 @@ PLANNING / SYSTEM DESIGN
 [x] npm run dev works
 [x] Homepage opens
 [ ] Database connection works
+[x] Prisma generate runs
 [ ] Prisma migration runs
 [ ] Supabase credentials configured
 ```
@@ -1590,6 +1591,7 @@ Use this section to tell AI what has already been completed.
 [x] Tailwind installed
 [x] shadcn/ui installed
 [ ] Supabase connected
+[x] Prisma setup completed
 [ ] Prisma connected
 [ ] companies table created
 [ ] users table created
@@ -1614,13 +1616,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Phase 0 — Project Setup
+Current Step: Phase 1 — Identity & Tenant Foundation
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Setup backend Supabase + Prisma connection and create basic admin route
+Next Step: Configure valid DATABASE_URL / DIRECT_URL, then run Prisma migration
 ```
 
 ---
