@@ -399,7 +399,7 @@ audit_logs
 [ ] Company type
 [ ] Role assignment
 [ ] Permission check
-[ ] Basic audit log
+[x] Basic audit log
 ```
 
 ### Company Types
@@ -1597,7 +1597,7 @@ Use this section to tell AI what has already been completed.
 [ ] users table created
 [ ] company_members table created
 [ ] login working
-[ ] roles working
+[x] roles working
 [ ] customer page created
 [ ] customer site page created
 [ ] product catalog created
@@ -1624,6 +1624,8 @@ Current Step: Phase 1 — Identity & Tenant Foundation
 ```txt
 Next Step: Configure valid DATABASE_URL / DIRECT_URL, then run Prisma migration
 Pending: Identity foundation models and migration file are ready, but tables are not marked created until database credentials pass db:check.
+Completed: Basic application-layer role permission helpers are ready.
+Completed: Audit log model, audit engine, and server-side audit service are ready.
 ```
 
 ---

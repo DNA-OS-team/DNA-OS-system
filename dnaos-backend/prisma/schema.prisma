@@ -53,7 +53,8 @@ model Company {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  members CompanyMember[]
+  members   CompanyMember[]
+  auditLogs AuditLog[]
 
   @@map("companies")
 }
@@ -67,7 +68,8 @@ model User {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
-  memberships CompanyMember[]
+  memberships    CompanyMember[]
+  actorAuditLogs AuditLog[]      @relation("AuditLogActor")
 
   @@map("users")
 }
@@ -87,4 +89,28 @@ model CompanyMember {
   @@unique([companyId, userId])
   @@index([userId])
   @@map("company_members")
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  companyId   String?  @map("company_id") @db.Uuid
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id")
+  action      String
+  field       String?
+  oldValue    String?  @map("old_value")
+  newValue    String?  @map("new_value")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actorUser User?    @relation("AuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@map("audit_logs")
 }
