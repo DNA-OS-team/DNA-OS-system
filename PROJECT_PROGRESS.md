@@ -349,23 +349,23 @@ PLANNING / SYSTEM DESIGN
 ### Tasks
 
 ```txt
-[ ] Create Next.js project
-[ ] Enable TypeScript
-[ ] Setup Tailwind CSS
-[ ] Install shadcn/ui
+[x] Create Next.js project
+[x] Enable TypeScript
+[x] Setup Tailwind CSS
+[x] Install shadcn/ui
 [ ] Setup Supabase project
 [ ] Setup Prisma
 [ ] Connect PostgreSQL
-[ ] Setup environment variables
-[ ] Create base layout
+[x] Setup environment variables
+[x] Create base layout
 [ ] Create basic admin route
 ```
 
 ### Done When
 
 ```txt
-[ ] npm run dev works
-[ ] Homepage opens
+[x] npm run dev works
+[x] Homepage opens
 [ ] Database connection works
 [ ] Prisma migration runs
 [ ] Supabase credentials configured
@@ -1584,10 +1584,10 @@ Use this section to tell AI what has already been completed.
 ## Completed
 
 ```txt
-[ ] Project created
-[ ] Next.js installed
-[ ] Tailwind installed
-[ ] shadcn/ui installed
+[x] Project created
+[x] Next.js installed
+[x] Tailwind installed
+[x] shadcn/ui installed
 [ ] Supabase connected
 [ ] Prisma connected
 [ ] companies table created
@@ -1619,7 +1619,7 @@ Current Step: Phase 0 — Project Setup
 ## Next Step
 
 ```txt
-Next Step: Create Next.js + TypeScript project and setup Supabase + Prisma
+Next Step: Setup backend Supabase + Prisma connection and create basic admin route
 ```
 
 ---
