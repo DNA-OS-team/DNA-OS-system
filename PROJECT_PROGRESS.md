@@ -358,6 +358,7 @@ PLANNING / SYSTEM DESIGN
 [ ] Connect PostgreSQL
 [x] Setup environment variables
 [x] Create base layout
+[x] Create UI foundation demo
 [ ] Create basic admin route
 ```
 
