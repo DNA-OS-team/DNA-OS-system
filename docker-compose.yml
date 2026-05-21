@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: dnaos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dnaos_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - dnaos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dnaos_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: dnaos-backend/Dockerfile
+    container_name: dnaos-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5100
+      CORS_ORIGIN: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/dnaos_dev?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/dnaos_dev?schema=public
+      APP_URL: http://localhost:5100
+    ports:
+      - "5100:5100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: dnaos-frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:5100
+    container_name: dnaos-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:5100
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  dnaos-postgres-data:
