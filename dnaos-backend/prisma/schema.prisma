@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CompanyType {
+  CORE_OPERATOR
+  CUSTOMER
+  SUPPLIER
+  FLEET_PARTNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum MemberRole {
+  SUPER_ADMIN
+  ADMIN
+  OPERATION
+  FINANCE
+  SALES
+  CUSTOMER_USER
+  SUPPLIER_USER
+  FLEET_USER
+}
+
+model Company {
+  id        String        @id @default(cuid())
+  code      String        @unique
+  name      String
+  type      CompanyType
+  status    CompanyStatus @default(ACTIVE)
+  taxId     String?
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  members   CompanyMember[]
+  auditLogs AuditLog[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  fullName       String
+  phone          String?
+  supabaseUserId String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  memberships CompanyMember[]
+  auditLogs   AuditLog[]
+}
+
+model CompanyMember {
+  id        String     @id @default(cuid())
+  companyId String
+  userId    String
+  role      MemberRole
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  companyId   String?
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  company   Company? @relation(fields: [companyId], references: [id])
+  actorUser User?    @relation(fields: [actorUserId], references: [id])
+
+  @@index([companyId])
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+}
