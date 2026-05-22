@@ -59,7 +59,7 @@ export function DocumentSearch() {
             setError(
               requestError instanceof Error
                 ? requestError.message
-                : "Unable to search documents"
+                : "ไม่สามารถค้นหาเอกสารได้"
             );
           }
         })
@@ -80,30 +80,30 @@ export function DocumentSearch() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          Document search
+          ค้นหาเอกสาร
         </h1>
         <p className="text-sm text-muted-foreground">
-          Search project numbers, document groups, order numbers, and references.
+          ค้นหาหมายเลขโปรเจกต์ ชุดเอกสาร หมายเลข order และเอกสารอ้างอิง
         </p>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Search unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถค้นหาได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Reference lookup</CardTitle>
+          <CardTitle>ค้นหาเอกสารอ้างอิง</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search PRJ, GRP, order, QT, PO, INV, receipt..."
+              placeholder="ค้นหา PRJ, GRP, order, QT, PO, INV, ใบเสร็จ..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -113,22 +113,22 @@ export function DocumentSearch() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Projects</CardTitle>
+          <CardTitle>โปรเจกต์</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>โปรเจกต์</TableHead>
+                <TableHead>ลูกค้า</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? <LoadingRow columns={4} /> : null}
               {!isLoading && result.projects.length === 0 ? (
-                <EmptyRow columns={4} label="No projects found." />
+                <EmptyRow columns={4} label="ไม่พบโปรเจกต์" />
               ) : null}
               {result.projects.map((project) => (
                 <TableRow key={project.id}>
@@ -150,7 +150,7 @@ export function DocumentSearch() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/projects/${project.projectNo}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -162,22 +162,22 @@ export function DocumentSearch() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Document groups</CardTitle>
+          <CardTitle>ชุดเอกสาร</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Group</TableHead>
-                <TableHead>Project</TableHead>
-                <TableHead>Root order</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>กลุ่ม</TableHead>
+                <TableHead>โปรเจกต์</TableHead>
+                <TableHead>Order หลัก</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? <LoadingRow columns={4} /> : null}
               {!isLoading && result.documentGroups.length === 0 ? (
-                <EmptyRow columns={4} label="No document groups found." />
+                <EmptyRow columns={4} label="ไม่พบชุดเอกสาร" />
               ) : null}
               {result.documentGroups.map((group) => (
                 <TableRow key={group.id}>
@@ -192,7 +192,7 @@ export function DocumentSearch() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/document-groups/${group.groupNo}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -204,22 +204,22 @@ export function DocumentSearch() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Document references</CardTitle>
+          <CardTitle>เอกสารอ้างอิง</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Relation</TableHead>
-                <TableHead>Related document</TableHead>
-                <TableHead>Group</TableHead>
+                <TableHead>เอกสาร</TableHead>
+                <TableHead>ความสัมพันธ์</TableHead>
+                <TableHead>เอกสารที่เกี่ยวข้อง</TableHead>
+                <TableHead>กลุ่ม</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? <LoadingRow columns={4} /> : null}
               {!isLoading && result.documentReferences.length === 0 ? (
-                <EmptyRow columns={4} label="No references found." />
+                <EmptyRow columns={4} label="ไม่พบเอกสารอ้างอิง" />
               ) : null}
               {result.documentReferences.map((reference) => (
                 <TableRow key={reference.id}>
@@ -262,7 +262,7 @@ function LoadingRow({ columns }: { columns: number }) {
   return (
     <TableRow>
       <TableCell colSpan={columns} className="text-muted-foreground">
-        Searching...
+        กำลังค้นหา...
       </TableCell>
     </TableRow>
   );

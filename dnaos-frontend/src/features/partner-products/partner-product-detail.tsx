@@ -55,7 +55,7 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load partner product submission"
+              : "ไม่สามารถโหลดรายการสินค้าซัพพลายเออร์ได้"
           );
         }
       })
@@ -84,7 +84,7 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to review submission"
+          : "ไม่สามารถตรวจสอบรายการได้"
       );
     }
   }
@@ -96,18 +96,18 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
         href="/admin/partner-products"
       >
         <ArrowLeft />
-        Partner products
+        สินค้าซัพพลายเออร์
       </Link>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Review failed</AlertTitle>
+          <AlertTitle>ตรวจสอบไม่สำเร็จ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading submission...</p>
+        <p className="text-sm text-muted-foreground">กำลังโหลดรายการ...</p>
       ) : null}
 
       {submission ? (
@@ -124,44 +124,44 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
                 {submission.requestedProductName}
               </h1>
               <p className="text-sm text-muted-foreground">
-                {submission.requestedCategoryName || "No category"} / {submission.unit}
+                {submission.requestedCategoryName || "ไม่มีหมวดหมู่"} / {submission.unit}
               </p>
             </div>
             <Link
               className={buttonVariants({ variant: "outline" })}
               href="/admin/supplier-inventory"
             >
-              Inventory
+              คลังสินค้า
             </Link>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Submission details</CardTitle>
+              <CardTitle>รายละเอียดรายการ</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
-              <Detail label="Supplier" value={submission.supplierCompany?.name ?? "-"} />
+              <Detail label="ซัพพลายเออร์" value={submission.supplierCompany?.name ?? "-"} />
               <Detail
-                label="Master variant"
+                label="ตัวแปรหลัก"
                 value={
                   submission.productVariant
                     ? `${submission.productVariant.product?.name ?? "-"} / ${submission.productVariant.name}`
-                    : "Not mapped"
+                    : "ยังไม่เชื่อมโยง"
                 }
               />
-              <Detail label="Price" value={formatNumber(submission.price)} />
+              <Detail label="ราคา" value={formatNumber(submission.price)} />
               <Detail
-                label="Initial stock"
+                label="สต็อกเริ่มต้น"
                 value={`${formatNumber(submission.stockQty)} ${submission.unit}`}
               />
-              <Detail label="Minimum quantity" value={formatNumber(submission.minQty)} />
-              <Detail label="Service area" value={submission.serviceArea ?? "-"} />
+              <Detail label="จำนวนขั้นต่ำ" value={formatNumber(submission.minQty)} />
+              <Detail label="พื้นที่บริการ" value={submission.serviceArea ?? "-"} />
               <Detail
-                label="Supplier product"
-                value={submission.supplierProductId ?? "Not created"}
+                label="สินค้าในคลัง"
+                value={submission.supplierProductId ?? "ยังไม่สร้าง"}
               />
               <Detail
-                label="Reviewed at"
+                label="ตรวจสอบเมื่อ"
                 value={
                   submission.reviewedAt
                     ? new Date(submission.reviewedAt).toLocaleString()
@@ -169,7 +169,7 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
                 }
               />
               <div className="md:col-span-2">
-                <p className="text-sm font-medium">Description</p>
+                <p className="text-sm font-medium">คำอธิบาย</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {submission.description || "-"}
                 </p>
@@ -180,10 +180,10 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
           <form className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Admin review</CardTitle>
+                <CardTitle>ตรวจสอบโดย Admin</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Label htmlFor="adminReviewNote">Review note</Label>
+                <Label htmlFor="adminReviewNote">หมายเหตุการตรวจสอบ</Label>
                 <Textarea
                   id="adminReviewNote"
                   rows={4}
@@ -198,7 +198,7 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
                   onClick={form.handleSubmit((values) => review("reject", values))}
                 >
                   <X />
-                  Reject
+                  ปฏิเสธ
                 </Button>
                 <Button
                   type="button"
@@ -210,7 +210,7 @@ export function PartnerProductDetail({ submissionId }: PartnerProductDetailProps
                   onClick={form.handleSubmit((values) => review("approve", values))}
                 >
                   <Check />
-                  Approve
+                  อนุมัติ
                 </Button>
               </CardFooter>
             </Card>

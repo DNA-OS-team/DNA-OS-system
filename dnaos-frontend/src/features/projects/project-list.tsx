@@ -63,7 +63,7 @@ export function ProjectList() {
             setError(
               requestError instanceof Error
                 ? requestError.message
-                : "Unable to load projects"
+                : "ไม่สามารถโหลดโปรเจกต์ได้"
             );
           }
         })
@@ -84,34 +84,34 @@ export function ProjectList() {
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal">Projects</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">โปรเจกต์</h1>
           <p className="text-sm text-muted-foreground">
-            Control project numbers, customer sites, and document groups.
+            จัดการหมายเลขโปรเจกต์ สถานที่ลูกค้า และชุดเอกสาร
           </p>
         </div>
         <Link className={buttonVariants()} href="/admin/projects/new">
           <Plus />
-          New project
+          โปรเจกต์ใหม่
         </Link>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Projects unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลดโปรเจกต์ได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Project filters</CardTitle>
+          <CardTitle>ตัวกรองโปรเจกต์</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search project, customer, or title"
+              placeholder="ค้นหาโปรเจกต์ ลูกค้า หรือชื่อเรื่อง"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -126,7 +126,7 @@ export function ProjectList() {
             <SelectContent>
               {statuses.map((statusOption) => (
                 <SelectItem key={statusOption} value={statusOption}>
-                  {statusOption === "all" ? "All statuses" : statusOption}
+                  {statusOption === "all" ? "ทุกสถานะ" : statusOption}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -136,32 +136,32 @@ export function ProjectList() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Project register</CardTitle>
+          <CardTitle>ทะเบียนโปรเจกต์</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Site</TableHead>
-                <TableHead>Groups</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>โปรเจกต์</TableHead>
+                <TableHead>ลูกค้า</TableHead>
+                <TableHead>สถานที่</TableHead>
+                <TableHead>กลุ่ม</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    Loading projects...
+                    กำลังโหลดโปรเจกต์...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && projects.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    No projects found.
+                    ไม่พบโปรเจกต์
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -189,7 +189,7 @@ export function ProjectList() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/projects/${project.projectNo}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>

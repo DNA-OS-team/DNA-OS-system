@@ -82,7 +82,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
       .catch((error: unknown) => {
         if (isMounted) {
           setFormError(
-            error instanceof Error ? error.message : "Unable to load credit profile"
+            error instanceof Error ? error.message : "ไม่สามารถโหลดข้อมูลเครดิตได้"
           );
         }
       })
@@ -103,7 +103,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
     try {
       await upsertCustomerCredit(customerId, values);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save credit");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกเครดิตได้");
     }
   }
 
@@ -114,41 +114,41 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
         href={`/admin/customers/${customerId}`}
       >
         <ArrowLeft />
-        Customer details
+        รายละเอียดลูกค้า
       </Link>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          {customer?.name ?? "Customer"} credit
+          {customer?.name ?? "ลูกค้า"} เครดิต
         </h1>
         <p className="text-sm text-muted-foreground">
-          Set credit limits and current credit status for this customer.
+          ตั้งค่าวงเงินและสถานะเครดิตของลูกค้ารายนี้
         </p>
       </div>
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Credit action failed</AlertTitle>
+          <AlertTitle>ดำเนินการเครดิตไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading credit profile...</p>
+        <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูลเครดิต...</p>
       ) : null}
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>Credit profile</CardTitle>
+            <CardTitle>ข้อมูลเครดิต</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <Field message={form.formState.errors.creditLimit?.message}>
-              <Label htmlFor="creditLimit">Credit limit</Label>
+              <Label htmlFor="creditLimit">วงเงินเครดิต</Label>
               <Input id="creditLimit" inputMode="decimal" {...form.register("creditLimit")} />
             </Field>
             <Field message={form.formState.errors.creditTermDays?.message}>
-              <Label htmlFor="creditTermDays">Credit term days</Label>
+              <Label htmlFor="creditTermDays">เครดิต (วัน)</Label>
               <Input
                 id="creditTermDays"
                 inputMode="numeric"
@@ -156,7 +156,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
               />
             </Field>
             <Field message={form.formState.errors.currentOutstanding?.message}>
-              <Label htmlFor="currentOutstanding">Current outstanding</Label>
+              <Label htmlFor="currentOutstanding">ยอดค้างชำระปัจจุบัน</Label>
               <Input
                 id="currentOutstanding"
                 inputMode="decimal"
@@ -164,7 +164,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
               />
             </Field>
             <Field message={form.formState.errors.overdueAmount?.message}>
-              <Label htmlFor="overdueAmount">Overdue amount</Label>
+              <Label htmlFor="overdueAmount">ยอดค้างชำระเกินกำหนด</Label>
               <Input
                 id="overdueAmount"
                 inputMode="decimal"
@@ -172,7 +172,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
               />
             </Field>
             <Field message={form.formState.errors.creditStatus?.message}>
-              <Label htmlFor="creditStatus">Credit status</Label>
+              <Label htmlFor="creditStatus">สถานะเครดิต</Label>
               <Select
                 value={creditStatus}
                 onValueChange={(value) =>
@@ -195,7 +195,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
               </Select>
             </Field>
             <Field message={form.formState.errors.paymentBehaviorScore?.message}>
-              <Label htmlFor="paymentBehaviorScore">Payment behavior score</Label>
+              <Label htmlFor="paymentBehaviorScore">คะแนนพฤติกรรมการชำระเงิน</Label>
               <Input
                 id="paymentBehaviorScore"
                 inputMode="numeric"
@@ -206,7 +206,7 @@ export function CustomerCredit({ customerId }: CustomerCreditProps) {
           <CardFooter className="justify-end">
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Save />
-              {form.formState.isSubmitting ? "Saving..." : "Save credit"}
+              {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกเครดิต"}
             </Button>
           </CardFooter>
         </Card>

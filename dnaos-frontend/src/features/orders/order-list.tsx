@@ -63,7 +63,7 @@ export function OrderList() {
         .catch((requestError: unknown) => {
           if (isMounted) {
             setError(
-              requestError instanceof Error ? requestError.message : "Unable to load orders"
+              requestError instanceof Error ? requestError.message : "ไม่สามารถโหลด order ได้"
             );
           }
         })
@@ -86,32 +86,32 @@ export function OrderList() {
         <div>
           <h1 className="text-2xl font-semibold tracking-normal">Orders</h1>
           <p className="text-sm text-muted-foreground">
-            Create customer orders before pricing, BOQ, and quotation.
+            สร้างคำสั่งซื้อก่อนคำนวณราคา BOQ และ QT
           </p>
         </div>
         <Link className={buttonVariants()} href="/admin/orders/new">
           <Plus />
-          New order
+          สร้าง order ใหม่
         </Link>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Orders unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลด order ได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Order filters</CardTitle>
+          <CardTitle>ตัวกรอง order</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search order, project, or customer"
+              placeholder="ค้นหา order โปรเจกต์ หรือลูกค้า"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -126,7 +126,7 @@ export function OrderList() {
             <SelectContent>
               {statuses.map((statusOption) => (
                 <SelectItem key={statusOption} value={statusOption}>
-                  {statusOption === "all" ? "All statuses" : statusOption}
+                  {statusOption === "all" ? "ทุกสถานะ" : statusOption}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -136,32 +136,32 @@ export function OrderList() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Order register</CardTitle>
+          <CardTitle>ทะเบียน order</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Site</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ลูกค้า</TableHead>
+                <TableHead>สถานที่</TableHead>
+                <TableHead>รายการ</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    Loading orders...
+                    กำลังโหลด order...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && orders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    No orders found.
+                    ไม่พบ order
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -191,7 +191,7 @@ export function OrderList() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/orders/${order.id}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>

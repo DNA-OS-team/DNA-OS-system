@@ -78,7 +78,7 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
       })
       .catch((error: unknown) => {
         if (isMounted) {
-          setFormError(error instanceof Error ? error.message : "Unable to load sites");
+          setFormError(error instanceof Error ? error.message : "ไม่สามารถโหลดสถานที่ได้");
         }
       })
       .finally(() => {
@@ -100,7 +100,7 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
       form.reset();
       await refreshSites();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save site");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกสถานที่ได้");
     }
   }
 
@@ -111,21 +111,21 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
         href={`/admin/customers/${customerId}`}
       >
         <ArrowLeft />
-        Customer details
+        รายละเอียดลูกค้า
       </Link>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          {customer?.name ?? "Customer"} sites
+          {customer?.name ?? "ลูกค้า"} สถานที่
         </h1>
         <p className="text-sm text-muted-foreground">
-          Add delivery sites as reusable records for future orders.
+          เพิ่มสถานที่จัดส่งสำหรับ order ในอนาคต
         </p>
       </div>
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Site action failed</AlertTitle>
+          <AlertTitle>ดำเนินการสถานที่ไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
@@ -133,62 +133,62 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>Add site</CardTitle>
+            <CardTitle>เพิ่มสถานที่</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <Field message={form.formState.errors.siteName?.message}>
-              <Label htmlFor="siteName">Site name</Label>
+              <Label htmlFor="siteName">ชื่อสถานที่</Label>
               <Input id="siteName" {...form.register("siteName")} />
             </Field>
             <Field message={form.formState.errors.contactPhone?.message}>
-              <Label htmlFor="contactPhone">Contact phone</Label>
+              <Label htmlFor="contactPhone">โทรศัพท์ติดต่อ</Label>
               <Input id="contactPhone" {...form.register("contactPhone")} />
             </Field>
             <Field className="md:col-span-2" message={form.formState.errors.address?.message}>
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">ที่อยู่</Label>
               <Textarea id="address" rows={3} {...form.register("address")} />
             </Field>
             <Field>
-              <Label htmlFor="province">Province</Label>
+              <Label htmlFor="province">จังหวัด</Label>
               <Input id="province" {...form.register("province")} />
             </Field>
             <Field>
-              <Label htmlFor="district">District</Label>
+              <Label htmlFor="district">อำเภอ</Label>
               <Input id="district" {...form.register("district")} />
             </Field>
             <Field>
-              <Label htmlFor="subdistrict">Subdistrict</Label>
+              <Label htmlFor="subdistrict">ตำบล</Label>
               <Input id="subdistrict" {...form.register("subdistrict")} />
             </Field>
             <Field>
-              <Label htmlFor="postalCode">Postal code</Label>
+              <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>
               <Input id="postalCode" {...form.register("postalCode")} />
             </Field>
             <Field>
-              <Label htmlFor="gpsLat">GPS latitude</Label>
+              <Label htmlFor="gpsLat">ละติจูด GPS</Label>
               <Input id="gpsLat" inputMode="decimal" {...form.register("gpsLat")} />
             </Field>
             <Field>
-              <Label htmlFor="gpsLng">GPS longitude</Label>
+              <Label htmlFor="gpsLng">ลองจิจูด GPS</Label>
               <Input id="gpsLng" inputMode="decimal" {...form.register("gpsLng")} />
             </Field>
             <Field>
-              <Label htmlFor="contactName">Contact name</Label>
+              <Label htmlFor="contactName">ชื่อผู้ติดต่อ</Label>
               <Input id="contactName" {...form.register("contactName")} />
             </Field>
             <Field>
-              <Label htmlFor="preferredDeliveryTime">Preferred delivery time</Label>
+              <Label htmlFor="preferredDeliveryTime">เวลาจัดส่งที่ต้องการ</Label>
               <Input
                 id="preferredDeliveryTime"
                 {...form.register("preferredDeliveryTime")}
               />
             </Field>
             <Field className="md:col-span-2">
-              <Label htmlFor="deliveryNote">Delivery note</Label>
+              <Label htmlFor="deliveryNote">หมายเหตุการจัดส่ง</Label>
               <Textarea id="deliveryNote" rows={2} {...form.register("deliveryNote")} />
             </Field>
             <Field className="md:col-span-2">
-              <Label htmlFor="accessRestriction">Access restriction</Label>
+              <Label htmlFor="accessRestriction">ข้อจำกัดการเข้าถึง</Label>
               <Textarea
                 id="accessRestriction"
                 rows={2}
@@ -201,13 +201,13 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
                 checked={isActive}
                 onCheckedChange={(checked) => form.setValue("isActive", checked)}
               />
-              <Label htmlFor="isActive">Active site</Label>
+              <Label htmlFor="isActive">สถานที่ใช้งานอยู่</Label>
             </div>
           </CardContent>
           <CardFooter className="justify-end">
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Plus />
-              {form.formState.isSubmitting ? "Saving..." : "Add site"}
+              {form.formState.isSubmitting ? "กำลังบันทึก..." : "เพิ่มสถานที่"}
             </Button>
           </CardFooter>
         </Card>
@@ -215,10 +215,10 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
 
       <div className="grid gap-3">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading sites...</p>
+          <p className="text-sm text-muted-foreground">กำลังโหลดสถานที่...</p>
         ) : null}
         {!isLoading && sites.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No sites yet.</p>
+          <p className="text-sm text-muted-foreground">ยังไม่มีสถานที่</p>
         ) : null}
         {sites.map((site) => (
           <Card key={site.id}>
@@ -228,7 +228,7 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
                   <MapPin className="size-4 text-muted-foreground" />
                   <div className="font-medium">{site.siteName}</div>
                   <Badge variant={site.isActive ? "secondary" : "outline"}>
-                    {site.isActive ? "Active" : "Inactive"}
+                    {site.isActive ? "ใช้งาน" : "ไม่ใช้งาน"}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{site.address}</p>
@@ -239,7 +239,7 @@ export function CustomerSites({ customerId }: CustomerSitesProps) {
                 </p>
               </div>
               <div className="text-sm text-muted-foreground">
-                {site.contactName || site.contactPhone || "No site contact"}
+                {site.contactName || site.contactPhone || "ยังไม่มีข้อมูลติดต่อ"}
               </div>
             </CardContent>
           </Card>

@@ -108,7 +108,7 @@ export function PartnerProductList() {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load partner product options"
+              : "ไม่สามารถโหลดตัวเลือกสินค้าซัพพลายเออร์ได้"
           );
         }
       });
@@ -158,7 +158,7 @@ export function PartnerProductList() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load partner product submissions"
+            : "ไม่สามารถโหลดรายการสินค้าซัพพลายเออร์ได้"
         );
       }
     } finally {
@@ -190,7 +190,7 @@ export function PartnerProductList() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to create partner product submission"
+          : "ไม่สามารถสร้างรายการสินค้าซัพพลายเออร์ได้"
       );
     }
   }
@@ -200,23 +200,23 @@ export function PartnerProductList() {
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold tracking-normal">
-            Partner products
+            สินค้าซัพพลายเออร์
           </h1>
           <p className="text-sm text-muted-foreground">
-            Review supplier product submissions before they become sellable.
+            ตรวจสอบรายการสินค้าซัพพลายเออร์ก่อนอนุมัติ
           </p>
         </div>
         <Link
           className={buttonVariants({ variant: "outline" })}
           href="/admin/supplier-inventory"
         >
-          Inventory
+          คลังสินค้า
         </Link>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Partner product action failed</AlertTitle>
+          <AlertTitle>ดำเนินการสินค้าซัพพลายเออร์ไม่สำเร็จ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
@@ -224,11 +224,11 @@ export function PartnerProductList() {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>Add partner submission</CardTitle>
+            <CardTitle>เพิ่มรายการซัพพลายเออร์</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <Field message={form.formState.errors.supplierCompanyId?.message}>
-              <Label htmlFor="supplierCompanyId">Supplier</Label>
+              <Label htmlFor="supplierCompanyId">ซัพพลายเออร์</Label>
               <Select
                 value={supplierCompanyId}
                 onValueChange={(value) => {
@@ -238,7 +238,7 @@ export function PartnerProductList() {
                 }}
               >
                 <SelectTrigger id="supplierCompanyId" className="w-full">
-                  <SelectValue placeholder="Select supplier" />
+                  <SelectValue placeholder="เลือกซัพพลายเออร์" />
                 </SelectTrigger>
                 <SelectContent>
                   {suppliers.map((supplier) => (
@@ -251,7 +251,7 @@ export function PartnerProductList() {
             </Field>
 
             <Field message={form.formState.errors.productVariantId?.message}>
-              <Label htmlFor="productVariantId">Master variant</Label>
+              <Label htmlFor="productVariantId">ตัวแปรหลัก</Label>
               <Select
                 value={productVariantId || "none"}
                 onValueChange={(value) =>
@@ -259,10 +259,10 @@ export function PartnerProductList() {
                 }
               >
                 <SelectTrigger id="productVariantId" className="w-full">
-                  <SelectValue placeholder="Optional" />
+                  <SelectValue placeholder="ไม่บังคับ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Request new product</SelectItem>
+                  <SelectItem value="none">ขอสินค้าใหม่</SelectItem>
                   {productVariants.map((variant) => (
                     <SelectItem key={variant.id} value={variant.id}>
                       {variant.product?.name ?? variant.name} / {variant.name}
@@ -273,26 +273,26 @@ export function PartnerProductList() {
             </Field>
 
             <Field message={form.formState.errors.requestedProductName?.message}>
-              <Label htmlFor="requestedProductName">Product name</Label>
+              <Label htmlFor="requestedProductName">ชื่อสินค้า</Label>
               <Input id="requestedProductName" {...form.register("requestedProductName")} />
             </Field>
             <Field message={form.formState.errors.requestedCategoryName?.message}>
-              <Label htmlFor="requestedCategoryName">Category</Label>
+              <Label htmlFor="requestedCategoryName">หมวดหมู่</Label>
               <Input
                 id="requestedCategoryName"
                 {...form.register("requestedCategoryName")}
               />
             </Field>
             <Field message={form.formState.errors.unit?.message}>
-              <Label htmlFor="unit">Unit</Label>
+              <Label htmlFor="unit">หน่วย</Label>
               <Input id="unit" {...form.register("unit")} />
             </Field>
             <Field message={form.formState.errors.price?.message}>
-              <Label htmlFor="price">Price</Label>
+              <Label htmlFor="price">ราคา</Label>
               <Input id="price" type="number" step="0.01" {...form.register("price")} />
             </Field>
             <Field message={form.formState.errors.stockQty?.message}>
-              <Label htmlFor="stockQty">Stock quantity</Label>
+              <Label htmlFor="stockQty">จำนวนสต็อก</Label>
               <Input
                 id="stockQty"
                 type="number"
@@ -301,22 +301,22 @@ export function PartnerProductList() {
               />
             </Field>
             <Field message={form.formState.errors.minQty?.message}>
-              <Label htmlFor="minQty">Minimum quantity</Label>
+              <Label htmlFor="minQty">จำนวนขั้นต่ำ</Label>
               <Input id="minQty" type="number" step="0.001" {...form.register("minQty")} />
             </Field>
             <Field message={form.formState.errors.serviceArea?.message}>
-              <Label htmlFor="serviceArea">Service area</Label>
+              <Label htmlFor="serviceArea">พื้นที่บริการ</Label>
               <Input id="serviceArea" {...form.register("serviceArea")} />
             </Field>
             <Field className="md:col-span-2" message={form.formState.errors.description?.message}>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">คำอธิบาย</Label>
               <Textarea id="description" rows={3} {...form.register("description")} />
             </Field>
           </CardContent>
           <CardFooter className="justify-end">
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Plus />
-              {form.formState.isSubmitting ? "Submitting..." : "Create submission"}
+              {form.formState.isSubmitting ? "กำลังส่ง..." : "ส่งรายการ"}
             </Button>
           </CardFooter>
         </Card>
@@ -324,14 +324,14 @@ export function PartnerProductList() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Submission filters</CardTitle>
+          <CardTitle>ตัวกรองรายการ</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search supplier, category, or product"
+              placeholder="ค้นหาซัพพลายเออร์ หมวดหมู่ หรือสินค้า"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -348,7 +348,7 @@ export function PartnerProductList() {
             <SelectContent>
               {statuses.map((statusOption) => (
                 <SelectItem key={statusOption} value={statusOption}>
-                  {statusOption === "all" ? "All statuses" : statusOption}
+                  {statusOption === "all" ? "ทุกสถานะ" : statusOption}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -358,32 +358,32 @@ export function PartnerProductList() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Submissions</CardTitle>
+          <CardTitle>รายการที่ส่งมา</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>สินค้า</TableHead>
+                <TableHead>ซัพพลายเออร์</TableHead>
+                <TableHead>ราคา</TableHead>
+                <TableHead>สต็อก</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    Loading submissions...
+                    กำลังโหลดรายการ...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && submissions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    No submissions found.
+                    ไม่พบรายการ
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -415,7 +415,7 @@ export function PartnerProductList() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/partner-products/${submission.id}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>

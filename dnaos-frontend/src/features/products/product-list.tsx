@@ -66,7 +66,7 @@ export function ProductList() {
             setError(
               requestError instanceof Error
                 ? requestError.message
-                : "Unable to load products"
+                : "ไม่สามารถโหลดสินค้าได้"
             );
           }
         })
@@ -87,9 +87,9 @@ export function ProductList() {
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal">Products</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">สินค้า</h1>
           <p className="text-sm text-muted-foreground">
-            Manage central product master data without supplier pricing.
+            จัดการข้อมูลสินค้าหลักโดยไม่รวมราคา supplier
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -97,32 +97,32 @@ export function ProductList() {
             className={buttonVariants({ variant: "outline" })}
             href="/admin/products/categories"
           >
-            Categories
+            หมวดหมู่
           </Link>
           <Link className={buttonVariants()} href="/admin/products/new">
             <Plus />
-            New product
+            สินค้าใหม่
           </Link>
         </div>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Products unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลดสินค้าได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Product filters</CardTitle>
+          <CardTitle>ตัวกรองสินค้า</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_220px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search product name or description"
+              placeholder="ค้นหาชื่อสินค้าหรือคำอธิบาย"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -132,10 +132,10 @@ export function ProductList() {
             onValueChange={(value) => setCategoryId(value ?? "all")}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="หมวดหมู่" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
+              <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -153,9 +153,9 @@ export function ProductList() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="true">Active only</SelectItem>
-              <SelectItem value="false">Inactive only</SelectItem>
+              <SelectItem value="all">ทุกสถานะ</SelectItem>
+              <SelectItem value="true">ใช้งานเท่านั้น</SelectItem>
+              <SelectItem value="false">ไม่ใช้งานเท่านั้น</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -163,32 +163,32 @@ export function ProductList() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Product catalog</CardTitle>
+          <CardTitle>รายการสินค้า</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Variants</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ชื่อ</TableHead>
+                <TableHead>หมวดหมู่</TableHead>
+                <TableHead>หน่วย</TableHead>
+                <TableHead>ตัวแปร</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    Loading products...
+                    กำลังโหลดสินค้า...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && filteredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-muted-foreground">
-                    No products found.
+                    ไม่พบสินค้า
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -200,7 +200,7 @@ export function ProductList() {
                       <div>
                         <div className="font-medium">{product.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {product.description || "No description"}
+                          {product.description || "ไม่มีคำอธิบาย"}
                         </div>
                       </div>
                     </div>
@@ -210,7 +210,7 @@ export function ProductList() {
                   <TableCell>{product.variantCount ?? 0}</TableCell>
                   <TableCell>
                     <Badge variant={product.isActive ? "secondary" : "outline"}>
-                      {product.isActive ? "Active" : "Inactive"}
+                      {product.isActive ? "ใช้งาน" : "ไม่ใช้งาน"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -218,7 +218,7 @@ export function ProductList() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/products/${product.id}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>

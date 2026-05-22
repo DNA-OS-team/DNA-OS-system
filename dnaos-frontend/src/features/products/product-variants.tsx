@@ -66,7 +66,7 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
       })
       .catch((error: unknown) => {
         if (isMounted) {
-          setFormError(error instanceof Error ? error.message : "Unable to load variants");
+          setFormError(error instanceof Error ? error.message : "ไม่สามารถโหลดตัวแปรได้");
         }
       })
       .finally(() => {
@@ -94,7 +94,7 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
       form.reset({ name: "", unit: "", specsJson: "", isActive: true });
       await refreshVariants();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save variant");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกตัวแปรได้");
     }
   }
 
@@ -115,21 +115,21 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
         href={`/admin/products/${productId}`}
       >
         <ArrowLeft />
-        Product details
+        รายละเอียดสินค้า
       </Link>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          {product?.name ?? "Product"} variants
+          {product?.name ?? "สินค้า"} ตัวแปร
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage sellable variants and specs. Supplier prices stay separate.
+          จัดการตัวแปรและข้อมูลจำเพาะ ราคา supplier แยกต่างหาก
         </p>
       </div>
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Variant action failed</AlertTitle>
+          <AlertTitle>ดำเนินการตัวแปรไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
@@ -137,15 +137,15 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>{editingVariant ? "Edit variant" : "Add variant"}</CardTitle>
+            <CardTitle>{editingVariant ? "แก้ไขตัวแปร" : "เพิ่มตัวแปร"}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <Field message={form.formState.errors.name?.message}>
-              <Label htmlFor="name">Variant name</Label>
+              <Label htmlFor="name">ชื่อตัวแปร</Label>
               <Input id="name" {...form.register("name")} />
             </Field>
             <Field message={form.formState.errors.unit?.message}>
-              <Label htmlFor="unit">Variant unit</Label>
+              <Label htmlFor="unit">หน่วยตัวแปร</Label>
               <Input id="unit" {...form.register("unit")} />
             </Field>
             <Field
@@ -166,7 +166,7 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
                 checked={isActive}
                 onCheckedChange={(checked) => form.setValue("isActive", checked)}
               />
-              <Label htmlFor="isActive">Active variant</Label>
+              <Label htmlFor="isActive">ตัวแปรใช้งานอยู่</Label>
             </div>
           </CardContent>
           <CardFooter className="justify-end gap-2">
@@ -179,12 +179,12 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
                   form.reset({ name: "", unit: "", specsJson: "", isActive: true });
                 }}
               >
-                Cancel
+                ยกเลิก
               </Button>
             ) : null}
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Plus />
-              {form.formState.isSubmitting ? "Saving..." : "Save variant"}
+              {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกตัวแปร"}
             </Button>
           </CardFooter>
         </Card>
@@ -192,10 +192,10 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
 
       <div className="grid gap-3">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading variants...</p>
+          <p className="text-sm text-muted-foreground">กำลังโหลดตัวแปร...</p>
         ) : null}
         {!isLoading && variants.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No variants yet.</p>
+          <p className="text-sm text-muted-foreground">ยังไม่มีตัวแปร</p>
         ) : null}
         {variants.map((variant) => (
           <Card key={variant.id}>
@@ -204,10 +204,10 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
                 <div className="flex items-center gap-2">
                   <div className="font-medium">{variant.name}</div>
                   <Badge variant={variant.isActive ? "secondary" : "outline"}>
-                    {variant.isActive ? "Active" : "Inactive"}
+                    {variant.isActive ? "ใช้งาน" : "ไม่ใช้งาน"}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">Unit: {variant.unit}</p>
+                <p className="text-sm text-muted-foreground">หน่วย: {variant.unit}</p>
                 <pre className="max-w-xl overflow-x-auto rounded-md bg-muted p-2 text-xs text-muted-foreground">
                   {JSON.stringify(variant.specs ?? {}, null, 2)}
                 </pre>
@@ -218,7 +218,7 @@ export function ProductVariants({ productId }: ProductVariantsProps) {
                 size="sm"
                 onClick={() => startEdit(variant)}
               >
-                Edit
+                แก้ไข
               </Button>
             </CardContent>
           </Card>

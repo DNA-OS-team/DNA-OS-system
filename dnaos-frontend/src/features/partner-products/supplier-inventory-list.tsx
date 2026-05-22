@@ -81,7 +81,7 @@ export function SupplierInventoryList() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load supplier inventory"
+            : "ไม่สามารถโหลดคลังสินค้าได้"
         );
       }
     } finally {
@@ -108,7 +108,7 @@ export function SupplierInventoryList() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to update supplier inventory"
+          : "ไม่สามารถอัปเดตคลังสินค้าได้"
       );
     } finally {
       setSavingId(null);
@@ -135,30 +135,30 @@ export function SupplierInventoryList() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          Supplier inventory
+          คลังสินค้าซัพพลายเออร์
         </h1>
         <p className="text-sm text-muted-foreground">
-          Update approved supplier stock. Every stock change creates a movement.
+          อัปเดตสต็อกซัพพลายเออร์ที่อนุมัติแล้ว ทุกการเปลี่ยนแปลงสต็อกจะบันทึกเป็น movement
         </p>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Inventory action failed</AlertTitle>
+          <AlertTitle>ดำเนินการคลังสินค้าไม่สำเร็จ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Inventory filters</CardTitle>
+          <CardTitle>ตัวกรองคลังสินค้า</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search supplier or product"
+              placeholder="ค้นหาซัพพลายเออร์หรือสินค้า"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -168,40 +168,40 @@ export function SupplierInventoryList() {
               checked={lowStockOnly}
               onCheckedChange={(checked) => setLowStockOnly(checked === true)}
             />
-            Low stock only
+            สต็อกต่ำเท่านั้น
           </label>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Stock register</CardTitle>
+          <CardTitle>ทะเบียนสต็อก</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Available</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Low threshold</TableHead>
-                <TableHead>Note</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>สินค้า</TableHead>
+                <TableHead>ซัพพลายเออร์</TableHead>
+                <TableHead>คงเหลือ</TableHead>
+                <TableHead>สต็อก</TableHead>
+                <TableHead>เกณฑ์ต่ำ</TableHead>
+                <TableHead>หมายเหตุ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-muted-foreground">
-                    Loading inventory...
+                    กำลังโหลดคลังสินค้า...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && inventories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-muted-foreground">
-                    No supplier inventory found.
+                    ไม่พบคลังสินค้า
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -234,7 +234,7 @@ export function SupplierInventoryList() {
                           {formatNumber(inventory.availableQty)} {inventory.unit}
                         </div>
                         {isLowStock ? (
-                          <Badge variant="outline">Low stock</Badge>
+                          <Badge variant="outline">สต็อกต่ำ</Badge>
                         ) : null}
                       </div>
                     </TableCell>
@@ -269,7 +269,7 @@ export function SupplierInventoryList() {
                     <TableCell>
                       <Input
                         value={draft?.note ?? ""}
-                        placeholder="Adjustment note"
+                        placeholder="หมายเหตุการปรับสต็อก"
                         onChange={(event) =>
                           updateDraft(
                             inventory.supplierProductId,
@@ -287,7 +287,7 @@ export function SupplierInventoryList() {
                         onClick={() => saveInventory(inventory)}
                       >
                         <Save />
-                        {savingId === inventory.supplierProductId ? "Saving" : "Save"}
+                        {savingId === inventory.supplierProductId ? "กำลังบันทึก" : "บันทึก"}
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -90,7 +90,7 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load documents"
+            : "ไม่สามารถโหลดเอกสารได้"
         );
       }
     } finally {
@@ -115,7 +115,7 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to create document group"
+          : "ไม่สามารถสร้างชุดเอกสารได้"
       );
     }
   }
@@ -127,17 +127,17 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
         href={`/admin/projects/${projectNo}`}
       >
         <ArrowLeft />
-        Project
+        โปรเจกต์
       </Link>
 
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
           <p className="font-mono text-sm text-muted-foreground">{projectNo}</p>
           <h1 className="text-2xl font-semibold tracking-normal">
-            Project documents
+            เอกสารโปรเจกต์
           </h1>
           <p className="text-sm text-muted-foreground">
-            {project?.title ?? "Document groups and reference links"}
+            {project?.title ?? "ชุดเอกสารและลิงก์อ้างอิง"}
           </p>
         </div>
         <Link
@@ -145,13 +145,13 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
           href="/admin/documents/search"
         >
           <Link2 />
-          Search references
+          ค้นหาเอกสาร
         </Link>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Document action failed</AlertTitle>
+          <AlertTitle>ดำเนินการเอกสารไม่สำเร็จ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
@@ -159,19 +159,19 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>Create document group</CardTitle>
+            <CardTitle>สร้างชุดเอกสาร</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-[1fr_220px_180px]">
             <Field message={form.formState.errors.title?.message}>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">ชื่อ</Label>
               <Input id="title" {...form.register("title")} />
             </Field>
             <Field message={form.formState.errors.rootOrderNo?.message}>
-              <Label htmlFor="rootOrderNo">Root order no</Label>
+              <Label htmlFor="rootOrderNo">หมายเลข order หลัก</Label>
               <Input id="rootOrderNo" {...form.register("rootOrderNo")} />
             </Field>
             <Field message={form.formState.errors.status?.message}>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">สถานะ</Label>
               <Select
                 value={status}
                 onValueChange={(value) =>
@@ -194,7 +194,7 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
           <CardFooter className="justify-end">
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <FolderPlus />
-              {form.formState.isSubmitting ? "Creating..." : "Create group"}
+              {form.formState.isSubmitting ? "กำลังสร้าง..." : "สร้างชุดเอกสาร"}
             </Button>
           </CardFooter>
         </Card>
@@ -202,31 +202,31 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Document groups</CardTitle>
+          <CardTitle>ชุดเอกสาร</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Group</TableHead>
-                <TableHead>Root order</TableHead>
-                <TableHead>References</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>กลุ่ม</TableHead>
+                <TableHead>Order หลัก</TableHead>
+                <TableHead>เอกสารอ้างอิง</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground">
-                    Loading document groups...
+                    กำลังโหลดชุดเอกสาร...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && documentGroups.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground">
-                    No document groups yet.
+                    ยังไม่มีชุดเอกสาร
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -250,7 +250,7 @@ export function ProjectDocuments({ projectNo }: ProjectDocumentsProps) {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/document-groups/${group.groupNo}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>

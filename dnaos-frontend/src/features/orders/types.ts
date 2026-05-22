@@ -144,3 +144,50 @@ export type Boq = {
   updatedAt: string;
   items: BoqItem[];
 };
+
+export type QuotationStatus =
+  | "DRAFT"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "SENT"
+  | "CONFIRMED"
+  | "REJECTED"
+  | "CANCELLED"
+  | "EXPIRED";
+
+export type QuotationItem = {
+  id: string;
+  quotationId: string;
+  customerOrderItemId: string;
+  productVariantId: string;
+  description: string | null;
+  quantity: string | number;
+  unit: string;
+  unitPrice: string | number;
+  totalPrice: string | number;
+  sortOrder: number;
+  createdAt: string;
+  customerOrderItem?: CustomerOrderItem;
+  productVariant?: ProductVariantOption;
+};
+
+export type Quotation = {
+  id: string;
+  quotationNo: string;
+  documentGroupId: string;
+  customerOrderId: string;
+  customerCompanyId: string;
+  boqId: string;
+  status: QuotationStatus;
+  subtotal: string | number;
+  vatRate: string | number;
+  vatAmount: string | number;
+  totalAmount: string | number;
+  validUntil: string | null;
+  notes: string | null;
+  requiresApproval: boolean;
+  approvalReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: QuotationItem[];
+};

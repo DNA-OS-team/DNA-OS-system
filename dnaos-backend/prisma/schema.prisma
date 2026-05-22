@@ -132,6 +132,17 @@ enum BoqStatus {
   CANCELLED
 }
 
+enum QuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
 model Company {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -159,6 +170,7 @@ model Company {
   customerOrders        CustomerOrder[]        @relation("CustomerCompanyOrders")
   pricingSnapshotItems  PricingSnapshotItem[]  @relation("SupplierCompanyPricingSnapshotItems")
   boqs                  Boq[]                  @relation("CustomerCompanyBoqs")
+  quotations            Quotation[]            @relation("CustomerCompanyQuotations")
 
   @@map("companies")
 }
@@ -381,6 +393,7 @@ model DocumentGroup {
   references      DocumentReference[]
   customerOrders  CustomerOrder[]
   boqs            Boq[]
+  quotations      Quotation[]
 
   @@index([projectId])
   @@index([projectNo])
@@ -428,6 +441,7 @@ model CustomerOrder {
   items           CustomerOrderItem[]
   pricingSnapshots PricingSnapshot[]
   boqs            Boq[]
+  quotations      Quotation[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -452,6 +466,7 @@ model CustomerOrderItem {
   productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
   pricingSnapshotItems PricingSnapshotItem[]
   boqItems       BoqItem[]
+  quotationItems QuotationItem[]
 
   @@index([customerOrderId])
   @@index([productVariantId])
@@ -576,6 +591,7 @@ model ProductVariant {
   customerOrderItems CustomerOrderItem[]
   pricingSnapshotItems PricingSnapshotItem[]
   boqItems             BoqItem[]
+  quotationItems       QuotationItem[]
 
   @@index([productId])
   @@index([isActive])
@@ -764,6 +780,7 @@ model Boq {
   customerCompany Company         @relation("CustomerCompanyBoqs", fields: [customerCompanyId], references: [id], onDelete: Restrict)
   pricingSnapshot PricingSnapshot @relation(fields: [pricingSnapshotId], references: [id], onDelete: Restrict)
   items           BoqItem[]
+  quotations      Quotation[]
 
   @@index([documentGroupId])
   @@index([customerOrderId])
@@ -798,4 +815,60 @@ model BoqItem {
   @@index([customerOrderItemId])
   @@index([productVariantId])
   @@map("boq_items")
+}
+
+model Quotation {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotationNo       String          @unique @map("quotation_no")
+  documentGroupId   String          @map("document_group_id") @db.Uuid
+  customerOrderId   String          @map("customer_order_id") @db.Uuid
+  customerCompanyId String          @map("customer_company_id") @db.Uuid
+  boqId             String          @map("boq_id") @db.Uuid
+  status            QuotationStatus @default(DRAFT)
+  subtotal          Decimal         @db.Decimal(14, 2)
+  vatRate           Decimal         @default(0.07) @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount         Decimal         @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount       Decimal         @map("total_amount") @db.Decimal(14, 2)
+  validUntil        DateTime?       @map("valid_until")
+  notes             String?
+  requiresApproval  Boolean         @default(false) @map("requires_approval")
+  approvalReason    String?         @map("approval_reason")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  documentGroup   DocumentGroup   @relation(fields: [documentGroupId], references: [id], onDelete: Restrict)
+  customerOrder   CustomerOrder   @relation(fields: [customerOrderId], references: [id], onDelete: Restrict)
+  customerCompany Company         @relation("CustomerCompanyQuotations", fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  boq             Boq             @relation(fields: [boqId], references: [id], onDelete: Restrict)
+  items           QuotationItem[]
+
+  @@index([documentGroupId])
+  @@index([customerOrderId])
+  @@index([customerCompanyId])
+  @@index([boqId])
+  @@index([status])
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotationId         String   @map("quotation_id") @db.Uuid
+  customerOrderItemId String   @map("customer_order_item_id") @db.Uuid
+  productVariantId    String   @map("product_variant_id") @db.Uuid
+  description         String?
+  quantity            Decimal  @db.Decimal(14, 3)
+  unit                String
+  unitPrice           Decimal  @map("unit_price") @db.Decimal(14, 2)
+  totalPrice          Decimal  @map("total_price") @db.Decimal(14, 2)
+  sortOrder           Int      @default(0) @map("sort_order")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  quotation         Quotation         @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  customerOrderItem CustomerOrderItem @relation(fields: [customerOrderItemId], references: [id], onDelete: Restrict)
+  productVariant    ProductVariant    @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+
+  @@index([quotationId])
+  @@index([customerOrderItemId])
+  @@index([productVariantId])
+  @@map("quotation_items")
 }

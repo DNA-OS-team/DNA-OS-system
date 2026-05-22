@@ -34,7 +34,7 @@ export function CustomerDetail({ customerId }: CustomerDetailProps) {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load customer"
+              : "ไม่สามารถโหลดลูกค้าได้"
           );
         }
       })
@@ -56,18 +56,18 @@ export function CustomerDetail({ customerId }: CustomerDetailProps) {
         href="/admin/customers"
       >
         <ArrowLeft />
-        Customers
+        ลูกค้า
       </Link>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Customer unavailable</AlertTitle>
+          <AlertTitle>ไม่พบข้อมูลลูกค้า</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading customer...</p>
+        <p className="text-sm text-muted-foreground">กำลังโหลดลูกค้า...</p>
       ) : null}
 
       {customer ? (
@@ -82,7 +82,7 @@ export function CustomerDetail({ customerId }: CustomerDetailProps) {
                 {customer.name}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Update customer company details without changing tenant scope.
+                แก้ไขข้อมูลบริษัทลูกค้าโดยไม่เปลี่ยนขอบเขตบัญชี
               </p>
             </div>
             <div className="flex gap-2">
@@ -91,14 +91,14 @@ export function CustomerDetail({ customerId }: CustomerDetailProps) {
                 href={`/admin/customers/${customer.id}/sites`}
               >
                 <MapPinned />
-                Sites
+                สถานที่
               </Link>
               <Link
                 className={buttonVariants({ variant: "outline" })}
                 href={`/admin/customers/${customer.id}/credit`}
               >
                 <CreditCard />
-                Credit
+                เครดิต
               </Link>
             </div>
           </div>

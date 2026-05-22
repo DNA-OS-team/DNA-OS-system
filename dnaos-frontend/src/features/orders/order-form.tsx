@@ -108,7 +108,7 @@ export function OrderForm({ order }: OrderFormProps) {
       })
       .catch((error: unknown) => {
         if (isMounted) {
-          setFormError(error instanceof Error ? error.message : "Unable to load order options");
+          setFormError(error instanceof Error ? error.message : "ไม่สามารถโหลดตัวเลือก order ได้");
         }
       });
 
@@ -137,7 +137,7 @@ export function OrderForm({ order }: OrderFormProps) {
       router.push(`/admin/orders/${result.order.id}`);
       router.refresh();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save order");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึก order ได้");
     }
   }
 
@@ -159,18 +159,18 @@ export function OrderForm({ order }: OrderFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Order action failed</AlertTitle>
+          <AlertTitle>ดำเนินการ order ไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{order ? "Order details" : "New order"}</CardTitle>
+          <CardTitle>{order ? "รายละเอียด order" : "สร้าง order ใหม่"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field message={form.formState.errors.projectId?.message}>
-            <Label htmlFor="projectId">Project</Label>
+            <Label htmlFor="projectId">โปรเจกต์</Label>
             <Select
               value={projectId}
               onValueChange={(value) => {
@@ -180,7 +180,7 @@ export function OrderForm({ order }: OrderFormProps) {
               }}
             >
               <SelectTrigger id="projectId" className="w-full">
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder="เลือกโปรเจกต์" />
               </SelectTrigger>
               <SelectContent>
                 {options.projects.map((project) => (
@@ -193,7 +193,7 @@ export function OrderForm({ order }: OrderFormProps) {
           </Field>
 
           <Field message={form.formState.errors.status?.message}>
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">สถานะ</Label>
             <Select
               value={status}
               onValueChange={(value) =>
@@ -214,16 +214,16 @@ export function OrderForm({ order }: OrderFormProps) {
           </Field>
 
           <Field message={form.formState.errors.customerCompanyId?.message}>
-            <Label>Customer</Label>
+            <Label>ลูกค้า</Label>
             <Input value={selectedProject?.customerCompany?.name ?? ""} readOnly />
           </Field>
           <Field message={form.formState.errors.customerSiteId?.message}>
-            <Label>Site</Label>
+            <Label>สถานที่</Label>
             <Input value={selectedProject?.customerSite?.siteName ?? ""} readOnly />
           </Field>
 
           <Field message={form.formState.errors.requestedDeliveryAt?.message}>
-            <Label htmlFor="requestedDeliveryAt">Requested delivery</Label>
+            <Label htmlFor="requestedDeliveryAt">วันที่ต้องการส่ง</Label>
             <Input
               id="requestedDeliveryAt"
               type="datetime-local"
@@ -235,7 +235,7 @@ export function OrderForm({ order }: OrderFormProps) {
             className="md:col-span-2"
             message={form.formState.errors.deliveryNote?.message}
           >
-            <Label htmlFor="deliveryNote">Delivery note</Label>
+            <Label htmlFor="deliveryNote">หมายเหตุการจัดส่ง</Label>
             <Textarea id="deliveryNote" rows={3} {...form.register("deliveryNote")} />
           </Field>
         </CardContent>
@@ -243,7 +243,7 @@ export function OrderForm({ order }: OrderFormProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Order items</CardTitle>
+          <CardTitle>รายการสินค้า</CardTitle>
           <Button
             type="button"
             variant="outline"
@@ -258,7 +258,7 @@ export function OrderForm({ order }: OrderFormProps) {
             }
           >
             <Plus />
-            Add item
+            เพิ่มรายการ
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -274,13 +274,13 @@ export function OrderForm({ order }: OrderFormProps) {
               className="grid gap-3 rounded-md border p-3 md:grid-cols-[1fr_120px_120px_auto]"
             >
               <Field message={form.formState.errors.items?.[index]?.productVariantId?.message}>
-                <Label>Product variant</Label>
+                <Label>ตัวแปรสินค้า</Label>
                 <Select
                   value={form.watch(`items.${index}.productVariantId`)}
                   onValueChange={(value) => applyVariant(index, value)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select product" />
+                    <SelectValue placeholder="เลือกสินค้า" />
                   </SelectTrigger>
                   <SelectContent>
                     {options.productVariants.map((variant) => (
@@ -292,7 +292,7 @@ export function OrderForm({ order }: OrderFormProps) {
                 </Select>
               </Field>
               <Field message={form.formState.errors.items?.[index]?.quantity?.message}>
-                <Label>Quantity</Label>
+                <Label>จำนวน</Label>
                 <Input
                   type="number"
                   step="0.001"
@@ -300,7 +300,7 @@ export function OrderForm({ order }: OrderFormProps) {
                 />
               </Field>
               <Field message={form.formState.errors.items?.[index]?.unit?.message}>
-                <Label>Unit</Label>
+                <Label>หน่วย</Label>
                 <Input {...form.register(`items.${index}.unit`)} />
               </Field>
               <div className="flex items-end">
@@ -310,7 +310,7 @@ export function OrderForm({ order }: OrderFormProps) {
                   size="icon"
                   onClick={() => remove(index)}
                   disabled={fields.length === 1}
-                  aria-label="Remove order item"
+                  aria-label="ลบรายการ"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -319,7 +319,7 @@ export function OrderForm({ order }: OrderFormProps) {
                 className="md:col-span-4"
                 message={form.formState.errors.items?.[index]?.description?.message}
               >
-                <Label>Description</Label>
+                <Label>คำอธิบาย</Label>
                 <Input {...form.register(`items.${index}.description`)} />
               </Field>
             </div>
@@ -328,7 +328,7 @@ export function OrderForm({ order }: OrderFormProps) {
         <CardFooter className="justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             <Save />
-            {form.formState.isSubmitting ? "Saving..." : "Save order"}
+            {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึก order"}
           </Button>
         </CardFooter>
       </Card>

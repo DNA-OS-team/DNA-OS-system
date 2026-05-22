@@ -56,7 +56,7 @@ export function CustomerForm({ customer }: CustomerFormProps) {
       router.push(`/admin/customers/${result.customer.id}`);
       router.refresh();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save customer");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกลูกค้าได้");
     }
   }
 
@@ -64,43 +64,43 @@ export function CustomerForm({ customer }: CustomerFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Save failed</AlertTitle>
+          <AlertTitle>บันทึกไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{customer ? "Customer details" : "New customer"}</CardTitle>
+          <CardTitle>{customer ? "รายละเอียดลูกค้า" : "ลูกค้าใหม่"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <FieldError message={form.formState.errors.name?.message}>
-            <Label htmlFor="name">Customer name</Label>
+            <Label htmlFor="name">ชื่อบริษัทลูกค้า</Label>
             <Input id="name" {...form.register("name")} />
           </FieldError>
 
           <FieldError message={form.formState.errors.taxId?.message}>
-            <Label htmlFor="taxId">Tax ID</Label>
+            <Label htmlFor="taxId">เลขที่ผู้เสียภาษี</Label>
             <Input id="taxId" {...form.register("taxId")} />
           </FieldError>
 
           <FieldError message={form.formState.errors.phone?.message}>
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">โทรศัพท์</Label>
             <Input id="phone" {...form.register("phone")} />
           </FieldError>
 
           <FieldError message={form.formState.errors.email?.message}>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">อีเมล</Label>
             <Input id="email" type="email" {...form.register("email")} />
           </FieldError>
 
           <FieldError message={form.formState.errors.bankName?.message}>
-            <Label htmlFor="bankName">Bank name</Label>
+            <Label htmlFor="bankName">ชื่อธนาคาร</Label>
             <Input id="bankName" {...form.register("bankName")} />
           </FieldError>
 
           <FieldError message={form.formState.errors.bankAccountNo?.message}>
-            <Label htmlFor="bankAccountNo">Bank account</Label>
+            <Label htmlFor="bankAccountNo">เลขบัญชีธนาคาร</Label>
             <Input id="bankAccountNo" {...form.register("bankAccountNo")} />
           </FieldError>
 
@@ -108,14 +108,14 @@ export function CustomerForm({ customer }: CustomerFormProps) {
             className="md:col-span-2"
             message={form.formState.errors.address?.message}
           >
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">ที่อยู่</Label>
             <Textarea id="address" rows={3} {...form.register("address")} />
           </FieldError>
         </CardContent>
         <CardFooter className="justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             <Save />
-            {form.formState.isSubmitting ? "Saving..." : "Save customer"}
+            {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกลูกค้า"}
           </Button>
         </CardFooter>
       </Card>

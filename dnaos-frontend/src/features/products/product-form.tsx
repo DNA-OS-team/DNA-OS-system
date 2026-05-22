@@ -72,7 +72,7 @@ export function ProductForm({ product }: ProductFormProps) {
       })
       .catch((error: unknown) => {
         if (isMounted) {
-          setFormError(error instanceof Error ? error.message : "Unable to load categories");
+          setFormError(error instanceof Error ? error.message : "ไม่สามารถโหลดหมวดหมู่ได้");
         }
       });
 
@@ -92,7 +92,7 @@ export function ProductForm({ product }: ProductFormProps) {
       router.push(`/admin/products/${result.product.id}`);
       router.refresh();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save product");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกสินค้าได้");
     }
   }
 
@@ -100,28 +100,28 @@ export function ProductForm({ product }: ProductFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Product action failed</AlertTitle>
+          <AlertTitle>ดำเนินการสินค้าไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{product ? "Product details" : "New product"}</CardTitle>
+          <CardTitle>{product ? "รายละเอียดสินค้า" : "สินค้าใหม่"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field message={form.formState.errors.name?.message}>
-            <Label htmlFor="name">Product name</Label>
+            <Label htmlFor="name">ชื่อสินค้า</Label>
             <Input id="name" {...form.register("name")} />
           </Field>
 
           <Field message={form.formState.errors.defaultUnit?.message}>
-            <Label htmlFor="defaultUnit">Default unit</Label>
+            <Label htmlFor="defaultUnit">หน่วยเริ่มต้น</Label>
             <Input id="defaultUnit" {...form.register("defaultUnit")} />
           </Field>
 
           <Field message={form.formState.errors.categoryId?.message}>
-            <Label htmlFor="categoryId">Category</Label>
+            <Label htmlFor="categoryId">หมวดหมู่</Label>
             <Select
               value={categoryId}
               onValueChange={(value) => {
@@ -131,7 +131,7 @@ export function ProductForm({ product }: ProductFormProps) {
               }}
             >
               <SelectTrigger id="categoryId" className="w-full">
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="เลือกหมวดหมู่" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -149,21 +149,21 @@ export function ProductForm({ product }: ProductFormProps) {
               checked={isActive}
               onCheckedChange={(checked) => form.setValue("isActive", checked)}
             />
-            <Label htmlFor="isActive">Active product</Label>
+            <Label htmlFor="isActive">สินค้าใช้งานอยู่</Label>
           </div>
 
           <Field
             className="md:col-span-2"
             message={form.formState.errors.description?.message}
           >
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">คำอธิบาย</Label>
             <Textarea id="description" rows={3} {...form.register("description")} />
           </Field>
         </CardContent>
         <CardFooter className="justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             <Save />
-            {form.formState.isSubmitting ? "Saving..." : "Save product"}
+            {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกสินค้า"}
           </Button>
         </CardFooter>
       </Card>

@@ -1628,7 +1628,7 @@ Use this section to tell AI what has already been completed.
 [x] customer order created
 [x] pricing engine created
 [x] BOQ created
-[ ] quotation created
+[x] quotation created
 [ ] PO created
 [ ] invoice created
 [ ] receipt created
@@ -1639,13 +1639,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: BOQ foundation
+Current Step: Quotation foundation (Phase 9)
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Quotation foundation (Phase 9)
+Next Step: Supplier PO foundation (Phase 10)
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.

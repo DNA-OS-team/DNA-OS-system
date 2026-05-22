@@ -31,8 +31,8 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      title={theme === "dark" ? "Light mode" : "Dark mode"}
+      aria-label={theme === "dark" ? "สลับเป็นโหมดสว่าง" : "สลับเป็นโหมดมืด"}
+      title={theme === "dark" ? "โหมดสว่าง" : "โหมดมืด"}
     >
       {theme === "dark" ? (
         <Sun className="size-4" aria-hidden="true" />

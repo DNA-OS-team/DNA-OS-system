@@ -47,7 +47,7 @@ export function SuperadminLoginForm() {
       router.push("/admin/customers");
       router.refresh();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to sign in");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถเข้าสู่ระบบได้");
     }
   }
 
@@ -58,8 +58,8 @@ export function SuperadminLoginForm() {
           <ShieldCheck className="size-5" aria-hidden="true" />
         </div>
         <div className="space-y-1.5">
-          <CardTitle className="text-2xl">Superadmin sign in</CardTitle>
-          <CardDescription>DNA OS break-glass access</CardDescription>
+          <CardTitle className="text-2xl">เข้าสู่ระบบ Superadmin</CardTitle>
+          <CardDescription>สิทธิ์เข้าถึงฉุกเฉิน DNA OS</CardDescription>
         </div>
       </CardHeader>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -67,13 +67,13 @@ export function SuperadminLoginForm() {
           {formError ? (
             <Alert variant="destructive">
               <AlertCircle aria-hidden="true" />
-              <AlertTitle>Sign in unavailable</AlertTitle>
+              <AlertTitle>ไม่สามารถเข้าสู่ระบบได้</AlertTitle>
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           ) : null}
 
           <FieldError message={form.formState.errors.username?.message}>
-            <Label htmlFor="superadmin-username">Username</Label>
+            <Label htmlFor="superadmin-username">ชื่อผู้ใช้</Label>
             <Input
               id="superadmin-username"
               type="text"
@@ -84,7 +84,7 @@ export function SuperadminLoginForm() {
           </FieldError>
 
           <FieldError message={form.formState.errors.password?.message}>
-            <Label htmlFor="superadmin-password">Password</Label>
+            <Label htmlFor="superadmin-password">รหัสผ่าน</Label>
             <div className="relative">
               <Input
                 id="superadmin-password"
@@ -99,7 +99,7 @@ export function SuperadminLoginForm() {
                 size="icon"
                 className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
                 onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
               >
                 {showPassword ? (
                   <EyeOff className="size-4" aria-hidden="true" />
@@ -113,10 +113,10 @@ export function SuperadminLoginForm() {
         <CardFooter className="flex-col items-stretch gap-3">
           <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
             <LockKeyhole aria-hidden="true" />
-            {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+            {form.formState.isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Hidden platform recovery access only
+            สิทธิ์กู้คืนระบบสำหรับผู้ดูแลสูงสุดเท่านั้น
           </p>
         </CardFooter>
       </form>

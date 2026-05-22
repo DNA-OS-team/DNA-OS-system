@@ -108,7 +108,7 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load document group"
+            : "ไม่สามารถโหลดชุดเอกสารได้"
         );
       }
     } finally {
@@ -134,7 +134,7 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to create document reference"
+          : "ไม่สามารถสร้างเอกสารอ้างอิงได้"
       );
     }
   }
@@ -150,7 +150,7 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
         }
       >
         <ArrowLeft />
-        Documents
+        เอกสาร
       </Link>
 
       <div>
@@ -164,13 +164,13 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
         </div>
         <p className="font-mono text-sm text-muted-foreground">{groupNo}</p>
         <h1 className="text-2xl font-semibold tracking-normal">
-          {documentGroup?.title ?? "Document group"}
+          {documentGroup?.title ?? "ชุดเอกสาร"}
         </h1>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Document group action failed</AlertTitle>
+          <AlertTitle>ดำเนินการชุดเอกสารไม่สำเร็จ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
@@ -178,19 +178,19 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>Add document reference</CardTitle>
+            <CardTitle>เพิ่มเอกสารอ้างอิง</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <Field message={form.formState.errors.documentId?.message}>
-              <Label htmlFor="documentId">Document no</Label>
+              <Label htmlFor="documentId">หมายเลขเอกสาร</Label>
               <Input
                 id="documentId"
-                placeholder="Leave blank to generate from type"
+                placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ"
                 {...form.register("documentId")}
               />
             </Field>
             <Field message={form.formState.errors.documentType?.message}>
-              <Label htmlFor="documentType">Generate type</Label>
+              <Label htmlFor="documentType">ประเภทเอกสาร</Label>
               <Select
                 value={documentType}
                 onValueChange={(value) =>
@@ -210,11 +210,11 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
               </Select>
             </Field>
             <Field message={form.formState.errors.relatedDocumentId?.message}>
-              <Label htmlFor="relatedDocumentId">Related document no</Label>
+              <Label htmlFor="relatedDocumentId">หมายเลขเอกสารที่เกี่ยวข้อง</Label>
               <Input id="relatedDocumentId" {...form.register("relatedDocumentId")} />
             </Field>
             <Field message={form.formState.errors.relationType?.message}>
-              <Label htmlFor="relationType">Relation</Label>
+              <Label htmlFor="relationType">ความสัมพันธ์</Label>
               <Select
                 value={relationType}
                 onValueChange={(value) =>
@@ -237,7 +237,7 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
           <CardFooter className="justify-end">
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Link2 />
-              {form.formState.isSubmitting ? "Adding..." : "Add reference"}
+              {form.formState.isSubmitting ? "กำลังเพิ่ม..." : "เพิ่มเอกสาร"}
             </Button>
           </CardFooter>
         </Card>
@@ -245,30 +245,30 @@ export function DocumentGroupDetail({ groupNo }: DocumentGroupDetailProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>References</CardTitle>
+          <CardTitle>เอกสารอ้างอิง</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Relation</TableHead>
-                <TableHead>Related document</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>เอกสาร</TableHead>
+                <TableHead>ความสัมพันธ์</TableHead>
+                <TableHead>เอกสารที่เกี่ยวข้อง</TableHead>
+                <TableHead>สร้างเมื่อ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    Loading references...
+                    กำลังโหลดเอกสารอ้างอิง...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && (documentGroup?.references?.length ?? 0) === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    No references yet.
+                    ยังไม่มีเอกสารอ้างอิง
                   </TableCell>
                 </TableRow>
               ) : null}

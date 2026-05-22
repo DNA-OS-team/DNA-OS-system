@@ -34,7 +34,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load product"
+              : "ไม่สามารถโหลดสินค้าได้"
           );
         }
       })
@@ -56,18 +56,18 @@ export function ProductDetail({ productId }: ProductDetailProps) {
         href="/admin/products"
       >
         <ArrowLeft />
-        Products
+        สินค้า
       </Link>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Product unavailable</AlertTitle>
+          <AlertTitle>ไม่พบข้อมูลสินค้า</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading product...</p>
+        <p className="text-sm text-muted-foreground">กำลังโหลดสินค้า...</p>
       ) : null}
 
       {product ? (
@@ -76,7 +76,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
             <div>
               <div className="mb-2 flex items-center gap-2">
                 <Badge variant={product.isActive ? "secondary" : "outline"}>
-                  {product.isActive ? "Active" : "Inactive"}
+                  {product.isActive ? "ใช้งาน" : "ไม่ใช้งาน"}
                 </Badge>
                 <Badge variant="outline">{product.category?.name}</Badge>
               </div>
@@ -84,7 +84,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
                 {product.name}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Maintain product master data without supplier pricing.
+                จัดการข้อมูลสินค้าหลักโดยไม่รวมราคา supplier
               </p>
             </div>
             <Link
@@ -92,7 +92,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
               href={`/admin/products/${product.id}/variants`}
             >
               <Boxes />
-              Variants
+              ตัวแปร
             </Link>
           </div>
           <Separator />

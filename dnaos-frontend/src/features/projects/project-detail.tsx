@@ -34,7 +34,7 @@ export function ProjectDetail({ projectNo }: ProjectDetailProps) {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load project"
+              : "ไม่สามารถโหลดโปรเจกต์ได้"
           );
         }
       })
@@ -56,18 +56,18 @@ export function ProjectDetail({ projectNo }: ProjectDetailProps) {
         href="/admin/projects"
       >
         <ArrowLeft />
-        Projects
+        โปรเจกต์
       </Link>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Project unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลดโปรเจกต์ได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading project...</p>
+        <p className="text-sm text-muted-foreground">กำลังโหลดโปรเจกต์...</p>
       ) : null}
 
       {project ? (
@@ -87,7 +87,7 @@ export function ProjectDetail({ projectNo }: ProjectDetailProps) {
                 {project.title}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Site: {project.customerSite?.siteName ?? "-"}
+                สถานที่: {project.customerSite?.siteName ?? "-"}
               </p>
             </div>
             <Link
@@ -95,7 +95,7 @@ export function ProjectDetail({ projectNo }: ProjectDetailProps) {
               href={`/admin/projects/${project.projectNo}/documents`}
             >
               <Files />
-              Documents
+              เอกสาร
             </Link>
           </div>
           <Separator />

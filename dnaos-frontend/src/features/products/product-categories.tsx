@@ -65,7 +65,7 @@ export function ProductCategories() {
       .catch((error: unknown) => {
         if (isMounted) {
           setFormError(
-            error instanceof Error ? error.message : "Unable to load categories"
+            error instanceof Error ? error.message : "ไม่สามารถโหลดหมวดหมู่ได้"
           );
         }
       })
@@ -94,7 +94,7 @@ export function ProductCategories() {
       form.reset({ name: "", description: "", sortOrder: "0" });
       await refreshCategories();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save category");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกหมวดหมู่ได้");
     }
   }
 
@@ -114,21 +114,21 @@ export function ProductCategories() {
         href="/admin/products"
       >
         <ArrowLeft />
-        Products
+        สินค้า
       </Link>
 
       <div>
         <h1 className="text-2xl font-semibold tracking-normal">
-          Product categories
+          หมวดหมู่สินค้า
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage category grouping for product master data.
+          จัดการหมวดหมู่ข้อมูลสินค้าหลัก
         </p>
       </div>
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Category action failed</AlertTitle>
+          <AlertTitle>ดำเนินการหมวดหมู่ไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
@@ -137,23 +137,23 @@ export function ProductCategories() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {editingCategory ? "Edit category" : "Create category"}
+              {editingCategory ? "แก้ไขหมวดหมู่" : "สร้างหมวดหมู่"}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-[1fr_160px]">
             <Field message={form.formState.errors.name?.message}>
-              <Label htmlFor="name">Category name</Label>
+              <Label htmlFor="name">ชื่อหมวดหมู่</Label>
               <Input id="name" {...form.register("name")} />
             </Field>
             <Field message={form.formState.errors.sortOrder?.message}>
-              <Label htmlFor="sortOrder">Sort order</Label>
+              <Label htmlFor="sortOrder">ลำดับการแสดง</Label>
               <Input id="sortOrder" inputMode="numeric" {...form.register("sortOrder")} />
             </Field>
             <Field
               className="md:col-span-2"
               message={form.formState.errors.description?.message}
             >
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">คำอธิบาย</Label>
               <Textarea id="description" rows={2} {...form.register("description")} />
             </Field>
           </CardContent>
@@ -167,12 +167,12 @@ export function ProductCategories() {
                   form.reset({ name: "", description: "", sortOrder: "0" });
                 }}
               >
-                Cancel
+                ยกเลิก
               </Button>
             ) : null}
             <Button type="submit" disabled={form.formState.isSubmitting}>
               <Save />
-              {form.formState.isSubmitting ? "Saving..." : "Save category"}
+              {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกหมวดหมู่"}
             </Button>
           </CardFooter>
         </Card>
@@ -180,30 +180,30 @@ export function ProductCategories() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Categories</CardTitle>
+          <CardTitle>หมวดหมู่</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Products</TableHead>
-                <TableHead>Sort</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ชื่อ</TableHead>
+                <TableHead>สินค้า</TableHead>
+                <TableHead>ลำดับ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    Loading categories...
+                    กำลังโหลดหมวดหมู่...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!isLoading && categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    No categories yet.
+                    ยังไม่มีหมวดหมู่
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -212,7 +212,7 @@ export function ProductCategories() {
                   <TableCell>
                     <div className="font-medium">{category.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {category.description || "No description"}
+                      {category.description || "ไม่มีคำอธิบาย"}
                     </div>
                   </TableCell>
                   <TableCell>{category.productCount ?? 0}</TableCell>
@@ -224,7 +224,7 @@ export function ProductCategories() {
                       size="sm"
                       onClick={() => startEdit(category)}
                     >
-                      Edit
+                      แก้ไข
                     </Button>
                   </TableCell>
                 </TableRow>

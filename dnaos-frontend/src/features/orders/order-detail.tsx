@@ -11,6 +11,7 @@ import { getOrder } from "./order-api";
 import { BoqPanel } from "./boq-panel";
 import { OrderForm } from "./order-form";
 import { PricingPanel } from "./pricing-panel";
+import { QuotationPanel } from "./quotation-panel";
 import type { CustomerOrder } from "./types";
 
 type OrderDetailProps = {
@@ -100,6 +101,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
           <Separator />
           <PricingPanel orderId={order.id} />
           <BoqPanel orderId={order.id} />
+          <QuotationPanel orderId={order.id} />
           <OrderForm order={order} />
         </>
       ) : null}

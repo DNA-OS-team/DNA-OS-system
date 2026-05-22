@@ -67,7 +67,7 @@ export function AdminDashboard() {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load dashboard"
+              : "ไม่สามารถโหลดแดชบอร์ดได้"
           );
         }
       })
@@ -87,10 +87,10 @@ export function AdminDashboard() {
       <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
         <div>
           <h1 className="text-2xl font-semibold tracking-normal">
-            Admin dashboard
+            แดชบอร์ด Admin
           </h1>
           <p className="text-sm text-muted-foreground">
-            Operational overview for customers, projects, partner approvals, and stock.
+            ภาพรวมการดำเนินงาน ลูกค้า โปรเจกต์ การอนุมัติ และสต็อก
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -100,28 +100,28 @@ export function AdminDashboard() {
             href="/admin/orders"
           >
             <ClipboardList />
-            Orders
+            คำสั่งซื้อ
           </Link>
           <Link
             className={buttonVariants({ variant: "outline", size: "sm" })}
             href="/admin/documents/search"
           >
             <FileSearch />
-            Documents
+            เอกสาร
           </Link>
           <Link
             className={buttonVariants({ variant: "outline", size: "sm" })}
             href="/admin/projects/new"
           >
             <FolderKanban />
-            New project
+            โปรเจกต์ใหม่
           </Link>
           <Link
             className={buttonVariants({ size: "sm" })}
             href="/admin/partner-products"
           >
             <PackageCheck />
-            Partner products
+            สินค้าซัพพลายเออร์
           </Link>
         </div>
       </div>
@@ -129,7 +129,7 @@ export function AdminDashboard() {
       {error ? (
         <Alert variant="destructive">
           <AlertTriangle />
-          <AlertTitle>Dashboard unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลดแดชบอร์ดได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
@@ -139,28 +139,28 @@ export function AdminDashboard() {
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Pending partner products</CardTitle>
+            <CardTitle>รอตรวจสอบสินค้าซัพพลายเออร์</CardTitle>
             <Link
               className={buttonVariants({ variant: "outline", size: "sm" })}
               href="/admin/partner-products"
             >
-              Open queue
+              เปิดคิว
             </Link>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead>สินค้า</TableHead>
+                  <TableHead>ซัพพลายเออร์</TableHead>
+                  <TableHead>สต็อก</TableHead>
+                  <TableHead className="text-right">จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? <LoadingRow columns={4} /> : null}
                 {!isLoading && dashboard.pendingPartnerProducts.length === 0 ? (
-                  <EmptyRow columns={4} label="No pending partner products." />
+                  <EmptyRow columns={4} label="ไม่มีสินค้าซัพพลายเออร์ที่รอตรวจสอบ" />
                 ) : null}
                 {dashboard.pendingPartnerProducts.map((item) => (
                   <TableRow key={item.id}>
@@ -179,7 +179,7 @@ export function AdminDashboard() {
                         className={buttonVariants({ variant: "outline", size: "sm" })}
                         href={`/admin/partner-products/${item.id}`}
                       >
-                        Review
+                        ตรวจสอบ
                       </Link>
                     </TableCell>
                   </TableRow>
@@ -191,26 +191,26 @@ export function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Low stock</CardTitle>
+            <CardTitle>สต็อกต่ำ</CardTitle>
             <Link
               className={buttonVariants({ variant: "outline", size: "sm" })}
               href="/admin/supplier-inventory"
             >
-              Inventory
+              คลังสินค้า
             </Link>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Available</TableHead>
+                  <TableHead>รายการ</TableHead>
+                  <TableHead>คงเหลือ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? <LoadingRow columns={2} /> : null}
                 {!isLoading && dashboard.lowStockItems.length === 0 ? (
-                  <EmptyRow columns={2} label="No low stock items." />
+                  <EmptyRow columns={2} label="ไม่มีรายการสต็อกต่ำ" />
                 ) : null}
                 {dashboard.lowStockItems.map((item) => {
                   const product = item.supplierProduct?.productVariant?.product?.name ?? "-";
@@ -227,7 +227,7 @@ export function AdminDashboard() {
                       <TableCell>
                         <div>{formatNumber(item.availableQty)} {item.unit}</div>
                         <Badge variant="outline">
-                          threshold {formatNumber(item.lowStockThreshold)}
+                          เกณฑ์ {formatNumber(item.lowStockThreshold)}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -241,29 +241,29 @@ export function AdminDashboard() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent projects</CardTitle>
+          <CardTitle>โปรเจกต์ล่าสุด</CardTitle>
           <Link
             className={buttonVariants({ variant: "outline", size: "sm" })}
             href="/admin/projects"
           >
-            Projects
+            โปรเจกต์
           </Link>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Site</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>โปรเจกต์</TableHead>
+                <TableHead>ลูกค้า</TableHead>
+                <TableHead>สถานที่</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? <LoadingRow columns={5} /> : null}
               {!isLoading && dashboard.recentProjects.length === 0 ? (
-                <EmptyRow columns={5} label="No projects yet." />
+                <EmptyRow columns={5} label="ยังไม่มีโปรเจกต์" />
               ) : null}
               {dashboard.recentProjects.map((project) => (
                 <TableRow key={project.id}>
@@ -283,7 +283,7 @@ export function AdminDashboard() {
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/projects/${project.projectNo}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -305,37 +305,37 @@ function MetricGrid({
 }) {
   const cards = [
     {
-      label: "Customers",
+      label: "ลูกค้า",
       value: metrics.customers,
       href: "/admin/customers",
       icon: Building2,
     },
     {
-      label: "Suppliers",
+      label: "ซัพพลายเออร์",
       value: metrics.suppliers,
       href: "/admin/partner-products",
       icon: Users,
     },
     {
-      label: "Products",
+      label: "สินค้า",
       value: metrics.products,
       href: "/admin/products",
       icon: Boxes,
     },
     {
-      label: "Projects",
+      label: "โปรเจกต์",
       value: metrics.projects,
       href: "/admin/projects",
       icon: FolderKanban,
     },
     {
-      label: "Document groups",
+      label: "ชุดเอกสาร",
       value: metrics.documentGroups,
       href: "/admin/documents/search",
       icon: ClipboardList,
     },
     {
-      label: "Pending approvals",
+      label: "รออนุมัติ",
       value: metrics.pendingPartnerProducts,
       href: "/admin/partner-products",
       icon: PackageCheck,
@@ -371,7 +371,7 @@ function LoadingRow({ columns }: { columns: number }) {
   return (
     <TableRow>
       <TableCell colSpan={columns} className="text-muted-foreground">
-        Loading...
+        กำลังโหลด...
       </TableCell>
     </TableRow>
   );

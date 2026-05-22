@@ -85,7 +85,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       .catch((error: unknown) => {
         if (isMounted) {
           setFormError(
-            error instanceof Error ? error.message : "Unable to load customers"
+            error instanceof Error ? error.message : "ไม่สามารถโหลดลูกค้าได้"
           );
         }
       });
@@ -106,7 +106,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       router.push(`/admin/projects/${result.project.projectNo}`);
       router.refresh();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Unable to save project");
+      setFormError(error instanceof Error ? error.message : "ไม่สามารถบันทึกโปรเจกต์ได้");
     }
   }
 
@@ -114,23 +114,23 @@ export function ProjectForm({ project }: ProjectFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Project action failed</AlertTitle>
+          <AlertTitle>ดำเนินการโปรเจกต์ไม่สำเร็จ</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{project ? "Project details" : "New project"}</CardTitle>
+          <CardTitle>{project ? "รายละเอียดโปรเจกต์" : "โปรเจกต์ใหม่"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field message={form.formState.errors.title?.message}>
-            <Label htmlFor="title">Project title</Label>
+            <Label htmlFor="title">ชื่อโปรเจกต์</Label>
             <Input id="title" {...form.register("title")} />
           </Field>
 
           <Field message={form.formState.errors.status?.message}>
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">สถานะ</Label>
             <Select
               value={status}
               onValueChange={(value) => form.setValue("status", value as ProjectStatus)}
@@ -149,7 +149,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
           </Field>
 
           <Field message={form.formState.errors.customerCompanyId?.message}>
-            <Label htmlFor="customerCompanyId">Customer</Label>
+            <Label htmlFor="customerCompanyId">ลูกค้า</Label>
             <Select
               value={customerCompanyId}
               onValueChange={(value) => {
@@ -162,7 +162,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
               }}
             >
               <SelectTrigger id="customerCompanyId" className="w-full">
-                <SelectValue placeholder="Select customer" />
+                <SelectValue placeholder="เลือกลูกค้า" />
               </SelectTrigger>
               <SelectContent>
                 {customers.map((customer) => (
@@ -175,7 +175,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
           </Field>
 
           <Field message={form.formState.errors.customerSiteId?.message}>
-            <Label htmlFor="customerSiteId">Site</Label>
+            <Label htmlFor="customerSiteId">สถานที่</Label>
             <Select
               value={customerSiteId}
               onValueChange={(value) => {
@@ -186,7 +186,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
               disabled={!selectedCustomer}
             >
               <SelectTrigger id="customerSiteId" className="w-full">
-                <SelectValue placeholder="Select site" />
+                <SelectValue placeholder="เลือกสถานที่" />
               </SelectTrigger>
               <SelectContent>
                 {(selectedCustomer?.customerSites ?? []).map((site) => (
@@ -201,7 +201,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
         <CardFooter className="justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             <Save />
-            {form.formState.isSubmitting ? "Saving..." : "Save project"}
+            {form.formState.isSubmitting ? "กำลังบันทึก..." : "บันทึกโปรเจกต์"}
           </Button>
         </CardFooter>
       </Card>

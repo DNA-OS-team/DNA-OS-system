@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { calculateBoq } from "../../core/engines/boqEngine.js";
 import { calculatePricing } from "../../core/engines/pricingEngine.js";
+import { calculateQuotation } from "../../core/engines/quotationEngine.js";
 import { getPrisma } from "../db/prisma.js";
 import { requireAdminAccess } from "../services/authService.js";
 import { writeAuditLog } from "../services/auditService.js";
@@ -553,6 +554,122 @@ export async function registerAdminOrderRoutes(app: FastifyInstance) {
     reply.code(201);
     return { boq };
   });
+
+  app.get("/:id/quotation", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const order = await getOrderOr404(id, reply);
+
+    if (!order) {
+      return reply;
+    }
+
+    const prisma = getPrisma();
+    const quotations = await prisma.quotation.findMany({
+      where: { customerOrderId: id },
+      include: quotationInclude,
+      orderBy: { createdAt: "desc" }
+    });
+
+    return { quotations };
+  });
+
+  app.post("/:id/quotation", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const order = await getOrderOr404(id, reply);
+
+    if (!order) {
+      return reply;
+    }
+
+    if (order.items.length === 0) {
+      reply.code(400);
+      return { error: "Order ต้องมีรายการสินค้าอย่างน้อย 1 รายการก่อนสร้าง QT" };
+    }
+
+    const prisma = getPrisma();
+    const latestBoq = await prisma.boq.findFirst({
+      where: { customerOrderId: id, status: { in: ["DRAFT", "FINALIZED"] } },
+      include: { items: true },
+      orderBy: { createdAt: "desc" }
+    });
+
+    if (!latestBoq) {
+      reply.code(400);
+      return { error: "ต้องสร้าง BOQ ก่อนสร้าง QT" };
+    }
+
+    const creditProfile = await prisma.customerCreditProfile.findUnique({
+      where: { customerCompanyId: order.customerCompanyId }
+    });
+
+    const qtResult = calculateQuotation({
+      boqItems: latestBoq.items,
+      customerCreditStatus: creditProfile?.creditStatus ?? null
+    });
+
+    const quotationNo = await generateDocumentNo(order.project.projectNo, "QT");
+
+    const quotation = await prisma.$transaction(async (tx) => {
+      const createdQt = await tx.quotation.create({
+        data: {
+          quotationNo,
+          documentGroupId: order.documentGroupId,
+          customerOrderId: order.id,
+          customerCompanyId: order.customerCompanyId,
+          boqId: latestBoq.id,
+          status: "DRAFT",
+          subtotal: qtResult.subtotal,
+          vatRate: qtResult.vatRate,
+          vatAmount: qtResult.vatAmount,
+          totalAmount: qtResult.totalAmount,
+          requiresApproval: qtResult.requiresApproval,
+          approvalReason: qtResult.approvalReason,
+          items: {
+            create: qtResult.items.map((item) => ({
+              customerOrderItemId: item.customerOrderItemId,
+              productVariantId: item.productVariantId,
+              description: item.description,
+              quantity: item.quantity,
+              unit: item.unit,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              sortOrder: item.sortOrder
+            }))
+          }
+        },
+        include: quotationInclude
+      });
+
+      await tx.documentReference.create({
+        data: {
+          documentGroupId: order.documentGroupId,
+          documentId: quotationNo,
+          relatedDocumentId: latestBoq.boqNo,
+          relationType: "GENERATED_FROM"
+        }
+      });
+
+      if (!["CONFIRMED", "CANCELLED"].includes(order.status)) {
+        await tx.customerOrder.update({
+          where: { id: order.id },
+          data: { status: "QUOTED" }
+        });
+      }
+
+      return createdQt;
+    });
+
+    await writeAuditLog({
+      companyId: order.customerCompanyId,
+      entityType: "quotation",
+      entityId: quotation.id,
+      action: "CREATE",
+      newValue: quotation
+    });
+
+    reply.code(201);
+    return { quotation };
+  });
 }
 
 const orderInclude = {
@@ -606,6 +723,26 @@ const pricingSnapshotInclude = {
 };
 
 const boqInclude = {
+  items: {
+    include: {
+      customerOrderItem: true,
+      productVariant: {
+        include: {
+          product: {
+            include: {
+              category: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      sortOrder: "asc" as const
+    }
+  }
+};
+
+const quotationInclude = {
   items: {
     include: {
       customerOrderItem: true,

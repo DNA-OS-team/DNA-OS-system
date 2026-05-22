@@ -42,7 +42,7 @@ export function CustomerList() {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Unable to load customers"
+              : "ไม่สามารถโหลดลูกค้าได้"
           );
         }
       })
@@ -61,44 +61,44 @@ export function CustomerList() {
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal">Customers</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">ลูกค้า</h1>
           <p className="text-sm text-muted-foreground">
-            Manage customer companies, delivery sites, and credit settings.
+            จัดการบริษัทลูกค้า สถานที่จัดส่ง และเครดิต
           </p>
         </div>
         <Link className={buttonVariants()} href="/admin/customers/new">
           <Plus />
-          New customer
+          ลูกค้าใหม่
         </Link>
       </div>
 
       {error ? (
         <Alert variant="destructive">
-          <AlertTitle>Customers unavailable</AlertTitle>
+          <AlertTitle>ไม่สามารถโหลดข้อมูลลูกค้าได้</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Customer directory</CardTitle>
+          <CardTitle>รายชื่อลูกค้า</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sites</TableHead>
-                <TableHead>Credit</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ชื่อ</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead>สถานที่</TableHead>
+                <TableHead>เครดิต</TableHead>
+                <TableHead className="text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground">
-                    Loading customers...
+                    กำลังโหลดลูกค้า...
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -106,7 +106,7 @@ export function CustomerList() {
               {!isLoading && customers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground">
-                    No customers yet.
+                    ยังไม่มีลูกค้า
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -119,7 +119,7 @@ export function CustomerList() {
                       <div>
                         <div className="font-medium">{customer.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {customer.email || customer.phone || "No contact yet"}
+                          {customer.email || customer.phone || "ยังไม่มีข้อมูลติดต่อ"}
                         </div>
                       </div>
                     </div>
@@ -129,14 +129,14 @@ export function CustomerList() {
                   </TableCell>
                   <TableCell>{customer.siteCount ?? 0}</TableCell>
                   <TableCell>
-                    {customer.customerCreditProfile ? "Configured" : "Not set"}
+                    {customer.customerCreditProfile ? "ตั้งค่าแล้ว" : "ยังไม่ตั้งค่า"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Link
                       className={buttonVariants({ variant: "outline", size: "sm" })}
                       href={`/admin/customers/${customer.id}`}
                     >
-                      Open
+                      เปิด
                     </Link>
                   </TableCell>
                 </TableRow>
