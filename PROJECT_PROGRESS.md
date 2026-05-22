@@ -1629,7 +1629,7 @@ Use this section to tell AI what has already been completed.
 [x] pricing engine created
 [x] BOQ created
 [x] quotation created
-[ ] PO created
+[x] PO created
 [ ] invoice created
 [ ] receipt created
 [ ] payment created
@@ -1639,13 +1639,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Quotation foundation (Phase 9)
+Current Step: Supplier PO foundation (Phase 10)
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Supplier PO foundation (Phase 10)
+Next Step: Transport / Fleet Job foundation (Phase 11)
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
@@ -1678,6 +1678,11 @@ Completed: Boq and BoqItem models and migration are ready.
 Completed: boqEngine calculates subtotal, VAT (7%), and total from pricing snapshot items.
 Completed: Admin order detail can create BOQ from latest pricing snapshot and view all BOQs.
 Completed: BOQ panel shows internal cost, sell price, margin per item, and VAT summary.
+Completed: SupplierPurchaseOrder and SupplierPurchaseOrderItem models and migration are ready.
+Completed: orderSplitEngine groups confirmed order items by supplier and blocks missing supplier items.
+Completed: procurementService creates supplier PO documents per supplier and blocks duplicate PO generation.
+Completed: Admin order detail can create and view Supplier PO records.
+Completed: Partner Supplier PO API only returns PO records for the supplier company in the LINE session.
 ```
 
 ---

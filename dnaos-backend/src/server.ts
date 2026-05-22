@@ -9,9 +9,11 @@ import { registerAdminDocumentRoutes } from "./server/routes/admin-documents.rou
 import { registerAdminPartnerProductRoutes } from "./server/routes/admin-partner-products.routes.js";
 import { registerAdminOrderRoutes } from "./server/routes/admin-orders.routes.js";
 import { registerAdminProductRoutes } from "./server/routes/admin-products.routes.js";
+import { registerAdminProcurementRoutes } from "./server/routes/admin-procurement.routes.js";
 import { registerAdminProjectRoutes } from "./server/routes/admin-projects.routes.js";
 import { registerAuthRoutes } from "./server/routes/auth.routes.js";
 import { registerHealthRoutes } from "./server/routes/health.routes.js";
+import { registerPartnerPurchaseOrderRoutes } from "./server/routes/partner-purchase-orders.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -35,10 +37,12 @@ export async function buildServer() {
   await app.register(registerAdminDashboardRoutes, { prefix: "/admin/dashboard" });
   await app.register(registerAdminCustomerRoutes, { prefix: "/admin/customers" });
   await app.register(registerAdminOrderRoutes, { prefix: "/admin/orders" });
+  await app.register(registerAdminProcurementRoutes, { prefix: "/admin/procurement" });
   await app.register(registerAdminProductRoutes, { prefix: "/admin/products" });
   await app.register(registerAdminProjectRoutes, { prefix: "/admin/projects" });
   await app.register(registerAdminDocumentRoutes, { prefix: "/admin" });
   await app.register(registerAdminPartnerProductRoutes, { prefix: "/admin" });
+  await app.register(registerPartnerPurchaseOrderRoutes, { prefix: "/partner/purchase-orders" });
 
   return app;
 }

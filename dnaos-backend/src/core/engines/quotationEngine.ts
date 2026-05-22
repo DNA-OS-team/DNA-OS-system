@@ -1,11 +1,21 @@
-import type { BoqItem } from "@prisma/client";
-
 const DEFAULT_VAT_RATE = 0.07;
 const APPROVAL_MIN_MARGIN_PERCENT = 10;
 const APPROVAL_MIN_AMOUNT = 500_000;
 
+type QuotationSourceBoqItem = {
+  customerOrderItemId: string;
+  productVariantId: string;
+  description: string | null;
+  quantity: { toString: () => string };
+  unit: string;
+  sellUnitPrice: { toString: () => string };
+  sellTotalPrice: { toString: () => string };
+  marginPercent: { toString: () => string };
+  sortOrder: number;
+};
+
 export type QuotationEngineInput = {
-  boqItems: BoqItem[];
+  boqItems: QuotationSourceBoqItem[];
   customerCreditStatus?: string | null;
 };
 

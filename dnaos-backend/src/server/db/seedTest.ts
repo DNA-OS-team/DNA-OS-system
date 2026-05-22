@@ -84,7 +84,7 @@ async function main() {
       address: "789 Bangkapi, Bangkok 10240",
       province: "Bangkok",
       district: "Bangkapi",
-      subDistrict: "Khlong Chan",
+      subdistrict: "Khlong Chan",
       postalCode: "10240",
       contactName: "คุณสมชาย ใจดี",
       contactPhone: "081-234-5678",
@@ -99,9 +99,9 @@ async function main() {
     create: {
       customerCompanyId: customerCompany.id,
       creditLimit: 5000000,
-      creditStatus: "ACTIVE",
+      creditStatus: "NORMAL",
       paymentBehaviorScore: 85,
-      creditDays: 30,
+      creditTermDays: 30,
     },
   });
   console.log(`✅ Credit: limit 5,000,000 THB / 30 วัน`);

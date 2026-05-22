@@ -75,7 +75,10 @@ export default async function LineConnectPage({
 }
 
 function buildLineStartUrl(input: { next?: string; token?: string }) {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100";
+  const apiBaseUrl =
+    process.env.BACKEND_API_URL ??
+    process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+    "http://localhost:5100";
   const url = new URL("/auth/line/start", apiBaseUrl);
 
   if (input.next) {

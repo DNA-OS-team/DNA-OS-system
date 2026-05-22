@@ -118,6 +118,7 @@ enum CustomerOrderStatus {
   PRICING
   QUOTED
   CONFIRMED
+  PROCUREMENT
   CANCELLED
 }
 
@@ -141,6 +142,19 @@ enum QuotationStatus {
   REJECTED
   CANCELLED
   EXPIRED
+}
+
+enum SupplierPoStatus {
+  DRAFT
+  SENT
+  ACKNOWLEDGED
+  CONFIRMED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  BILLED
+  PAID
+  CANCELLED
+  REJECTED
 }
 
 model Company {
@@ -171,6 +185,7 @@ model Company {
   pricingSnapshotItems  PricingSnapshotItem[]  @relation("SupplierCompanyPricingSnapshotItems")
   boqs                  Boq[]                  @relation("CustomerCompanyBoqs")
   quotations            Quotation[]            @relation("CustomerCompanyQuotations")
+  supplierPurchaseOrders SupplierPurchaseOrder[] @relation("SupplierCompanyPurchaseOrders")
 
   @@map("companies")
 }
@@ -394,6 +409,7 @@ model DocumentGroup {
   customerOrders  CustomerOrder[]
   boqs            Boq[]
   quotations      Quotation[]
+  supplierPurchaseOrders SupplierPurchaseOrder[]
 
   @@index([projectId])
   @@index([projectNo])
@@ -442,6 +458,7 @@ model CustomerOrder {
   pricingSnapshots PricingSnapshot[]
   boqs            Boq[]
   quotations      Quotation[]
+  supplierPurchaseOrders SupplierPurchaseOrder[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -467,6 +484,7 @@ model CustomerOrderItem {
   pricingSnapshotItems PricingSnapshotItem[]
   boqItems       BoqItem[]
   quotationItems QuotationItem[]
+  supplierPurchaseOrderItems SupplierPurchaseOrderItem[]
 
   @@index([customerOrderId])
   @@index([productVariantId])
@@ -592,6 +610,7 @@ model ProductVariant {
   pricingSnapshotItems PricingSnapshotItem[]
   boqItems             BoqItem[]
   quotationItems       QuotationItem[]
+  supplierPurchaseOrderItems SupplierPurchaseOrderItem[]
 
   @@index([productId])
   @@index([isActive])
@@ -617,6 +636,7 @@ model SupplierProduct {
   inventoryMovements SupplierInventoryMovement[]
   partnerProductSubmissions PartnerProductSubmission[]
   pricingSnapshotItems PricingSnapshotItem[]
+  supplierPurchaseOrderItems SupplierPurchaseOrderItem[]
 
   @@index([supplierCompanyId])
   @@index([productVariantId])
@@ -871,4 +891,60 @@ model QuotationItem {
   @@index([customerOrderItemId])
   @@index([productVariantId])
   @@map("quotation_items")
+}
+
+model SupplierPurchaseOrder {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  poNo              String           @unique @map("po_no")
+  documentGroupId   String           @map("document_group_id") @db.Uuid
+  customerOrderId   String           @map("customer_order_id") @db.Uuid
+  supplierCompanyId String           @map("supplier_company_id") @db.Uuid
+  status            SupplierPoStatus @default(DRAFT)
+  subtotal          Decimal          @db.Decimal(14, 2)
+  vatRate           Decimal          @default(0.07) @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount         Decimal          @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount       Decimal          @map("total_amount") @db.Decimal(14, 2)
+  sentAt            DateTime?        @map("sent_at")
+  supplierRespondedAt DateTime?      @map("supplier_responded_at")
+  supplierResponseNote String?       @map("supplier_response_note")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  documentGroup   DocumentGroup @relation(fields: [documentGroupId], references: [id], onDelete: Restrict)
+  customerOrder   CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Restrict)
+  supplierCompany Company       @relation("SupplierCompanyPurchaseOrders", fields: [supplierCompanyId], references: [id], onDelete: Restrict)
+  items           SupplierPurchaseOrderItem[]
+
+  @@unique([customerOrderId, supplierCompanyId])
+  @@index([documentGroupId])
+  @@index([customerOrderId])
+  @@index([supplierCompanyId])
+  @@index([status])
+  @@map("supplier_purchase_orders")
+}
+
+model SupplierPurchaseOrderItem {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierPurchaseOrderId String   @map("supplier_purchase_order_id") @db.Uuid
+  customerOrderItemId     String   @map("customer_order_item_id") @db.Uuid
+  productVariantId        String   @map("product_variant_id") @db.Uuid
+  supplierProductId       String?  @map("supplier_product_id") @db.Uuid
+  description             String?
+  quantity                Decimal  @db.Decimal(14, 3)
+  unit                    String
+  unitCost                Decimal  @map("unit_cost") @db.Decimal(14, 2)
+  totalCost               Decimal  @map("total_cost") @db.Decimal(14, 2)
+  sortOrder               Int      @default(0) @map("sort_order")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  supplierPurchaseOrder SupplierPurchaseOrder @relation(fields: [supplierPurchaseOrderId], references: [id], onDelete: Cascade)
+  customerOrderItem     CustomerOrderItem     @relation(fields: [customerOrderItemId], references: [id], onDelete: Restrict)
+  productVariant        ProductVariant        @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+  supplierProduct       SupplierProduct?      @relation(fields: [supplierProductId], references: [id], onDelete: SetNull)
+
+  @@index([supplierPurchaseOrderId])
+  @@index([customerOrderItemId])
+  @@index([productVariantId])
+  @@index([supplierProductId])
+  @@map("supplier_purchase_order_items")
 }

@@ -306,6 +306,12 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       }
     });
 
+    const session = await createAdminSession({
+      adminId: admin.id
+    });
+
+    reply.header("Set-Cookie", session.cookie);
+
     return {
       superadmin: {
         id: admin.id,

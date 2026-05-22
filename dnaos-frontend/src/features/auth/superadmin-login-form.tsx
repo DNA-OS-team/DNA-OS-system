@@ -44,7 +44,7 @@ export function SuperadminLoginForm() {
         "dnaos_superadmin",
         JSON.stringify(result.superadmin)
       );
-      router.push("/admin/customers");
+      router.push("/admin");
       router.refresh();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "ไม่สามารถเข้าสู่ระบบได้");

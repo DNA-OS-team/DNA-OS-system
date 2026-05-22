@@ -8,6 +8,7 @@ export type CustomerOrderStatus =
   | "PRICING"
   | "QUOTED"
   | "CONFIRMED"
+  | "PROCUREMENT"
   | "CANCELLED";
 
 export type CustomerOrderItem = {
@@ -190,4 +191,55 @@ export type Quotation = {
   createdAt: string;
   updatedAt: string;
   items: QuotationItem[];
+};
+
+export type SupplierPoStatus =
+  | "DRAFT"
+  | "SENT"
+  | "ACKNOWLEDGED"
+  | "CONFIRMED"
+  | "PARTIALLY_FULFILLED"
+  | "FULFILLED"
+  | "BILLED"
+  | "PAID"
+  | "CANCELLED"
+  | "REJECTED";
+
+export type SupplierPurchaseOrderItem = {
+  id: string;
+  supplierPurchaseOrderId: string;
+  customerOrderItemId: string;
+  productVariantId: string;
+  supplierProductId: string | null;
+  description: string | null;
+  quantity: string | number;
+  unit: string;
+  unitCost: string | number;
+  totalCost: string | number;
+  sortOrder: number;
+  createdAt: string;
+  customerOrderItem?: CustomerOrderItem;
+  productVariant?: ProductVariantOption;
+  supplierProduct?: PricingSupplierProduct | null;
+};
+
+export type SupplierPurchaseOrder = {
+  id: string;
+  poNo: string;
+  documentGroupId: string;
+  customerOrderId: string;
+  supplierCompanyId: string;
+  status: SupplierPoStatus;
+  subtotal: string | number;
+  vatRate: string | number;
+  vatAmount: string | number;
+  totalAmount: string | number;
+  sentAt: string | null;
+  supplierRespondedAt: string | null;
+  supplierResponseNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+  supplierCompany?: PricingSupplierCompany;
+  customerOrder?: CustomerOrder;
+  items: SupplierPurchaseOrderItem[];
 };

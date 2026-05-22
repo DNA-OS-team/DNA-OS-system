@@ -1,18 +1,27 @@
 "use client";
 
-import { FileSearch, FolderKanban, Link2, Search } from "lucide-react";
+import { FilePlus2, FileSearch, FolderKanban, Link2, Search } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,8 +30,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { searchDocuments } from "./project-api";
-import type { DocumentSearchResult } from "./types";
+import { createDocumentReference, searchDocuments } from "./project-api";
+import type {
+  DocumentReferenceRelationType,
+  DocumentSearchResult,
+  DocumentTypeCode,
+} from "./types";
 
 const emptyResult: DocumentSearchResult = {
   projects: [],
@@ -30,11 +43,50 @@ const emptyResult: DocumentSearchResult = {
   documentReferences: [],
 };
 
+const documentTypes: DocumentTypeCode[] = ["ORD", "BOQ", "QT", "PO", "INV", "RCP", "PV", "PMT"];
+
+const relationTypes: DocumentReferenceRelationType[] = [
+  "SOURCE",
+  "PARENT",
+  "CHILD",
+  "GENERATED_FROM",
+  "PAID_BY",
+  "SETTLED_BY",
+];
+
+const documentTypeLabels: Record<DocumentTypeCode, string> = {
+  ORD: "ORD - Order",
+  BOQ: "BOQ - ใบปริมาณงานและราคา",
+  QT: "QT - ใบเสนอราคา",
+  PO: "PO - ใบสั่งซื้อ supplier",
+  INV: "INV - ใบแจ้งหนี้",
+  RCP: "RCP - ใบเสร็จรับเงิน",
+  PV: "PV - ใบสำคัญจ่าย",
+  PMT: "PMT - คำสั่งจ่ายเงิน",
+};
+
+const relationTypeLabels: Record<DocumentReferenceRelationType, string> = {
+  SOURCE: "SOURCE - เอกสารต้นทาง",
+  PARENT: "PARENT - เอกสารแม่",
+  CHILD: "CHILD - เอกสารลูก",
+  GENERATED_FROM: "GENERATED_FROM - สร้างจากเอกสารนี้",
+  PAID_BY: "PAID_BY - ชำระโดย",
+  SETTLED_BY: "SETTLED_BY - เคลียร์ยอดโดย",
+};
+
 export function DocumentSearch() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<DocumentSearchResult>(emptyResult);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [issueGroupNo, setIssueGroupNo] = useState("");
+  const [issueDocumentType, setIssueDocumentType] = useState<DocumentTypeCode>("QT");
+  const [issueRelatedDocumentId, setIssueRelatedDocumentId] = useState("");
+  const [issueRelationType, setIssueRelationType] =
+    useState<DocumentReferenceRelationType>("GENERATED_FROM");
+  const [isIssuingDocument, setIsIssuingDocument] = useState(false);
+  const [issueError, setIssueError] = useState<string | null>(null);
+  const [issuedDocumentId, setIssuedDocumentId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +128,42 @@ export function DocumentSearch() {
     };
   }, [query]);
 
+  async function handleIssueDocument(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIssueError(null);
+    setIssuedDocumentId(null);
+
+    if (!issueGroupNo.trim()) {
+      setIssueError("กรุณาระบุเลขชุดเอกสาร");
+      return;
+    }
+
+    if (!issueRelatedDocumentId.trim()) {
+      setIssueError("กรุณาระบุเลขเอกสารอ้างอิง");
+      return;
+    }
+
+    setIsIssuingDocument(true);
+
+    try {
+      const result = await createDocumentReference(issueGroupNo.trim(), {
+        documentType: issueDocumentType,
+        relatedDocumentId: issueRelatedDocumentId.trim(),
+        relationType: issueRelationType,
+      });
+      setIssuedDocumentId(result.documentReference.documentId);
+      setQuery(result.documentReference.documentId);
+    } catch (requestError) {
+      setIssueError(
+        requestError instanceof Error
+          ? requestError.message
+          : "ออกเลขเอกสารไม่สำเร็จ"
+      );
+    } finally {
+      setIsIssuingDocument(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -93,6 +181,104 @@ export function DocumentSearch() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FilePlus2 className="size-5 text-muted-foreground" />
+            ออกเลขเอกสาร
+          </CardTitle>
+          <CardDescription>
+            ใช้สำหรับออกเลขเอกสารและผูกความสัมพันธ์กับชุดเอกสารเดิม เลขเอกสารถูกสร้างจากฝั่ง server เท่านั้น
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {issueError ? (
+            <Alert variant="destructive">
+              <AlertTitle>ออกเลขเอกสารไม่สำเร็จ</AlertTitle>
+              <AlertDescription>{issueError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {issuedDocumentId ? (
+            <Alert>
+              <AlertTitle>ออกเลขเอกสารสำเร็จ</AlertTitle>
+              <AlertDescription>
+                เลขเอกสารใหม่คือ <span className="font-mono">{issuedDocumentId}</span>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          <form className="grid gap-4 lg:grid-cols-[1.1fr_1fr_1.1fr_1fr_auto]" onSubmit={handleIssueDocument}>
+            <div className="space-y-2">
+              <Label htmlFor="issue-group-no">ชุดเอกสาร</Label>
+              <Input
+                id="issue-group-no"
+                value={issueGroupNo}
+                onChange={(event) => setIssueGroupNo(event.target.value)}
+                placeholder="GRP-2026-0001"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>ประเภทเอกสาร</Label>
+              <Select
+                value={issueDocumentType}
+                onValueChange={(value) => setIssueDocumentType(value as DocumentTypeCode)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {documentTypes.map((documentType) => (
+                    <SelectItem key={documentType} value={documentType}>
+                      {documentTypeLabels[documentType]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="issue-related-document">เอกสารอ้างอิง</Label>
+              <Input
+                id="issue-related-document"
+                value={issueRelatedDocumentId}
+                onChange={(event) => setIssueRelatedDocumentId(event.target.value)}
+                placeholder="ORD / BOQ / QT / PO"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>ความสัมพันธ์</Label>
+              <Select
+                value={issueRelationType}
+                onValueChange={(value) =>
+                  setIssueRelationType(value as DocumentReferenceRelationType)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {relationTypes.map((relationType) => (
+                    <SelectItem key={relationType} value={relationType}>
+                      {relationTypeLabels[relationType]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button type="submit" className="w-full" disabled={isIssuingDocument}>
+                <FilePlus2 />
+                {isIssuingDocument ? "กำลังออกเลข..." : "ออกเอกสาร"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -188,12 +374,25 @@ export function DocumentSearch() {
                   <TableCell>{group.projectNo}</TableCell>
                   <TableCell>{group.rootOrderNo ?? "-"}</TableCell>
                   <TableCell className="text-right">
-                    <Link
-                      className={buttonVariants({ variant: "outline", size: "sm" })}
-                      href={`/admin/document-groups/${group.groupNo}`}
-                    >
-                      เปิด
-                    </Link>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setIssueGroupNo(group.groupNo);
+                          setIssueRelatedDocumentId(group.rootOrderNo ?? group.projectNo);
+                        }}
+                      >
+                        ใช้ชุดนี้
+                      </Button>
+                      <Link
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                        href={`/admin/document-groups/${group.groupNo}`}
+                      >
+                        เปิด
+                      </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

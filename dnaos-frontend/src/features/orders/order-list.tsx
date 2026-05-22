@@ -38,6 +38,7 @@ const statuses: Array<"all" | CustomerOrderStatus> = [
   "PRICING",
   "QUOTED",
   "CONFIRMED",
+  "PROCUREMENT",
   "CANCELLED",
 ];
 

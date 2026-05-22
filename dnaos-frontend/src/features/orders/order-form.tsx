@@ -39,6 +39,7 @@ const statuses: CustomerOrderStatus[] = [
   "PRICING",
   "QUOTED",
   "CONFIRMED",
+  "PROCUREMENT",
   "CANCELLED",
 ];
 

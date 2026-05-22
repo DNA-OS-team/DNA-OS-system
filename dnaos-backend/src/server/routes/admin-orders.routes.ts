@@ -10,6 +10,10 @@ import {
   generateDocumentGroupNo,
   generateDocumentNo
 } from "../services/documentNumberingService.js";
+import {
+  createSupplierPOsFromOrder,
+  supplierPurchaseOrderInclude
+} from "../services/procurementService.js";
 
 const orderItemInputSchema = z.object({
   productVariantId: z.string().uuid(),
@@ -22,7 +26,7 @@ const orderInputSchema = z.object({
   projectId: z.string().uuid(),
   customerCompanyId: z.string().uuid(),
   customerSiteId: z.string().uuid(),
-  status: z.enum(["DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "CANCELLED"]).optional().default("DRAFT"),
+  status: z.enum(["DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "PROCUREMENT", "CANCELLED"]).optional().default("DRAFT"),
   requestedDeliveryAt: z.string().datetime().optional().nullable(),
   deliveryNote: z.string().trim().optional().nullable(),
   items: z.array(orderItemInputSchema).min(1, "At least one order item is required")
@@ -30,7 +34,7 @@ const orderInputSchema = z.object({
 
 const listOrdersQuerySchema = z.object({
   q: z.string().trim().optional(),
-  status: z.enum(["all", "DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "CANCELLED"]).optional().default("all")
+  status: z.enum(["all", "DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "PROCUREMENT", "CANCELLED"]).optional().default("all")
 });
 
 const idParamsSchema = z.object({
@@ -669,6 +673,48 @@ export async function registerAdminOrderRoutes(app: FastifyInstance) {
 
     reply.code(201);
     return { quotation };
+  });
+
+  app.get("/:id/purchase-orders", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const order = await getOrderOr404(id, reply);
+
+    if (!order) {
+      return reply;
+    }
+
+    const prisma = getPrisma();
+    const supplierPurchaseOrders = await prisma.supplierPurchaseOrder.findMany({
+      where: { customerOrderId: id },
+      include: supplierPurchaseOrderInclude,
+      orderBy: { createdAt: "desc" }
+    });
+
+    return { supplierPurchaseOrders };
+  });
+
+  app.post("/:id/purchase-orders", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const order = await getOrderOr404(id, reply);
+
+    if (!order) {
+      return reply;
+    }
+
+    try {
+      const supplierPurchaseOrders = await createSupplierPOsFromOrder(id);
+
+      reply.code(201);
+      return { supplierPurchaseOrders };
+    } catch (error) {
+      reply.code(400);
+      return {
+        error:
+          error instanceof Error
+            ? error.message
+            : "สร้าง Supplier PO ไม่สำเร็จ"
+      };
+    }
   });
 }
 
