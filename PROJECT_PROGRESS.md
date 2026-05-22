@@ -1617,6 +1617,11 @@ Use this section to tell AI what has already been completed.
 [x] customer credit model created
 [x] product catalog created
 [x] supplier product created
+[x] project model created
+[x] document group model created
+[x] document reference model created
+[x] project numbering engine created
+[x] document search by reference number created
 [ ] customer order created
 [ ] pricing engine created
 [ ] BOQ created
@@ -1631,13 +1636,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: LINE-only auth foundation
+Current Step: Project + Document Group + Document Reference foundation
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Project + Document Group + Document Reference models
+Next Step: Partner Product Submission + Supplier Inventory
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
@@ -1653,6 +1658,9 @@ Completed: LINE connect and LINE error pages are wired to real LINE OAuth start/
 Completed: LINE identity, link token, and app session tables are ready.
 Completed: Unknown LINE users are blocked and cannot self-register.
 Completed: Protected portal routes redirect unauthenticated users to LINE connect.
+Completed: Project, document group, and document reference models are ready.
+Completed: Project/document group/document number server-side numbering is ready.
+Completed: Admin project pages, document group pages, and document search are ready.
 ```
 
 ---
@@ -1766,11 +1774,11 @@ Default assumption for MVP:
 ## New Required Modules
 
 ```txt
-[ ] Project model
-[ ] Document Group model
-[ ] Document Reference model
-[ ] Project Numbering Engine
-[ ] Document Reference Engine
+[x] Project model
+[x] Document Group model
+[x] Document Reference model
+[x] Project Numbering Engine
+[x] Document Reference Engine
 [ ] Partner Product Submission
 [ ] Supplier Inventory
 [ ] Supplier Inventory Movement
@@ -1783,8 +1791,8 @@ Default assumption for MVP:
 [ ] LINE Job Status Action
 [ ] Real-time Admin Dashboard
 [ ] Real-time Debt Dashboard
-[ ] Document Search by Reference Number
-[ ] Project Document Timeline
+[x] Document Search by Reference Number
+[x] Project Document Timeline
 ```
 
 ## Updated Build Priority

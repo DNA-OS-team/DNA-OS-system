@@ -64,6 +64,39 @@ enum SupplierContractStatus {
   TERMINATED
 }
 
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentGroupStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum DocumentType {
+  ORD
+  BOQ
+  QT
+  PO
+  INV
+  RCP
+  PV
+  PMT
+}
+
+enum DocumentReferenceRelationType {
+  SOURCE
+  PARENT
+  CHILD
+  GENERATED_FROM
+  PAID_BY
+  SETTLED_BY
+}
+
 model Company {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -85,6 +118,8 @@ model Company {
   supplierProducts      SupplierProduct[]      @relation("SupplierCompanyProducts")
   supplierContracts     SupplierContract[]     @relation("SupplierCompanyContracts")
   appSessions           AppSession[]
+  projects              Project[]              @relation("CustomerCompanyProjects")
+  documentGroups        DocumentGroup[]        @relation("CustomerCompanyDocumentGroups")
 
   @@map("companies")
 }
@@ -260,9 +295,73 @@ model CustomerSite {
   updatedAt             DateTime @updatedAt @map("updated_at")
 
   customerCompany Company @relation("CustomerCompanySites", fields: [customerCompanyId], references: [id], onDelete: Cascade)
+  projects        Project[]
 
   @@index([customerCompanyId])
   @@map("customer_sites")
+}
+
+model Project {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectNo         String        @unique @map("project_no")
+  customerCompanyId String        @map("customer_company_id") @db.Uuid
+  customerSiteId    String        @map("customer_site_id") @db.Uuid
+  title             String
+  status            ProjectStatus @default(ACTIVE)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  customerCompany Company         @relation("CustomerCompanyProjects", fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  customerSite    CustomerSite    @relation(fields: [customerSiteId], references: [id], onDelete: Restrict)
+  documentGroups  DocumentGroup[]
+
+  @@index([customerCompanyId])
+  @@index([customerSiteId])
+  @@index([status])
+  @@map("projects")
+}
+
+model DocumentGroup {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupNo           String              @unique @map("group_no")
+  projectId         String              @map("project_id") @db.Uuid
+  projectNo         String              @map("project_no")
+  rootOrderId       String?             @map("root_order_id") @db.Uuid
+  rootOrderNo       String?             @map("root_order_no")
+  customerCompanyId String              @map("customer_company_id") @db.Uuid
+  title             String
+  status            DocumentGroupStatus @default(OPEN)
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  customerCompany Company             @relation("CustomerCompanyDocumentGroups", fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  references      DocumentReference[]
+
+  @@index([projectId])
+  @@index([projectNo])
+  @@index([customerCompanyId])
+  @@index([rootOrderNo])
+  @@index([status])
+  @@map("document_groups")
+}
+
+model DocumentReference {
+  id                String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentGroupId   String?                       @map("document_group_id") @db.Uuid
+  documentId        String                        @map("document_id")
+  relatedDocumentId String                        @map("related_document_id")
+  relationType      DocumentReferenceRelationType @map("relation_type")
+  createdAt         DateTime                      @default(now()) @map("created_at")
+
+  documentGroup DocumentGroup? @relation(fields: [documentGroupId], references: [id], onDelete: SetNull)
+
+  @@unique([documentId, relatedDocumentId, relationType])
+  @@index([documentGroupId])
+  @@index([documentId])
+  @@index([relatedDocumentId])
+  @@index([relationType])
+  @@map("document_references")
 }
 
 model CustomerCreditProfile {
