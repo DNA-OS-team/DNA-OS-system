@@ -38,7 +38,7 @@ export function AdminLoginForm() {
     try {
       const result = await loginAdmin(values);
       window.localStorage.setItem("dnaos_admin", JSON.stringify(result.admin));
-      router.push("/admin/customers");
+      router.push("/admin");
       router.refresh();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Unable to sign in");

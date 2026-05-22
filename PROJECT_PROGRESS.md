@@ -1402,12 +1402,12 @@ dashboard.metrics.refresh
 [ ] Order item editor
 [ ] Select customer site
 [ ] Select product and quantity
-[ ] Build pricingEngine MVP
-[ ] Calculate supplier cost
-[ ] Calculate customer price
-[ ] Calculate VAT
-[ ] Create internal BOQ
-[ ] Create customer BOQ
+[x] Build pricingEngine MVP
+[x] Calculate supplier cost
+[x] Calculate customer price
+[x] Calculate VAT
+[x] Create internal BOQ
+[ ] Create customer BOQ (Quotation — Phase 9)
 ```
 
 ## Week 4: Document MVP
@@ -1622,27 +1622,30 @@ Use this section to tell AI what has already been completed.
 [x] document reference model created
 [x] project numbering engine created
 [x] document search by reference number created
-[ ] customer order created
-[ ] pricing engine created
-[ ] BOQ created
+[x] partner product submission created
+[x] supplier inventory created
+[x] supplier inventory movement created
+[x] customer order created
+[x] pricing engine created
+[x] BOQ created
 [ ] quotation created
 [ ] PO created
 [ ] invoice created
 [ ] receipt created
 [ ] payment created
-[ ] dashboard created
+[x] dashboard created
 ```
 
 ## Current Step
 
 ```txt
-Current Step: Project + Document Group + Document Reference foundation
+Current Step: BOQ foundation
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Partner Product Submission + Supplier Inventory
+Next Step: Quotation foundation (Phase 9)
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
@@ -1661,6 +1664,20 @@ Completed: Protected portal routes redirect unauthenticated users to LINE connec
 Completed: Project, document group, and document reference models are ready.
 Completed: Project/document group/document number server-side numbering is ready.
 Completed: Admin project pages, document group pages, and document search are ready.
+Completed: Partner product submission, approval, and rejection foundation is ready.
+Completed: Supplier inventory and required movement logging are ready.
+Completed: Admin partner product and supplier inventory pages are ready.
+Completed: Admin dashboard is available as the first page after admin login.
+Completed: Customer order and order item models are ready.
+Completed: Admin customer order pages are ready.
+Completed: Order numbers are generated server-side with project document numbering.
+Completed: Pricing snapshots and pricing snapshot items are ready.
+Completed: pricingEngine selects available supplier products and checks stock before pricing.
+Completed: Admin order detail can run pricing and review cost, sell price, margin, and warnings.
+Completed: Boq and BoqItem models and migration are ready.
+Completed: boqEngine calculates subtotal, VAT (7%), and total from pricing snapshot items.
+Completed: Admin order detail can create BOQ from latest pricing snapshot and view all BOQs.
+Completed: BOQ panel shows internal cost, sell price, margin per item, and VAT summary.
 ```
 
 ---
@@ -1769,6 +1786,7 @@ Default assumption for MVP:
 [x] Requirement added: Document search by reference number
 [x] Requirement added: Real-time admin dashboard
 [x] Requirement added: Real-time debt dashboard with drilldown details
+[x] Requirement added: Web UI content must primarily use Thai language
 ```
 
 ## New Required Modules
@@ -1779,10 +1797,10 @@ Default assumption for MVP:
 [x] Document Reference model
 [x] Project Numbering Engine
 [x] Document Reference Engine
-[ ] Partner Product Submission
-[ ] Supplier Inventory
-[ ] Supplier Inventory Movement
-[ ] Admin Product Approval
+[x] Partner Product Submission
+[x] Supplier Inventory
+[x] Supplier Inventory Movement
+[x] Admin Product Approval
 [ ] LINE Rich Menu
 [ ] LINE Action Token
 [ ] LINE Product Submit Action
