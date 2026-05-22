@@ -21,7 +21,8 @@ export async function buildServer() {
   });
 
   await app.register(cors, {
-    origin: getCorsOrigins()
+    origin: getCorsOrigins(),
+    credentials: true
   });
 
   await app.register(registerHealthRoutes, { prefix: "/health" });

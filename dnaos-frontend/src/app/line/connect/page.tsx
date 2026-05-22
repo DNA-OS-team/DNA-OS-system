@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { AlertCircle } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -20,13 +21,15 @@ export const metadata: Metadata = {
 type LineConnectPageProps = {
   searchParams: Promise<{
     next?: string;
+    token?: string;
   }>;
 };
 
 export default async function LineConnectPage({
   searchParams,
 }: LineConnectPageProps) {
-  const { next } = await searchParams;
+  const { next, token } = await searchParams;
+  const lineStartUrl = buildLineStartUrl({ next, token });
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 text-foreground md:px-8">
@@ -45,11 +48,11 @@ export default async function LineConnectPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
-              <AlertCircle aria-hidden="true" />
-              <AlertTitle>LINE integration is not configured yet</AlertTitle>
+              <ShieldCheck aria-hidden="true" />
+              <AlertTitle>LINE-only authentication</AlertTitle>
               <AlertDescription>
-                This page is ready as the required entry point. Unknown LINE users will
-                not be auto-created when the callback is implemented.
+                Your LINE profile is checked against an existing DNA OS user before
+                access is granted.
               </AlertDescription>
             </Alert>
             {next ? (
@@ -60,12 +63,28 @@ export default async function LineConnectPage({
             ) : null}
           </CardContent>
           <CardFooter>
-            <Button type="button" disabled className="w-full">
+            <a href={lineStartUrl} className={cn(buttonVariants(), "w-full")}>
               Continue with LINE
-            </Button>
+              <ArrowRight aria-hidden="true" />
+            </a>
           </CardFooter>
         </Card>
       </section>
     </main>
   );
+}
+
+function buildLineStartUrl(input: { next?: string; token?: string }) {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5100";
+  const url = new URL("/auth/line/start", apiBaseUrl);
+
+  if (input.next) {
+    url.searchParams.set("next", input.next);
+  }
+
+  if (input.token) {
+    url.searchParams.set("token", input.token);
+  }
+
+  return url.toString();
 }

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { getPrisma } from "../db/prisma.js";
+import { requireAdminAccess } from "../services/authService.js";
 import { writeAuditLog } from "../services/auditService.js";
 
 const customerInputSchema = z.object({
@@ -49,6 +50,8 @@ const siteParamsSchema = z.object({
 });
 
 export async function registerAdminCustomerRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAdminAccess);
+
   app.get("/", async () => {
     const prisma = getPrisma();
     const customers = await prisma.company.findMany({

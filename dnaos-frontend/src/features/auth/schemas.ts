@@ -6,3 +6,7 @@ export const superadminLoginSchema = z.object({
 });
 
 export type SuperadminLoginValues = z.infer<typeof superadminLoginSchema>;
+
+export const adminLoginSchema = superadminLoginSchema;
+
+export type AdminLoginValues = z.infer<typeof adminLoginSchema>;

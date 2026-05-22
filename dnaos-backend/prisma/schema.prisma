@@ -24,6 +24,17 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   INVITED
+  LINE_LINKED
+  SUSPENDED
+}
+
+enum IdentityProvider {
+  LINE
+}
+
+enum SessionType {
+  LINE
+  SUPERADMIN
 }
 
 enum Role {
@@ -73,6 +84,7 @@ model Company {
   customerCreditProfile CustomerCreditProfile? @relation("CustomerCompanyCreditProfile")
   supplierProducts      SupplierProduct[]      @relation("SupplierCompanyProducts")
   supplierContracts     SupplierContract[]     @relation("SupplierCompanyContracts")
+  appSessions           AppSession[]
 
   @@map("companies")
 }
@@ -89,6 +101,9 @@ model User {
   memberships    CompanyMember[]
   actorAuditLogs AuditLog[]      @relation("AuditLogActor")
   priceHistories PriceHistory[]  @relation("PriceHistoryChanger")
+  identities     UserIdentity[]
+  lineLinkTokens LineLinkToken[]
+  appSessions    AppSession[]
 
   @@map("users")
 }
@@ -106,8 +121,81 @@ model Admin {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
+  sessions AdminSession[]
+
   @@index([status])
   @@map("admins")
+}
+
+model AdminSession {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionTokenHash String    @unique @map("session_token_hash")
+  adminId          String    @map("admin_id") @db.Uuid
+  expiresAt        DateTime  @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([expiresAt])
+  @@map("admin_sessions")
+}
+
+model UserIdentity {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  provider       IdentityProvider @default(LINE)
+  providerUserId String           @map("provider_user_id")
+  displayName    String?          @map("display_name")
+  pictureUrl     String?          @map("picture_url")
+  linkedAt       DateTime         @default(now()) @map("linked_at")
+  lastLoginAt    DateTime?        @map("last_login_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_identities")
+}
+
+model LineLinkToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  userId    String    @map("user_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("line_link_tokens")
+}
+
+model AppSession {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionTokenHash String      @unique @map("session_token_hash")
+  userId           String      @map("user_id") @db.Uuid
+  companyId        String      @map("company_id") @db.Uuid
+  role             Role
+  lineUserId       String      @map("line_user_id")
+  sessionType      SessionType @default(LINE) @map("session_type")
+  expiresAt        DateTime    @map("expires_at")
+  revokedAt        DateTime?   @map("revoked_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([expiresAt])
+  @@map("app_sessions")
 }
 
 model CompanyMember {

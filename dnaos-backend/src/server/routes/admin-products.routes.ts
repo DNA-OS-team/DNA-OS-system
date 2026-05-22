@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { getPrisma } from "../db/prisma.js";
+import { requireAdminAccess } from "../services/authService.js";
 import { writeAuditLog } from "../services/auditService.js";
 
 const categoryInputSchema = z.object({
@@ -45,6 +46,8 @@ const variantParamsSchema = z.object({
 });
 
 export async function registerAdminProductRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAdminAccess);
+
   app.get("/categories", async () => {
     const prisma = getPrisma();
     const categories = await prisma.productCategory.findMany({

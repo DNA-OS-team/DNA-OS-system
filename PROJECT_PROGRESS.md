@@ -1597,16 +1597,19 @@ Use this section to tell AI what has already been completed.
 [x] users table created
 [x] company_members table created
 [x] superadmin login working
-[ ] LINE auth route created
-[ ] LINE callback route created
-[ ] LINE account linking created
+[x] admin username/password login working
+[x] LINE auth route created
+[x] LINE callback route created
+[x] LINE account linking created
 [x] LINE connect placeholder created
-[x] Unknown LINE user blocked placeholder created
+[x] Unknown LINE user blocked
 [x] No public register page exists
 [x] Superadmin login page created
 [x] Superadmin limited to one account
-[x] Normal users cannot use password login
-[ ] Middleware redirects unauthenticated users to LINE connect
+[x] Non-admin users cannot use password login
+[x] Middleware redirects unauthenticated admin users to admin login
+[x] Middleware redirects unauthenticated users to LINE connect
+[x] Middleware redirects unauthenticated non-admin users to LINE connect
 [x] Auth audit logs created
 [x] roles working
 [x] customer page created
@@ -1628,13 +1631,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Phase 4 - Supplier / Partner Module
+Current Step: LINE-only auth foundation
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Implement real LINE auth callback and session middleware
+Next Step: Project + Document Group + Document Reference models
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
@@ -1643,9 +1646,13 @@ Completed: Admin customer, site, and credit management pages are ready.
 Completed: Product category, product, and product variant master data tables are ready.
 Completed: Admin product category, product, and variant management pages are ready.
 Completed: Supplier product, supplier contract, contract item, and price history tables are ready.
-Completed: Superadmin password login moved to /superadmin/login and forbidden /admin/login route was removed.
+Completed: Admin password login is available at /admin/login for ADMIN role only.
+Completed: Superadmin password login remains at /superadmin/login for break-glass access.
 Completed: Admin credential table is separated from users and limited to one break-glass account.
-Completed: LINE connect and LINE error placeholder pages are ready.
+Completed: LINE connect and LINE error pages are wired to real LINE OAuth start/callback flow.
+Completed: LINE identity, link token, and app session tables are ready.
+Completed: Unknown LINE users are blocked and cannot self-register.
+Completed: Protected portal routes redirect unauthenticated users to LINE connect.
 ```
 
 ---

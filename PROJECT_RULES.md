@@ -1199,6 +1199,38 @@ Only one superadmin account may use a separate hidden login page.
 
 ---
 
+# UPDATE — Admin Password Login Exception
+
+Human owner updated the authentication policy:
+
+```txt
+ADMIN role may sign in with username/password at /admin/login.
+All other normal roles must still authenticate through LINE only.
+Do not allow customer, supplier, fleet owner, driver, viewer, accountant, procurement, or operation roles to use username/password login.
+Admin password session must be separate from LINE session.
+/customer/*, /partner/*, and /fleet/* must continue to redirect unauthenticated users to /line/connect.
+```
+
+Allowed additional public route:
+
+```txt
+/admin/login
+```
+
+Allowed additional API:
+
+```txt
+POST /api/auth/admin/login
+```
+
+Implementation note:
+
+```txt
+Only records in the admins table with role = ADMIN and status = ACTIVE may use admin username/password login.
+```
+
+---
+
 # UPDATE — LINE-First Experience Rules
 
 ## Admin Desktop First
