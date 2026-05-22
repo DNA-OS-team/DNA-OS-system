@@ -3,6 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import * as Sentry from "@sentry/node";
 import { env, getCorsOrigins } from "./config/env.js";
+import { registerAdminCustomerRoutes } from "./server/routes/admin-customers.routes.js";
 import { registerHealthRoutes } from "./server/routes/health.routes.js";
 
 if (env.SENTRY_DSN) {
@@ -22,6 +23,7 @@ export async function buildServer() {
   });
 
   await app.register(registerHealthRoutes, { prefix: "/health" });
+  await app.register(registerAdminCustomerRoutes, { prefix: "/admin/customers" });
 
   return app;
 }

@@ -39,6 +39,13 @@ enum Role {
   VIEWER
 }
 
+enum CreditStatus {
+  NORMAL
+  WATCH
+  HOLD
+  BLOCKED
+}
+
 model Company {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -53,8 +60,10 @@ model Company {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  members   CompanyMember[]
-  auditLogs AuditLog[]
+  members               CompanyMember[]
+  auditLogs             AuditLog[]
+  customerSites         CustomerSite[]          @relation("CustomerCompanySites")
+  customerCreditProfile CustomerCreditProfile?  @relation("CustomerCompanyCreditProfile")
 
   @@map("companies")
 }
@@ -113,4 +122,46 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([action])
   @@map("audit_logs")
+}
+
+model CustomerSite {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCompanyId     String   @map("customer_company_id") @db.Uuid
+  siteName              String   @map("site_name")
+  address               String
+  province              String
+  district              String
+  subdistrict           String
+  postalCode            String   @map("postal_code")
+  gpsLat                Decimal? @map("gps_lat") @db.Decimal(10, 7)
+  gpsLng                Decimal? @map("gps_lng") @db.Decimal(10, 7)
+  contactName           String?  @map("contact_name")
+  contactPhone          String?  @map("contact_phone")
+  deliveryNote          String?  @map("delivery_note")
+  accessRestriction     String?  @map("access_restriction")
+  preferredDeliveryTime String?  @map("preferred_delivery_time")
+  isActive              Boolean  @default(true) @map("is_active")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  customerCompany Company @relation("CustomerCompanySites", fields: [customerCompanyId], references: [id], onDelete: Cascade)
+
+  @@index([customerCompanyId])
+  @@map("customer_sites")
+}
+
+model CustomerCreditProfile {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCompanyId    String       @unique @map("customer_company_id") @db.Uuid
+  creditLimit          Decimal      @default(0) @map("credit_limit") @db.Decimal(14, 2)
+  creditTermDays       Int          @default(0) @map("credit_term_days")
+  currentOutstanding   Decimal      @default(0) @map("current_outstanding") @db.Decimal(14, 2)
+  overdueAmount        Decimal      @default(0) @map("overdue_amount") @db.Decimal(14, 2)
+  creditStatus         CreditStatus @default(NORMAL) @map("credit_status")
+  paymentBehaviorScore Int          @default(0) @map("payment_behavior_score")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  customerCompany Company @relation("CustomerCompanyCreditProfile", fields: [customerCompanyId], references: [id], onDelete: Cascade)
+
+  @@map("customer_credit_profiles")
 }

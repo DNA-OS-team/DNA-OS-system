@@ -1592,14 +1592,15 @@ Use this section to tell AI what has already been completed.
 [x] shadcn/ui installed
 [ ] Supabase connected
 [x] Prisma setup completed
-[ ] Prisma connected
-[ ] companies table created
-[ ] users table created
-[ ] company_members table created
+[x] Prisma connected
+[x] companies table created
+[x] users table created
+[x] company_members table created
 [ ] login working
 [x] roles working
-[ ] customer page created
-[ ] customer site page created
+[x] customer page created
+[x] customer site page created
+[x] customer credit model created
 [ ] product catalog created
 [ ] supplier product created
 [ ] customer order created
@@ -1616,16 +1617,18 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Phase 1 — Identity & Tenant Foundation
+Current Step: Phase 2 — Customer & Site Module
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Configure valid DATABASE_URL / DIRECT_URL, then run Prisma migration
-Pending: Identity foundation models and migration file are ready, but tables are not marked created until database credentials pass db:check.
+Next Step: Continue Phase 2 customer module after local database verification
+Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
+Completed: Customer site and customer credit profile models are ready.
+Completed: Admin customer, site, and credit management pages are ready.
 ```
 
 ---

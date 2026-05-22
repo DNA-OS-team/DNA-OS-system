@@ -590,7 +590,7 @@ CompanyMember fields:
 ## Prompt 2.2 — สร้าง Customer Admin Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+อ่าน AGENT.md ,PROJECT_RULES และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
 
 เป้าหมาย:
 สร้างหน้า admin สำหรับจัดการลูกค้าและไซต์งาน
