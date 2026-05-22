@@ -1596,13 +1596,24 @@ Use this section to tell AI what has already been completed.
 [x] companies table created
 [x] users table created
 [x] company_members table created
-[ ] login working
+[x] superadmin login working
+[ ] LINE auth route created
+[ ] LINE callback route created
+[ ] LINE account linking created
+[x] LINE connect placeholder created
+[x] Unknown LINE user blocked placeholder created
+[x] No public register page exists
+[x] Superadmin login page created
+[x] Superadmin limited to one account
+[x] Normal users cannot use password login
+[ ] Middleware redirects unauthenticated users to LINE connect
+[x] Auth audit logs created
 [x] roles working
 [x] customer page created
 [x] customer site page created
 [x] customer credit model created
-[ ] product catalog created
-[ ] supplier product created
+[x] product catalog created
+[x] supplier product created
 [ ] customer order created
 [ ] pricing engine created
 [ ] BOQ created
@@ -1617,18 +1628,24 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Phase 2 — Customer & Site Module
+Current Step: Phase 4 - Supplier / Partner Module
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Continue Phase 2 customer module after local database verification
+Next Step: Implement real LINE auth callback and session middleware
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
 Completed: Customer site and customer credit profile models are ready.
 Completed: Admin customer, site, and credit management pages are ready.
+Completed: Product category, product, and product variant master data tables are ready.
+Completed: Admin product category, product, and variant management pages are ready.
+Completed: Supplier product, supplier contract, contract item, and price history tables are ready.
+Completed: Superadmin password login moved to /superadmin/login and forbidden /admin/login route was removed.
+Completed: Admin credential table is separated from users and limited to one break-glass account.
+Completed: LINE connect and LINE error placeholder pages are ready.
 ```
 
 ---
@@ -1717,4 +1734,65 @@ Default assumption for MVP:
 - Supplier/fleet payout requires admin approval
 - Quotation approval required for high amount or low margin
 - Low margin creates alert
+```
+
+---
+
+# UPDATE — LINE-First Workflow, Partner Product Submission, Project Documents, Realtime Debt
+
+เพิ่ม requirement ล่าสุด:
+
+```txt
+[x] Requirement added: Admin dashboard is desktop-first
+[x] Requirement added: Partner / Customer / Fleet are LINE-first
+[x] Requirement added: Partner can submit products and stock mostly through LINE/mobile web
+[x] Requirement added: Admin can also add products for partner
+[x] Requirement added: Partner product requires admin approval before selling
+[x] Requirement added: Supplier inventory and inventory movements
+[x] Requirement added: Project model and document group model
+[x] Requirement added: Unified document numbering with project reference
+[x] Requirement added: Document search by reference number
+[x] Requirement added: Real-time admin dashboard
+[x] Requirement added: Real-time debt dashboard with drilldown details
+```
+
+## New Required Modules
+
+```txt
+[ ] Project model
+[ ] Document Group model
+[ ] Document Reference model
+[ ] Project Numbering Engine
+[ ] Document Reference Engine
+[ ] Partner Product Submission
+[ ] Supplier Inventory
+[ ] Supplier Inventory Movement
+[ ] Admin Product Approval
+[ ] LINE Rich Menu
+[ ] LINE Action Token
+[ ] LINE Product Submit Action
+[ ] LINE Stock Update Action
+[ ] LINE PO Confirm Action
+[ ] LINE Job Status Action
+[ ] Real-time Admin Dashboard
+[ ] Real-time Debt Dashboard
+[ ] Document Search by Reference Number
+[ ] Project Document Timeline
+```
+
+## Updated Build Priority
+
+```txt
+1. LINE-only auth foundation
+2. Project + Document Group + Document Reference
+3. Partner Product Submission + Supplier Inventory
+4. Admin Product Approval
+5. Customer Order
+6. BOQ
+7. Quotation
+8. Supplier PO
+9. Invoice / Payment / Receipt
+10. Real-time Debt Dashboard
+11. LINE action handlers
+12. Advanced realtime dashboard
 ```

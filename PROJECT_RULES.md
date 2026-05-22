@@ -1196,3 +1196,65 @@ Only one superadmin account may use a separate hidden login page.
 ---
 
 # END OF PROJECT RULES
+
+---
+
+# UPDATE — LINE-First Experience Rules
+
+## Admin Desktop First
+
+```txt
+Admin / Core team uses desktop-first dashboard.
+Admin pages may be table-heavy and detailed.
+Admin must be able to drill down into orders, debts, documents, project groups, and alerts.
+```
+
+## Partner / Customer / Fleet LINE First
+
+```txt
+Partner, Customer, Fleet Owner, and Driver must use LINE as the primary entry point.
+Web pages for these roles must be simple, mobile-first, and action-specific.
+Avoid complex dashboards for mobile roles.
+```
+
+## Required LINE Actions
+
+```txt
+Partner:
+- Submit product
+- Update stock
+- Confirm PO
+- Reject PO
+- View payout
+
+Customer:
+- View quotation
+- Confirm quotation
+- View delivery status
+- Upload payment slip
+- View receipt
+
+Fleet / Driver:
+- Accept job
+- Reject job
+- Update job status
+- Upload delivery proof
+```
+
+## Partner Product Rule
+
+```txt
+Partner can submit products and stock.
+Admin can add product for partner.
+Partner product must be approved by Admin before it becomes sellable.
+Partner cannot approve their own product.
+Every stock update must create inventory movement.
+```
+
+## Document Reference Rule
+
+```txt
+Every document should belong to a project/document group when applicable.
+Document number must include projectNo if project exists.
+Admin must be able to search by any reference number and see all related documents.
+```

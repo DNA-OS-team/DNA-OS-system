@@ -46,6 +46,13 @@ enum CreditStatus {
   BLOCKED
 }
 
+enum SupplierContractStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
 model Company {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -62,8 +69,10 @@ model Company {
 
   members               CompanyMember[]
   auditLogs             AuditLog[]
-  customerSites         CustomerSite[]          @relation("CustomerCompanySites")
-  customerCreditProfile CustomerCreditProfile?  @relation("CustomerCompanyCreditProfile")
+  customerSites         CustomerSite[]         @relation("CustomerCompanySites")
+  customerCreditProfile CustomerCreditProfile? @relation("CustomerCompanyCreditProfile")
+  supplierProducts      SupplierProduct[]      @relation("SupplierCompanyProducts")
+  supplierContracts     SupplierContract[]     @relation("SupplierCompanyContracts")
 
   @@map("companies")
 }
@@ -79,8 +88,26 @@ model User {
 
   memberships    CompanyMember[]
   actorAuditLogs AuditLog[]      @relation("AuditLogActor")
+  priceHistories PriceHistory[]  @relation("PriceHistoryChanger")
 
   @@map("users")
+}
+
+model Admin {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  singletonKey Int        @unique @default(1) @map("singleton_key")
+  username     String     @unique
+  passwordHash String     @map("password_hash")
+  email        String     @unique
+  name         String
+  phoneNumber  String?    @map("phone_number")
+  role         Role       @default(ADMIN)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("admins")
 }
 
 model CompanyMember {
@@ -164,4 +191,139 @@ model CustomerCreditProfile {
   customerCompany Company @relation("CustomerCompanyCreditProfile", fields: [customerCompanyId], references: [id], onDelete: Cascade)
 
   @@map("customer_credit_profiles")
+}
+
+model ProductCategory {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@index([sortOrder])
+  @@map("product_categories")
+}
+
+model Product {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId  String   @map("category_id") @db.Uuid
+  name        String
+  description String?
+  defaultUnit String   @map("default_unit")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category ProductCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variants ProductVariant[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  name      String
+  unit      String
+  specs     Json     @default("{}")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product               Product                @relation(fields: [productId], references: [id], onDelete: Restrict)
+  supplierProducts      SupplierProduct[]
+  supplierContractItems SupplierContractItem[]
+
+  @@index([productId])
+  @@index([isActive])
+  @@map("product_variants")
+}
+
+model SupplierProduct {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierCompanyId String   @map("supplier_company_id") @db.Uuid
+  productVariantId  String   @map("product_variant_id") @db.Uuid
+  sku               String?
+  price             Decimal  @db.Decimal(14, 2)
+  minQty            Decimal  @default(0) @map("min_qty") @db.Decimal(14, 3)
+  serviceArea       String?  @map("service_area")
+  leadTimeHours     Int      @default(0) @map("lead_time_hours")
+  isAvailable       Boolean  @default(true) @map("is_available")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  supplierCompany Company        @relation("SupplierCompanyProducts", fields: [supplierCompanyId], references: [id], onDelete: Restrict)
+  productVariant  ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+
+  @@index([supplierCompanyId])
+  @@index([productVariantId])
+  @@index([isAvailable])
+  @@map("supplier_products")
+}
+
+model SupplierContract {
+  id                String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierCompanyId String                 @map("supplier_company_id") @db.Uuid
+  contractNo        String                 @map("contract_no")
+  startDate         DateTime               @map("start_date") @db.Date
+  endDate           DateTime               @map("end_date") @db.Date
+  paymentTermDays   Int                    @default(0) @map("payment_term_days")
+  deliveryTerm      String?                @map("delivery_term")
+  priceValidity     String?                @map("price_validity")
+  status            SupplierContractStatus @default(DRAFT)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  supplierCompany Company                @relation("SupplierCompanyContracts", fields: [supplierCompanyId], references: [id], onDelete: Restrict)
+  items           SupplierContractItem[]
+
+  @@unique([supplierCompanyId, contractNo])
+  @@index([supplierCompanyId])
+  @@index([status])
+  @@map("supplier_contracts")
+}
+
+model SupplierContractItem {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierContractId String   @map("supplier_contract_id") @db.Uuid
+  productVariantId   String   @map("product_variant_id") @db.Uuid
+  unitCost           Decimal  @map("unit_cost") @db.Decimal(14, 2)
+  minQty             Decimal  @default(0) @map("min_qty") @db.Decimal(14, 3)
+  maxQty             Decimal? @map("max_qty") @db.Decimal(14, 3)
+  serviceArea        String?  @map("service_area")
+  effectiveFrom      DateTime @map("effective_from") @db.Date
+  effectiveTo        DateTime @map("effective_to") @db.Date
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  supplierContract SupplierContract @relation(fields: [supplierContractId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant   @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+
+  @@index([supplierContractId])
+  @@index([productVariantId])
+  @@index([effectiveFrom, effectiveTo])
+  @@map("supplier_contract_items")
+}
+
+model PriceHistory {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  oldPrice    Decimal? @map("old_price") @db.Decimal(14, 2)
+  newPrice    Decimal  @map("new_price") @db.Decimal(14, 2)
+  changedBy   String?  @map("changed_by") @db.Uuid
+  reason      String?
+  effectiveAt DateTime @map("effective_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  changedByUser User? @relation("PriceHistoryChanger", fields: [changedBy], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([changedBy])
+  @@index([effectiveAt])
+  @@map("price_histories")
 }

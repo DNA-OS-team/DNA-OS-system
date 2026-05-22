@@ -2449,3 +2449,39 @@ Admin สร้างลูกค้า → สร้างไซต์งาน
 ---
 
 # END OF FILE
+
+---
+
+# UPDATE PROMPT — Add LINE-First Workflow & Document Control
+
+Use this prompt when implementing the new workflow requirements:
+
+```txt
+Read AGENT.md, PROJECT_RULES.md, PROJECT_PROGRESS.md, TECH_STACK.md, API_DESCRIPTION.md, and WORKFLOW_AND_ROLE_RULES.md first.
+
+Implement the system with these updated rules:
+1. Admin dashboard is desktop-first.
+2. Partner, Customer, Fleet, and Driver are LINE-first and mobile-first.
+3. Partner can submit products and stock through LINE/mobile web.
+4. Admin can also add products for partner.
+5. Partner product requires Admin approval before it is sellable.
+6. Supplier inventory and inventory movements are required.
+7. Every important document must belong to Project and DocumentGroup when applicable.
+8. Document number must include projectNo if project exists.
+9. Admin can search any reference number and see the full document group.
+10. Debt dashboard must be real-time and drilldown-able.
+11. LINE actions must be tokenized and verified.
+12. Unknown LINE users must never be auto-created.
+13. Do not build complex mobile dashboards for partner/customer/fleet.
+14. Use one-screen-one-action design for mobile/LINE flows.
+
+Start by implementing:
+- Project model
+- DocumentGroup model
+- DocumentReference model
+- PartnerProductSubmission model
+- SupplierInventory model
+- SupplierInventoryMovement model
+- lineActionToken model
+- lineNotificationLog model
+```
