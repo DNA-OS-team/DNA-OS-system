@@ -3,6 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import * as Sentry from "@sentry/node";
 import { env, getCorsOrigins } from "./config/env.js";
+import { registerSwagger } from "./config/swagger.js";
 import { registerAdminCustomerRoutes } from "./server/routes/admin-customers.routes.js";
 import { registerAdminDashboardRoutes } from "./server/routes/admin-dashboard.routes.js";
 import { registerAdminDocumentRoutes } from "./server/routes/admin-documents.routes.js";
@@ -14,6 +15,8 @@ import { registerAdminProjectRoutes } from "./server/routes/admin-projects.route
 import { registerAuthRoutes } from "./server/routes/auth.routes.js";
 import { registerHealthRoutes } from "./server/routes/health.routes.js";
 import { registerPartnerPurchaseOrderRoutes } from "./server/routes/partner-purchase-orders.routes.js";
+import { registerAdminLogisticsRoutes } from "./server/routes/admin-logistics.routes.js";
+import { registerFleetJobRoutes } from "./server/routes/fleet-jobs.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -32,6 +35,8 @@ export async function buildServer() {
     credentials: true
   });
 
+  await registerSwagger(app);
+
   await app.register(registerHealthRoutes, { prefix: "/health" });
   await app.register(registerAuthRoutes, { prefix: "/auth" });
   await app.register(registerAdminDashboardRoutes, { prefix: "/admin/dashboard" });
@@ -43,6 +48,8 @@ export async function buildServer() {
   await app.register(registerAdminDocumentRoutes, { prefix: "/admin" });
   await app.register(registerAdminPartnerProductRoutes, { prefix: "/admin" });
   await app.register(registerPartnerPurchaseOrderRoutes, { prefix: "/partner/purchase-orders" });
+  await app.register(registerAdminLogisticsRoutes, { prefix: "/admin/logistics" });
+  await app.register(registerFleetJobRoutes, { prefix: "/fleet/jobs" });
 
   return app;
 }

@@ -9,6 +9,11 @@ export type CustomerOrderStatus =
   | "QUOTED"
   | "CONFIRMED"
   | "PROCUREMENT"
+  | "DISPATCHING"
+  | "PARTIALLY_DELIVERED"
+  | "DELIVERED"
+  | "INVOICED"
+  | "PAID"
   | "CANCELLED";
 
 export type CustomerOrderItem = {

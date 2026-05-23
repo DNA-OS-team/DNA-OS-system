@@ -1058,10 +1058,10 @@ FAILED
 ### Done When
 
 ```txt
-[ ] Transport job can be created
-[ ] Fleet can see assigned job
-[ ] Fleet can accept job
-[ ] Status can be updated
+[x] Transport job can be created
+[x] Fleet can see assigned job
+[x] Fleet can accept job
+[x] Status can be updated
 [ ] Delivery proof can be uploaded
 ```
 
@@ -1639,13 +1639,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Supplier PO foundation (Phase 10)
+Current Step: Transport / Fleet Job foundation (Phase 11) — COMPLETED
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Transport / Fleet Job foundation (Phase 11)
+Next Step: Delivery Proof & Dispute (Phase 12)
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
@@ -1683,6 +1683,15 @@ Completed: orderSplitEngine groups confirmed order items by supplier and blocks 
 Completed: procurementService creates supplier PO documents per supplier and blocks duplicate PO generation.
 Completed: Admin order detail can create and view Supplier PO records.
 Completed: Partner Supplier PO API only returns PO records for the supplier company in the LINE session.
+Completed: TransportJob, TransportJobItem, and TransportJobStatusHistory models and migration are ready.
+Completed: CustomerOrderStatus extended with DISPATCHING, PARTIALLY_DELIVERED, DELIVERED, INVOICED, PAID.
+Completed: dispatchEngine state machine for transport job status transitions is ready.
+Completed: fleetMatchingEngine MVP for filtering and ranking available fleet companies is ready.
+Completed: transportService covers create, assign fleet, update status, list, and get transport jobs.
+Completed: Admin logistics routes (/admin/logistics) for CRUD + fleet assignment are ready.
+Completed: Fleet job routes (/fleet/jobs) for fleet-only access and status updates are ready.
+Completed: Admin logistics pages /admin/logistics and /admin/logistics/[jobId] are ready.
+Completed: Transport job panel on order detail shows jobs and allows creating new transport jobs.
 ```
 
 ---

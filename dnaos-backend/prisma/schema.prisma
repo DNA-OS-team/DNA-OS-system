@@ -119,6 +119,11 @@ enum CustomerOrderStatus {
   QUOTED
   CONFIRMED
   PROCUREMENT
+  DISPATCHING
+  PARTIALLY_DELIVERED
+  DELIVERED
+  INVOICED
+  PAID
   CANCELLED
 }
 
@@ -157,6 +162,21 @@ enum SupplierPoStatus {
   REJECTED
 }
 
+enum TransportJobStatus {
+  CREATED
+  ASSIGNED
+  ACCEPTED
+  GOING_TO_PICKUP
+  ARRIVED_PICKUP
+  LOADED
+  IN_TRANSIT
+  ARRIVED_SITE
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
 model Company {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -186,6 +206,7 @@ model Company {
   boqs                  Boq[]                  @relation("CustomerCompanyBoqs")
   quotations            Quotation[]            @relation("CustomerCompanyQuotations")
   supplierPurchaseOrders SupplierPurchaseOrder[] @relation("SupplierCompanyPurchaseOrders")
+  fleetTransportJobs     TransportJob[]          @relation("FleetCompanyJobs")
 
   @@map("companies")
 }
@@ -224,6 +245,7 @@ model Admin {
 
   sessions AdminSession[]
   reviewedPartnerProductSubmissions PartnerProductSubmission[] @relation("PartnerProductSubmissionReviewer")
+  assignedTransportJobs             TransportJob[]             @relation("TransportJobAssigner")
 
   @@index([status])
   @@map("admins")
@@ -364,6 +386,7 @@ model CustomerSite {
   customerCompany Company @relation("CustomerCompanySites", fields: [customerCompanyId], references: [id], onDelete: Cascade)
   projects        Project[]
   customerOrders  CustomerOrder[]
+  transportJobs   TransportJob[]
 
   @@index([customerCompanyId])
   @@map("customer_sites")
@@ -410,6 +433,7 @@ model DocumentGroup {
   boqs            Boq[]
   quotations      Quotation[]
   supplierPurchaseOrders SupplierPurchaseOrder[]
+  transportJobs   TransportJob[]
 
   @@index([projectId])
   @@index([projectNo])
@@ -459,6 +483,7 @@ model CustomerOrder {
   boqs            Boq[]
   quotations      Quotation[]
   supplierPurchaseOrders SupplierPurchaseOrder[]
+  transportJobs   TransportJob[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -611,6 +636,7 @@ model ProductVariant {
   boqItems             BoqItem[]
   quotationItems       QuotationItem[]
   supplierPurchaseOrderItems SupplierPurchaseOrderItem[]
+  transportJobItems          TransportJobItem[]
 
   @@index([productId])
   @@index([isActive])
@@ -914,6 +940,7 @@ model SupplierPurchaseOrder {
   customerOrder   CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Restrict)
   supplierCompany Company       @relation("SupplierCompanyPurchaseOrders", fields: [supplierCompanyId], references: [id], onDelete: Restrict)
   items           SupplierPurchaseOrderItem[]
+  transportJobs   TransportJob[]
 
   @@unique([customerOrderId, supplierCompanyId])
   @@index([documentGroupId])
@@ -947,4 +974,77 @@ model SupplierPurchaseOrderItem {
   @@index([productVariantId])
   @@index([supplierProductId])
   @@map("supplier_purchase_order_items")
+}
+
+model TransportJob {
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobNo                   String             @unique @map("job_no")
+  documentGroupId         String             @map("document_group_id") @db.Uuid
+  customerOrderId         String             @map("customer_order_id") @db.Uuid
+  supplierPurchaseOrderId String?            @map("supplier_purchase_order_id") @db.Uuid
+  fleetCompanyId          String?            @map("fleet_company_id") @db.Uuid
+  dropoffSiteId           String?            @map("dropoff_site_id") @db.Uuid
+  pickupAddress           String             @map("pickup_address")
+  dropoffAddress          String             @map("dropoff_address")
+  status                  TransportJobStatus @default(CREATED)
+  scheduledPickupAt       DateTime?          @map("scheduled_pickup_at")
+  scheduledDeliveryAt     DateTime?          @map("scheduled_delivery_at")
+  actualPickupAt          DateTime?          @map("actual_pickup_at")
+  actualDeliveryAt        DateTime?          @map("actual_delivery_at")
+  transportCost           Decimal            @default(0) @map("transport_cost") @db.Decimal(14, 2)
+  customerDeliveryFee     Decimal            @default(0) @map("customer_delivery_fee") @db.Decimal(14, 2)
+  fleetResponseNote       String?            @map("fleet_response_note")
+  assignedBy              String?            @map("assigned_by") @db.Uuid
+  notes                   String?
+  createdAt               DateTime           @default(now()) @map("created_at")
+  updatedAt               DateTime           @updatedAt @map("updated_at")
+
+  documentGroup         DocumentGroup          @relation(fields: [documentGroupId], references: [id], onDelete: Restrict)
+  customerOrder         CustomerOrder          @relation(fields: [customerOrderId], references: [id], onDelete: Restrict)
+  supplierPurchaseOrder SupplierPurchaseOrder? @relation(fields: [supplierPurchaseOrderId], references: [id], onDelete: SetNull)
+  fleetCompany          Company?               @relation("FleetCompanyJobs", fields: [fleetCompanyId], references: [id], onDelete: SetNull)
+  dropoffSite           CustomerSite?          @relation(fields: [dropoffSiteId], references: [id], onDelete: SetNull)
+  assignedByAdmin       Admin?                 @relation("TransportJobAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
+  items                 TransportJobItem[]
+  statusHistory         TransportJobStatusHistory[]
+
+  @@index([documentGroupId])
+  @@index([customerOrderId])
+  @@index([supplierPurchaseOrderId])
+  @@index([fleetCompanyId])
+  @@index([status])
+  @@map("transport_jobs")
+}
+
+model TransportJobItem {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transportJobId   String   @map("transport_job_id") @db.Uuid
+  productVariantId String?  @map("product_variant_id") @db.Uuid
+  description      String
+  quantity         Decimal  @db.Decimal(14, 3)
+  unit             String
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  transportJob   TransportJob    @relation(fields: [transportJobId], references: [id], onDelete: Cascade)
+  productVariant ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+
+  @@index([transportJobId])
+  @@index([productVariantId])
+  @@map("transport_job_items")
+}
+
+model TransportJobStatusHistory {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transportJobId String              @map("transport_job_id") @db.Uuid
+  fromStatus     TransportJobStatus? @map("from_status")
+  toStatus       TransportJobStatus  @map("to_status")
+  changedBy      String?             @map("changed_by") @db.Uuid
+  note           String?
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  transportJob TransportJob @relation(fields: [transportJobId], references: [id], onDelete: Cascade)
+
+  @@index([transportJobId])
+  @@map("transport_job_status_history")
 }

@@ -13,6 +13,7 @@ import { OrderForm } from "./order-form";
 import { PricingPanel } from "./pricing-panel";
 import { PurchaseOrderPanel } from "./purchase-order-panel";
 import { QuotationPanel } from "./quotation-panel";
+import { TransportJobPanel } from "@/features/logistics/transport-job-panel";
 import type { CustomerOrder } from "./types";
 
 type OrderDetailProps = {
@@ -104,6 +105,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
           <BoqPanel orderId={order.id} />
           <QuotationPanel orderId={order.id} />
           <PurchaseOrderPanel orderId={order.id} />
+          <TransportJobPanel orderId={order.id} />
           <OrderForm order={order} />
         </>
       ) : null}

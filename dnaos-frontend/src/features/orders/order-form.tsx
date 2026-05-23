@@ -40,6 +40,11 @@ const statuses: CustomerOrderStatus[] = [
   "QUOTED",
   "CONFIRMED",
   "PROCUREMENT",
+  "DISPATCHING",
+  "PARTIALLY_DELIVERED",
+  "DELIVERED",
+  "INVOICED",
+  "PAID",
   "CANCELLED",
 ];
 

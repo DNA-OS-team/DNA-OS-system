@@ -13,7 +13,7 @@ export const orderFormSchema = z.object({
   projectId: z.string().uuid("Project is required"),
   customerCompanyId: z.string().uuid("Customer is required"),
   customerSiteId: z.string().uuid("Customer site is required"),
-  status: z.enum(["DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "PROCUREMENT", "CANCELLED"]),
+  status: z.enum(["DRAFT", "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED", "PROCUREMENT", "DISPATCHING", "PARTIALLY_DELIVERED", "DELIVERED", "INVOICED", "PAID", "CANCELLED"]),
   requestedDeliveryAt: z.string().trim().optional(),
   deliveryNote: z.string().trim().optional(),
   items: z.array(orderItemFormSchema).min(1, "At least one order item is required"),

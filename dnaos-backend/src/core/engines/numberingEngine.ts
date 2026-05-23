@@ -1,4 +1,4 @@
-export type DocumentTypeCode = "ORD" | "BOQ" | "QT" | "PO" | "INV" | "RCP" | "PV" | "PMT";
+export type DocumentTypeCode = "ORD" | "BOQ" | "QT" | "PO" | "INV" | "RCP" | "PV" | "PMT" | "TJ";
 
 export type BuildDocumentNoInput = {
   projectNo: string;
