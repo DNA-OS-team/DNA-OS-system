@@ -1639,13 +1639,13 @@ Use this section to tell AI what has already been completed.
 ## Current Step
 
 ```txt
-Current Step: Transport / Fleet Job foundation (Phase 11) — COMPLETED
+Current Step: Delivery Proof & Dispute (Phase 12) — COMPLETED
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Delivery Proof & Dispute (Phase 12)
+Next Step: Invoice, Payment, Receipt (Phase 13)
 Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
