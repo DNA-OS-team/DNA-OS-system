@@ -1486,3 +1486,43 @@ model SettlementItem {
   @@index([refType, refId])
   @@map("settlement_items")
 }
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  SUPPLIER_PO_CREATED
+  SUPPLIER_PO_CONFIRMED
+  TRANSPORT_JOB_ASSIGNED
+  TRANSPORT_JOB_DELIVERED
+  INVOICE_CREATED
+  PAYMENT_CONFIRMED
+  DEBT_OVERDUE
+}
+
+model Notification {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type            NotificationType
+  channel         String             @default("LINE")
+  recipientLineId String?            @map("recipient_line_id")
+  templateKey     String             @map("template_key")
+  message         String
+  payload         Json               @default("{}")
+  status          NotificationStatus @default(QUEUED)
+  idempotencyKey  String             @unique @map("idempotency_key")
+  sentAt          DateTime?          @map("sent_at")
+  errorMessage    String?            @map("error_message")
+  entityType      String?            @map("entity_type")
+  entityId        String?            @map("entity_id") @db.Uuid
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([type])
+  @@index([entityType, entityId])
+  @@map("notifications")
+}

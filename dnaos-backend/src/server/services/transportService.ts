@@ -10,6 +10,7 @@ import {
 import { getPrisma } from "../db/prisma.js";
 import { writeAuditLog } from "./auditService.js";
 import { checkAutoInvoiceTrigger, createInvoiceFromCompletedTrips } from "./debtService.js";
+import { notifyCompanyUsers } from "./notificationService.js";
 
 export const transportJobInclude = {
   documentGroup: { include: { project: true } },
@@ -256,6 +257,22 @@ export async function updateTransportJobStatus(
       await createInvoiceFromCompletedTrips(job.customerOrderId).catch(() => {
         // Suppress if invoice already exists or no QT items — admin can create manually
       });
+    }
+
+    // Notify customer company about delivery (fire-and-forget)
+    const order = await prisma.customerOrder.findUnique({
+      where: { id: job.customerOrderId },
+      select: { customerCompanyId: true, orderNo: true },
+    });
+    if (order) {
+      void notifyCompanyUsers(
+        order.customerCompanyId,
+        "TRANSPORT_JOB_DELIVERED",
+        { jobNo: updated.jobNo, orderNo: order.orderNo },
+        `transport_delivered:${jobId}`,
+        "TransportJob",
+        jobId,
+      );
     }
   }
 

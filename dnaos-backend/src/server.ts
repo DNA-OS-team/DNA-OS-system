@@ -22,6 +22,7 @@ import { registerAdminInvoiceRoutes } from "./server/routes/admin-invoices.route
 import { registerAdminDebtRoutes } from "./server/routes/admin-debt.routes.js";
 import { registerAdminSettlementRoutes } from "./server/routes/admin-settlements.routes.js";
 import { registerAdminAlertRoutes } from "./server/routes/admin-alerts.routes.js";
+import { registerWebhookRoutes } from "./server/routes/webhooks.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -60,6 +61,7 @@ export async function buildServer() {
   await app.register(registerAdminDebtRoutes, { prefix: "/admin/debt" });
   await app.register(registerAdminSettlementRoutes, { prefix: "/admin/settlements" });
   await app.register(registerAdminAlertRoutes, { prefix: "/admin/alerts" });
+  await app.register(registerWebhookRoutes, { prefix: "/api/webhooks" });
 
   return app;
 }

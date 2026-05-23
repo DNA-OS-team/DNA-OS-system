@@ -14,6 +14,8 @@ import {
   createSupplierPOsFromOrder,
   supplierPurchaseOrderInclude
 } from "../services/procurementService.js";
+import { alertNewOrder } from "../services/alertService.js";
+import { notifyCompanyUsers } from "../services/notificationService.js";
 
 const orderItemInputSchema = z.object({
   productVariantId: z.string().uuid(),
@@ -230,6 +232,17 @@ export async function registerAdminOrderRoutes(app: FastifyInstance) {
       action: "CREATE",
       newValue: order
     });
+
+    // Alert + LINE notification (fire-and-forget, don't block response)
+    void alertNewOrder(order.id, order.orderNo);
+    void notifyCompanyUsers(
+      order.customerCompanyId,
+      "ORDER_CREATED",
+      { orderNo: order.orderNo, customerName: order.customerCompanyId, totalAmount: "0" },
+      `order_created:${order.id}`,
+      "CustomerOrder",
+      order.id,
+    );
 
     reply.code(201);
     return { order };
