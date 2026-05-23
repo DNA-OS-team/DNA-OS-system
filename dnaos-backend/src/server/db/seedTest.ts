@@ -3,18 +3,18 @@ import { getPrisma } from "./prisma.js";
 import { hashPassword } from "../../core/auth/password.js";
 
 const SEED_IDS = {
-  coreCompany: "seed-company-core-001",
-  customerCompany: "seed-company-cust-001",
-  supplierCompany: "seed-company-supp-001",
-  customerSite: "seed-site-001",
-  category1: "seed-cat-cement-001",
-  category2: "seed-cat-rebar-001",
-  product1: "seed-product-cement-001",
-  product2: "seed-product-rebar-001",
-  variant1: "seed-variant-cement-50kg",
-  variant2: "seed-variant-rebar-12mm",
-  submission: "seed-submission-001",
-  project: "seed-project-001",
+  coreCompany: "00000000-0000-0000-0000-000000000001",
+  customerCompany: "00000000-0000-0000-0000-000000000002",
+  supplierCompany: "00000000-0000-0000-0000-000000000003",
+  customerSite: "00000000-0000-0000-0000-000000000011",
+  category1: "00000000-0000-0000-0000-000000000021",
+  category2: "00000000-0000-0000-0000-000000000022",
+  product1: "00000000-0000-0000-0000-000000000031",
+  product2: "00000000-0000-0000-0000-000000000032",
+  variant1: "00000000-0000-0000-0000-000000000041",
+  variant2: "00000000-0000-0000-0000-000000000042",
+  submission: "00000000-0000-0000-0000-000000000051",
+  project: "00000000-0000-0000-0000-000000000061",
 };
 
 async function main() {
