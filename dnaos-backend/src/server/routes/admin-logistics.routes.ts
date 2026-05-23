@@ -11,7 +11,13 @@ import {
 import {
   nextTransportStatuses,
 } from "../../core/engines/dispatchEngine.js";
-import type { TransportJobStatus } from "../../generated/prisma/client.js";
+import type { DeliveryProofType, TransportJobStatus } from "../../generated/prisma/enums.js";
+import {
+  addDeliveryProof,
+  deleteDeliveryProof,
+  hasRequiredProofs,
+  listDeliveryProofs,
+} from "../services/deliveryProofService.js";
 
 const createJobSchema = z.object({
   orderId: z.string().uuid(),
@@ -106,5 +112,45 @@ export async function registerAdminLogisticsRoutes(app: FastifyInstance) {
   app.get("/fleet-companies", async () => {
     const companies = await listFleetCompanies();
     return { companies };
+  });
+
+  // --- Delivery Proof endpoints ---
+
+  const proofTypeSchema = z.enum([
+    "PHOTO_BEFORE_LOADING", "PHOTO_AFTER_LOADING", "PHOTO_AT_SITE",
+    "SCALE_TICKET", "DELIVERY_NOTE", "CUSTOMER_SIGNATURE", "GPS_LOCATION", "OTHER",
+  ]);
+
+  const addProofSchema = z.object({
+    proofType: proofTypeSchema,
+    fileUrl: z.string().url().optional().nullable(),
+    note: z.string().trim().optional().nullable(),
+  });
+
+  app.get("/jobs/:jobId/proofs", async (request) => {
+    const { jobId } = request.params as { jobId: string };
+    const proofs = await listDeliveryProofs(jobId);
+    const hasRequired = hasRequiredProofs(proofs);
+    return { proofs, hasRequiredProofs: hasRequired };
+  });
+
+  app.post("/jobs/:jobId/proofs", async (request, reply) => {
+    const { jobId } = request.params as { jobId: string };
+    const body = addProofSchema.parse(request.body);
+    const adminSession = (request as any).adminSession;
+    const proof = await addDeliveryProof(jobId, body.proofType as DeliveryProofType, {
+      fileUrl: body.fileUrl ?? undefined,
+      note: body.note ?? undefined,
+      adminId: adminSession?.adminId,
+    });
+    reply.code(201);
+    return { proof };
+  });
+
+  app.delete("/jobs/:jobId/proofs/:proofId", async (_request, reply) => {
+    const { proofId } = _request.params as { jobId: string; proofId: string };
+    await deleteDeliveryProof(proofId);
+    reply.code(204);
+    return;
   });
 }

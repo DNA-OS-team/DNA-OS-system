@@ -25,6 +25,7 @@ import {
 import { assignFleetToJob, getTransportJob, listFleetCompanies, updateTransportJobStatus } from "./transport-job-api";
 import type { FleetCompany, TransportJob, TransportJobStatus } from "./types";
 import { STATUS_LABEL, STATUS_VARIANT } from "./transport-job-list";
+import { DeliveryProofPanel } from "./delivery-proof-panel";
 
 type Props = { jobId: string };
 
@@ -244,6 +245,8 @@ export function TransportJobDetail({ jobId }: Props) {
           </Table>
         </CardContent>
       </Card>
+
+      <DeliveryProofPanel jobId={jobId} />
 
       <Card>
         <CardHeader>

@@ -17,6 +17,7 @@ import { registerHealthRoutes } from "./server/routes/health.routes.js";
 import { registerPartnerPurchaseOrderRoutes } from "./server/routes/partner-purchase-orders.routes.js";
 import { registerAdminLogisticsRoutes } from "./server/routes/admin-logistics.routes.js";
 import { registerFleetJobRoutes } from "./server/routes/fleet-jobs.routes.js";
+import { registerAdminDisputeRoutes } from "./server/routes/admin-disputes.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -50,6 +51,7 @@ export async function buildServer() {
   await app.register(registerPartnerPurchaseOrderRoutes, { prefix: "/partner/purchase-orders" });
   await app.register(registerAdminLogisticsRoutes, { prefix: "/admin/logistics" });
   await app.register(registerFleetJobRoutes, { prefix: "/fleet/jobs" });
+  await app.register(registerAdminDisputeRoutes, { prefix: "/admin/disputes" });
 
   return app;
 }

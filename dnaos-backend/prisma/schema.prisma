@@ -248,6 +248,9 @@ model Admin {
   sessions AdminSession[]
   reviewedPartnerProductSubmissions PartnerProductSubmission[] @relation("PartnerProductSubmissionReviewer")
   assignedTransportJobs             TransportJob[]             @relation("TransportJobAssigner")
+  uploadedProofs                    DeliveryProof[]            @relation("ProofUploader")
+  openedDisputes                    Dispute[]                  @relation("DisputeOpener")
+  closedDisputes                    Dispute[]                  @relation("DisputeCloser")
 
   @@index([status])
   @@map("admins")
@@ -488,6 +491,7 @@ model CustomerOrder {
   supplierPurchaseOrders SupplierPurchaseOrder[]
   transportJobs   TransportJob[]
   standaloneDocs  StandaloneDocument[]
+  disputes        Dispute[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -945,6 +949,7 @@ model SupplierPurchaseOrder {
   supplierCompany Company       @relation("SupplierCompanyPurchaseOrders", fields: [supplierCompanyId], references: [id], onDelete: Restrict)
   items           SupplierPurchaseOrderItem[]
   transportJobs   TransportJob[]
+  disputes        Dispute[]
 
   @@unique([customerOrderId, supplierCompanyId])
   @@index([documentGroupId])
@@ -1011,6 +1016,8 @@ model TransportJob {
   assignedByAdmin       Admin?                 @relation("TransportJobAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
   items                 TransportJobItem[]
   statusHistory         TransportJobStatusHistory[]
+  deliveryProofs        DeliveryProof[]
+  disputes              Dispute[]
 
   @@index([documentGroupId])
   @@index([customerOrderId])
@@ -1101,4 +1108,99 @@ model StandaloneDocumentItem {
 
   @@index([documentId])
   @@map("standalone_document_items")
+}
+
+enum DeliveryProofType {
+  PHOTO_BEFORE_LOADING
+  PHOTO_AFTER_LOADING
+  PHOTO_AT_SITE
+  SCALE_TICKET
+  DELIVERY_NOTE
+  CUSTOMER_SIGNATURE
+  GPS_LOCATION
+  OTHER
+}
+
+enum DisputeType {
+  SHORT_DELIVERY
+  WRONG_MATERIAL
+  LATE_DELIVERY
+  DAMAGED_MATERIAL
+  PRICE_DISPUTE
+  PAYMENT_DISPUTE
+  CUSTOMER_REJECTED
+  TRANSPORT_FAILED
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  INVESTIGATING
+  WAITING_PARTNER
+  WAITING_CUSTOMER
+  RESOLVED
+  REJECTED
+  CLOSED
+}
+
+model DeliveryProof {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transportJobId      String            @map("transport_job_id") @db.Uuid
+  proofType           DeliveryProofType @map("proof_type")
+  fileUrl             String?           @map("file_url")
+  note                String?
+  uploadedByAdminId   String?           @map("uploaded_by_admin_id") @db.Uuid
+  createdAt           DateTime          @default(now()) @map("created_at")
+
+  transportJob TransportJob @relation(fields: [transportJobId], references: [id], onDelete: Cascade)
+  uploadedBy   Admin?       @relation("ProofUploader", fields: [uploadedByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([transportJobId])
+  @@index([proofType])
+  @@map("delivery_proofs")
+}
+
+model Dispute {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeNo         String        @unique @map("dispute_no")
+  customerOrderId   String?       @map("customer_order_id") @db.Uuid
+  transportJobId    String?       @map("transport_job_id") @db.Uuid
+  supplierPoId      String?       @map("supplier_po_id") @db.Uuid
+  disputeType       DisputeType   @map("dispute_type")
+  status            DisputeStatus @default(OPEN)
+  description       String
+  resolutionNote    String?       @map("resolution_note")
+  financialImpact   Decimal?      @map("financial_impact") @db.Decimal(14, 2)
+  openedByAdminId   String?       @map("opened_by_admin_id") @db.Uuid
+  closedByAdminId   String?       @map("closed_by_admin_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  customerOrder CustomerOrder?         @relation(fields: [customerOrderId], references: [id], onDelete: SetNull)
+  transportJob  TransportJob?          @relation(fields: [transportJobId], references: [id], onDelete: SetNull)
+  supplierPo    SupplierPurchaseOrder? @relation(fields: [supplierPoId], references: [id], onDelete: SetNull)
+  openedBy      Admin?                 @relation("DisputeOpener", fields: [openedByAdminId], references: [id], onDelete: SetNull)
+  closedBy      Admin?                 @relation("DisputeCloser", fields: [closedByAdminId], references: [id], onDelete: SetNull)
+  statusHistory DisputeStatusHistory[]
+
+  @@index([customerOrderId])
+  @@index([transportJobId])
+  @@index([supplierPoId])
+  @@index([status])
+  @@map("disputes")
+}
+
+model DisputeStatusHistory {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId  String         @map("dispute_id") @db.Uuid
+  fromStatus DisputeStatus? @map("from_status")
+  toStatus   DisputeStatus  @map("to_status")
+  note       String?
+  changedBy  String?        @map("changed_by")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@map("dispute_status_history")
 }
