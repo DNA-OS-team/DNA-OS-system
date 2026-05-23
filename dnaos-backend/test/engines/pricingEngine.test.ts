@@ -67,6 +67,8 @@ describe("pricingEngine", () => {
     });
 
     expect(result.status).toBe("NEEDS_REVIEW");
+    expect(result.items[0]?.supplierProductId).toBeNull();
+    expect(result.items[0]?.supplierCompanyId).toBeNull();
     expect(result.items[0]?.hasEnoughStock).toBe(false);
     expect(result.items[0]?.warning).toBe("stock ไม่พอต่อจำนวนที่สั่ง");
   });

@@ -68,6 +68,9 @@ export async function createSupplierPOsFromOrder(orderId: string) {
 
   const latestQuotation = await prisma.quotation.findFirst({
     where: { customerOrderId: order.id },
+    include: {
+      boq: true
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -90,6 +93,21 @@ export async function createSupplierPOsFromOrder(orderId: string) {
 
   if (!latestPricingSnapshot) {
     throw new Error("ต้องคำนวณราคาก่อนสร้าง Supplier PO");
+  }
+
+  const blockedPricingItem = latestPricingSnapshot.items.find(
+    (item) =>
+      item.warning ||
+      !item.supplierCompanyId ||
+      !item.supplierProductId ||
+      !item.isAvailable ||
+      !item.hasEnoughStock
+  );
+
+  if (blockedPricingItem) {
+    throw new Error(
+      "ต้องมีพาร์ทเนอร์ที่มีสินค้าอนุมัติ พร้อมขาย และ stock เพียงพอครบทุก BOQ item ก่อนสร้าง Supplier PO"
+    );
   }
 
   const splitGroups = splitOrderBySupplier(
@@ -148,13 +166,22 @@ export async function createSupplierPOsFromOrder(orderId: string) {
         include: supplierPurchaseOrderInclude
       });
 
-      await tx.documentReference.create({
-        data: {
-          documentGroupId: order.documentGroupId,
-          documentId: poNo,
-          relatedDocumentId: latestQuotation.quotationNo,
-          relationType: "GENERATED_FROM"
-        }
+      await tx.documentReference.createMany({
+        data: [
+          {
+            documentGroupId: order.documentGroupId,
+            documentId: poNo,
+            relatedDocumentId: latestQuotation.quotationNo,
+            relationType: "GENERATED_FROM"
+          },
+          {
+            documentGroupId: order.documentGroupId,
+            documentId: poNo,
+            relatedDocumentId: latestQuotation.boq.boqNo,
+            relationType: "GENERATED_FROM"
+          }
+        ],
+        skipDuplicates: true
       });
 
       createdPOs.push(createdPo);

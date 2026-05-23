@@ -166,13 +166,19 @@ export function DocumentSearch() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
         <h1 className="text-2xl font-semibold tracking-normal">
           ค้นหาเอกสาร
         </h1>
         <p className="text-sm text-muted-foreground">
           ค้นหาหมายเลขโปรเจกต์ ชุดเอกสาร หมายเลข order และเอกสารอ้างอิง
         </p>
+        </div>
+        <Link className={buttonVariants()} href="/admin/documents/create">
+          <FilePlus2 />
+          สร้างเอกสาร
+        </Link>
       </div>
 
       {error ? (

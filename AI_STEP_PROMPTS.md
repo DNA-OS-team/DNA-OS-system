@@ -110,7 +110,7 @@ Architecture:
 ## Prompt 0.1 — สร้าง Next.js Project Foundation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะเริ่ม Phase 0: Project Setup
 
@@ -167,7 +167,7 @@ Architecture:
 ## Prompt 0.2 — ติดตั้ง Tailwind CSS และ shadcn/ui
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะทำ Phase 0 ต่อ: ติดตั้ง UI foundation
 
@@ -219,7 +219,7 @@ Architecture:
 ## Prompt 0.3 — ตั้งค่า Environment Variables
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะตั้งค่า environment variables สำหรับระบบ
 
@@ -271,7 +271,7 @@ Architecture:
 ## Prompt 1.1 — Setup Prisma และ Database Connection
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะเริ่ม Phase 1: Identity & Tenant Foundation
 
@@ -315,7 +315,7 @@ Architecture:
 ## Prompt 1.2 — สร้าง Models: Company, User, CompanyMember
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะสร้าง database foundation ชุดแรก
 
@@ -417,7 +417,7 @@ CompanyMember fields:
 ## Prompt 1.3 — สร้าง Permission System เบื้องต้น
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง permission system เบื้องต้นสำหรับตรวจ role ใน application layer
@@ -470,7 +470,7 @@ CompanyMember fields:
 ## Prompt 1.4 — สร้าง Audit Log Model และ Audit Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง audit log foundation สำหรับบันทึก action สำคัญ
@@ -524,7 +524,7 @@ CompanyMember fields:
 ## Prompt 2.1 — สร้าง Customer Site และ Credit Profile Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับ customer site และ credit profile
@@ -642,7 +642,7 @@ CompanyMember fields:
 ## Prompt 3.1 — สร้าง Product Catalog Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง master data สินค้ากลาง
@@ -698,7 +698,7 @@ CompanyMember fields:
 ## Prompt 3.2 — สร้าง Product Admin Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin สำหรับจัดการหมวดสินค้า สินค้า และ variant
@@ -742,7 +742,7 @@ CompanyMember fields:
 ## Prompt 4.1 — สร้าง Supplier Product, Contract และ Price History Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง data model สำหรับ supplier, ราคาสินค้า, สัญญาราคา และประวัติราคา
@@ -817,7 +817,7 @@ CompanyMember fields:
 ## Prompt 4.2 — สร้าง Supplier Admin และ Partner Product Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้าจัดการ supplier และสินค้า supplier
@@ -866,7 +866,7 @@ CompanyMember fields:
 ## Prompt 5.1 — สร้าง Fleet Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับรถร่วม
@@ -931,7 +931,7 @@ CompanyMember fields:
 ## Prompt 5.2 — สร้าง Fleet Admin และ Fleet Portal Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin/fleet สำหรับจัดการรถร่วม
@@ -971,7 +971,7 @@ CompanyMember fields:
 ## Prompt 6.1 — สร้าง Customer Order Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับคำสั่งซื้อของลูกค้า
@@ -1048,7 +1048,7 @@ CompanyMember fields:
 ## Prompt 6.2 — สร้าง Customer Order Pages และ Form
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin/customer สำหรับสร้าง order
@@ -1098,7 +1098,7 @@ CompanyMember fields:
 ## Prompt 7.1 — สร้าง Pricing Engine MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง pricingEngine เพื่อคำนวณต้นทุน ราคาขาย VAT และ margin
@@ -1151,7 +1151,7 @@ CompanyMember fields:
 ## Prompt 7.2 — สร้าง BOQ Models และ BOQ Generation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง BOQ ทั้งแบบ internal และ customer
@@ -1219,7 +1219,7 @@ CompanyMember fields:
 ## Prompt 7.3 — สร้าง BOQ UI
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง UI สำหรับดู BOQ จาก order
@@ -1264,7 +1264,7 @@ CompanyMember fields:
 ## Prompt 8.1 — สร้าง Document Models และ Counters
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบเอกสารหลักและเลขเอกสาร
@@ -1342,7 +1342,7 @@ CompanyMember fields:
 ## Prompt 8.2 — สร้าง Numbering Engine และ Document Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง engine สำหรับเลขเอกสารและการสร้างเอกสาร
@@ -1386,7 +1386,7 @@ CompanyMember fields:
 ## Prompt 8.3 — สร้าง PDF Preview Foundation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง document preview foundation ก่อน generate PDF จริง
@@ -1430,7 +1430,7 @@ CompanyMember fields:
 ## Prompt 9.1 — สร้าง Quotation จาก BOQ / Order
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างใบเสนอราคา QT จาก Customer BOQ หรือ Order
@@ -1475,7 +1475,7 @@ CompanyMember fields:
 ## Prompt 9.2 — ลูกค้ายืนยัน Quotation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ให้ลูกค้าหรือ admin ยืนยัน quotation และเปลี่ยน order เป็น CONFIRMED
@@ -1516,7 +1516,7 @@ CompanyMember fields:
 ## Prompt 10.1 — สร้าง Order Split Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง orderSplitEngine สำหรับแยก order item ตาม supplier
@@ -1555,7 +1555,7 @@ CompanyMember fields:
 ## Prompt 10.2 — สร้าง Supplier PO Models / Service / UI
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง Supplier Purchase Order จาก order split
@@ -1615,7 +1615,7 @@ CompanyMember fields:
 ## Prompt 11.1 — สร้าง Transport Job Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับงานขนส่ง
@@ -1672,7 +1672,7 @@ CompanyMember fields:
 ## Prompt 11.2 — สร้าง Fleet Matching และ Dispatch MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบสร้าง transport job และ assign รถแบบ manual/MVP
@@ -1722,7 +1722,7 @@ CompanyMember fields:
 ## Prompt 12.1 — สร้าง Delivery Proof Checklist และ Upload
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบหลักฐานการส่งของ
@@ -1773,7 +1773,7 @@ CompanyMember fields:
 ## Prompt 12.2 — สร้าง Dispute Module
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบแจ้งปัญหา / claim / dispute
@@ -1833,7 +1833,7 @@ CompanyMember fields:
 ## Prompt 13.1 — สร้าง Payment Models และ Payment Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบ payment foundation
@@ -1882,7 +1882,7 @@ CompanyMember fields:
 ## Prompt 13.2 — สร้าง Invoice จาก Delivered Order
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง invoice / tax invoice จาก order
@@ -1923,7 +1923,7 @@ CompanyMember fields:
 ## Prompt 13.3 — บันทึก Payment และออก Receipt
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 รับชำระเงิน, match invoice, และออกใบเสร็จ
@@ -1972,7 +1972,7 @@ CompanyMember fields:
 ## Prompt 14.1 — สร้าง Debt Tracking และ Collection Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ติดตามหนี้จาก invoice unpaid/overdue
@@ -2028,7 +2028,7 @@ CompanyMember fields:
 ## Prompt 15.1 — สร้าง Settlement Models และ Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 คำนวณและจ่ายเงินให้ supplier / fleet
@@ -2082,7 +2082,7 @@ CompanyMember fields:
 ## Prompt 16.1 — สร้าง Alert Center
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบ alert กลางสำหรับสิ่งที่ต้องจัดการ
@@ -2130,7 +2130,7 @@ CompanyMember fields:
 ## Prompt 16.2 — สร้าง Dashboard MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง dashboard MVP ที่แสดงตัวเลขจริงจาก database
@@ -2175,7 +2175,7 @@ CompanyMember fields:
 ## Prompt 17.1 — Setup Inngest และ Background Jobs
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ตั้งค่า background jobs สำหรับ automation
@@ -2211,7 +2211,7 @@ CompanyMember fields:
 ## Prompt 17.2 — LINE Notification Automation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ส่ง notification ผ่าน LINE หรือ channel ที่ตั้งค่าไว้

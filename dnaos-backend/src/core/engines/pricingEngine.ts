@@ -59,9 +59,8 @@ export function calculatePricing(input: PricingEngineInput): PricingEngineResult
       candidates.find(
         (candidate) =>
           candidate.isAvailable && candidate.availableQty >= item.quantity
-      ) ??
-      candidates[0] ??
-      null;
+      ) ?? null;
+    const bestCandidateForWarning = selected ?? candidates[0] ?? null;
 
     const isAvailable = Boolean(selected?.isAvailable);
     const hasEnoughStock = Boolean(selected && selected.availableQty >= item.quantity);
@@ -88,7 +87,7 @@ export function calculatePricing(input: PricingEngineInput): PricingEngineResult
       marginPercent,
       isAvailable,
       hasEnoughStock,
-      warning: getPricingWarning(selected, item.quantity)
+      warning: getPricingWarning(bestCandidateForWarning, item.quantity)
     };
   });
 

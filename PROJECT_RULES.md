@@ -1307,3 +1307,25 @@ Admin must be able to search by any reference number and see all related documen
 ปุ่ม, หัวข้อ, ข้อความช่วยเหลือ, empty state, error state, table label และ form label ต้องเขียนเป็นภาษาไทยก่อน
 ห้ามสร้างหน้าใหม่ที่ใช้ภาษาอังกฤษเป็นภาษาหลักของ UI
 ```
+---
+
+# UPDATE — Platform Intermediary Document Flow Rule
+
+```txt
+ระบบ DNA OS ต้องทำหน้าที่เป็นตัวกลางกลางระหว่างลูกค้าและพาร์ทเนอร์
+
+Workflow หลักที่ AI และ developer ต้องยึด:
+1. รับใบออร์เดอร์จากลูกค้าเป็น CustomerOrder / ORD
+2. Admin ใช้ข้อมูล order มากรอกและสร้าง BOQ
+3. BOQ ต้องสร้างจาก pricing snapshot ที่เลือกพาร์ทเนอร์จาก SupplierProduct/SupplierInventory เท่านั้น
+4. BOQ จะสร้างต่อได้ก็ต่อเมื่อ partner product อนุมัติแล้ว พร้อมขาย และ stock เพียงพอครบทุก item
+5. หลังสร้าง BOQ และ QT แล้ว ระบบต้องแยก Supplier PO ตามจำนวนบริษัทพาร์ทเนอร์ที่ถูกเลือกจริง
+6. Supplier PO แต่ละใบต้องมีเฉพาะรายการของพาร์ทเนอร์บริษัทนั้น ห้ามรวมข้ามบริษัท
+7. เอกสารทุกใบต้องตรวจสอบย้อนกลับได้ผ่าน DocumentGroup และ DocumentReference:
+   ORD → BOQ → QT → PO → Transport Job → INV/PAY/RCP/PV/PMT
+8. เอกสารที่สร้างจาก BOQ ต้องอ้างอิง BOQ หรือเอกสารต้นทางโดยตรงหรือโดยลำดับ chain เสมอ
+9. ลูกค้าชำระเงินเข้าบริษัทกลาง/Core Platform ก่อนเสมอ
+10. ในเอกสารเชิงพาณิชย์ที่ส่งออกให้บุคคลภายนอก ให้แสดงบริบทการซื้อขายเป็นลูกค้า ↔ พาร์ทเนอร์ของระบบ แต่การรับเงิน/clearing/settlement ต้องเข้าบริษัทกลางก่อน
+11. ห้ามให้ customer เห็นต้นทุนพาร์ทเนอร์, margin, internal BOQ หรือข้อมูล supplier อื่นที่ไม่เกี่ยวข้อง
+12. ห้ามสร้าง invoice/payment/receipt ที่ตัดข้าม document chain หรือไม่มีแหล่งที่มา
+```

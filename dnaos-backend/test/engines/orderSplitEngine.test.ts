@@ -66,6 +66,20 @@ describe("orderSplitEngine", () => {
     ).toThrow("มีรายการสินค้าที่ยังไม่มี supplier");
   });
 
+  it("detects missing supplier product", () => {
+    const validation = validateAllItemsHaveSupplier([
+      {
+        ...baseItem,
+        supplierProductId: null
+      }
+    ]);
+
+    expect(validation.isValid).toBe(false);
+    expect(validation.reason).toBe(
+      "มีรายการสินค้าที่ยังไม่มี supplier product ที่อนุมัติและพร้อมขาย"
+    );
+  });
+
   it("rejects empty items", () => {
     expect(validateAllItemsHaveSupplier([]).isValid).toBe(false);
     expect(() => splitOrderBySupplier([])).toThrow("ไม่มีรายการสินค้าให้แยก PO");

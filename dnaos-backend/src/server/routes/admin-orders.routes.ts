@@ -482,6 +482,23 @@ export async function registerAdminOrderRoutes(app: FastifyInstance) {
       return { error: "ต้องคำนวณราคาก่อนสร้าง BOQ" };
     }
 
+    const blockedPricingItem = pricingSnapshot.items.find(
+      (item) =>
+        item.warning ||
+        !item.supplierCompanyId ||
+        !item.supplierProductId ||
+        !item.isAvailable ||
+        !item.hasEnoughStock
+    );
+
+    if (blockedPricingItem) {
+      reply.code(400);
+      return {
+        error:
+          "ต้องให้ระบบเลือกพาร์ทเนอร์ที่มีสินค้าอนุมัติ พร้อมขาย และ stock เพียงพอก่อนสร้าง BOQ"
+      };
+    }
+
     const boqInput = pricingSnapshot.items.map((item, index) => ({
       customerOrderItemId: item.customerOrderItemId,
       productVariantId: item.productVariantId,

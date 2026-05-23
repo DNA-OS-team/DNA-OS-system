@@ -33,6 +33,15 @@ export function validateAllItemsHaveSupplier(items: SupplierSplitItemInput[]) {
     };
   }
 
+  const missingSupplierProductItem = items.find((item) => !item.supplierProductId);
+
+  if (missingSupplierProductItem) {
+    return {
+      isValid: false,
+      reason: "มีรายการสินค้าที่ยังไม่มี supplier product ที่อนุมัติและพร้อมขาย"
+    };
+  }
+
   return {
     isValid: true,
     reason: null

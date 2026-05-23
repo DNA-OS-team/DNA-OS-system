@@ -1,3 +1,15 @@
+```md
+# Important
+
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first.
+
+Use minimum-token mode:
+- Read only files related to the current task.
+- Do not scan the whole project.
+- Do not retry more than once.
+- Do not refactor outside the requested scope.
+- Stop after completing the current task.
+
 # DNA OS Construction Commerce Platform — System Blueprint
 
 เอกสารนี้ออกแบบสำหรับใช้เป็นไฟล์หลักใน VSCode เพื่อเริ่มพัฒนาระบบ **DNA OS Construction Commerce Platform**

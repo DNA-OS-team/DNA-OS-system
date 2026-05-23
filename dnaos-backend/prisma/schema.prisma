@@ -210,6 +210,9 @@ model Company {
   customerStandaloneDocs StandaloneDocument[]    @relation("CustomerCompanyStandaloneDocs")
   partnerStandaloneDocs  StandaloneDocument[]    @relation("PartnerCompanyStandaloneDocs")
   invoices               Invoice[]
+  debtSnapshot           DebtSnapshot?
+  collectionNotes        CollectionNote[]
+  alerts                 Alert[]
 
   @@map("companies")
 }
@@ -253,6 +256,7 @@ model Admin {
   openedDisputes                    Dispute[]                  @relation("DisputeOpener")
   closedDisputes                    Dispute[]                  @relation("DisputeCloser")
   confirmedPayments                 Payment[]                  @relation("PaymentConfirmer")
+  createdCollectionNotes            CollectionNote[]           @relation("CollectionNoteCreator")
 
   @@index([status])
   @@map("admins")
@@ -1258,6 +1262,7 @@ model Invoice {
   project         Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
   items           InvoiceItem[]
   payments        Payment[]
+  alerts          Alert[]
 
   @@index([customerCompanyId])
   @@index([customerOrderId])
@@ -1305,4 +1310,72 @@ model Payment {
   @@index([invoiceId])
   @@index([paymentStatus])
   @@map("payments")
+}
+
+enum CollectionState {
+  CURRENT
+  OVERDUE
+  WARNING
+  COLLECTION
+  PROMISED
+  PARTIAL
+  LEGAL
+  CLOSED
+}
+
+enum AlertType {
+  OVERDUE
+  WARNING
+  REMINDER
+}
+
+model DebtSnapshot {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCompanyId String          @unique @map("customer_company_id") @db.Uuid
+  collectionState   CollectionState @default(CURRENT) @map("collection_state")
+  totalOutstanding  Decimal         @default(0) @map("total_outstanding") @db.Decimal(14, 2)
+  overdueAmount     Decimal         @default(0) @map("overdue_amount") @db.Decimal(14, 2)
+  daysOverdue       Int             @default(0) @map("days_overdue")
+  openInvoiceCount  Int             @default(0) @map("open_invoice_count")
+  lastRefreshedAt   DateTime        @default(now()) @map("last_refreshed_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  customerCompany Company          @relation(fields: [customerCompanyId], references: [id], onDelete: Cascade)
+  collectionNotes CollectionNote[]
+
+  @@map("debt_snapshots")
+}
+
+model CollectionNote {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCompanyId String          @map("customer_company_id") @db.Uuid
+  note              String
+  collectionState   CollectionState @map("collection_state")
+  promisedPayDate   DateTime?       @map("promised_pay_date")
+  createdByAdminId  String?         @map("created_by_admin_id") @db.Uuid
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  customerCompany DebtSnapshot @relation(fields: [customerCompanyId], references: [customerCompanyId], onDelete: Cascade)
+  createdByAdmin  Admin?       @relation("CollectionNoteCreator", fields: [createdByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([customerCompanyId])
+  @@map("collection_notes")
+}
+
+model Alert {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerCompanyId String    @map("customer_company_id") @db.Uuid
+  invoiceId         String?   @map("invoice_id") @db.Uuid
+  alertType         AlertType @map("alert_type")
+  message           String
+  isRead            Boolean   @default(false) @map("is_read")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  customerCompany Company  @relation(fields: [customerCompanyId], references: [id], onDelete: Cascade)
+  invoice         Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([customerCompanyId])
+  @@index([isRead])
+  @@map("alerts")
 }
