@@ -71,3 +71,33 @@ export async function generateDocumentNo(
     sequence: getNextSequenceFromNumber(latestReference?.documentId)
   });
 }
+
+export async function generateStandaloneDocumentNo(
+  documentType: DocumentTypeCode,
+  projectNo?: string | null,
+  date = new Date()
+) {
+  const prisma = getPrisma();
+  const prefix_project = projectNo ?? "DNA";
+  const prefix = getDocumentNoPrefix(prefix_project, documentType, date);
+  const latestDoc = await prisma.standaloneDocument.findFirst({
+    where: {
+      documentNo: {
+        startsWith: prefix
+      }
+    },
+    orderBy: {
+      documentNo: "desc"
+    },
+    select: {
+      documentNo: true
+    }
+  });
+
+  return buildDocumentNo({
+    projectNo: prefix_project,
+    documentType,
+    date,
+    sequence: getNextSequenceFromNumber(latestDoc?.documentNo)
+  });
+}

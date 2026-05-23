@@ -207,6 +207,8 @@ model Company {
   quotations            Quotation[]            @relation("CustomerCompanyQuotations")
   supplierPurchaseOrders SupplierPurchaseOrder[] @relation("SupplierCompanyPurchaseOrders")
   fleetTransportJobs     TransportJob[]          @relation("FleetCompanyJobs")
+  customerStandaloneDocs StandaloneDocument[]    @relation("CustomerCompanyStandaloneDocs")
+  partnerStandaloneDocs  StandaloneDocument[]    @relation("PartnerCompanyStandaloneDocs")
 
   @@map("companies")
 }
@@ -406,6 +408,7 @@ model Project {
   customerSite    CustomerSite    @relation(fields: [customerSiteId], references: [id], onDelete: Restrict)
   documentGroups  DocumentGroup[]
   customerOrders  CustomerOrder[]
+  standaloneDocs  StandaloneDocument[]
 
   @@index([customerCompanyId])
   @@index([customerSiteId])
@@ -484,6 +487,7 @@ model CustomerOrder {
   quotations      Quotation[]
   supplierPurchaseOrders SupplierPurchaseOrder[]
   transportJobs   TransportJob[]
+  standaloneDocs  StandaloneDocument[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -1047,4 +1051,54 @@ model TransportJobStatusHistory {
 
   @@index([transportJobId])
   @@map("transport_job_status_history")
+}
+
+model StandaloneDocument {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentNo          String       @unique @map("document_no")
+  documentType        DocumentType @map("document_type")
+  documentDate        DateTime     @map("document_date")
+  customerCompanyId   String?      @map("customer_company_id") @db.Uuid
+  partnerCompanyId    String?      @map("partner_company_id") @db.Uuid
+  projectId           String?      @map("project_id") @db.Uuid
+  customerOrderId     String?      @map("customer_order_id") @db.Uuid
+  referenceNo         String?      @map("reference_no")
+  recipientAddress    String?      @map("recipient_address")
+  notes               String?
+  vatRate             Decimal      @default(0.07) @map("vat_rate") @db.Decimal(6, 4)
+  subtotal            Decimal      @db.Decimal(14, 2)
+  vatAmount           Decimal      @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount         Decimal      @map("total_amount") @db.Decimal(14, 2)
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  customerCompany Company?       @relation("CustomerCompanyStandaloneDocs", fields: [customerCompanyId], references: [id], onDelete: SetNull)
+  partnerCompany  Company?       @relation("PartnerCompanyStandaloneDocs", fields: [partnerCompanyId], references: [id], onDelete: SetNull)
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  customerOrder   CustomerOrder? @relation(fields: [customerOrderId], references: [id], onDelete: SetNull)
+  items           StandaloneDocumentItem[]
+
+  @@index([customerCompanyId])
+  @@index([partnerCompanyId])
+  @@index([projectId])
+  @@index([customerOrderId])
+  @@index([documentType])
+  @@map("standalone_documents")
+}
+
+model StandaloneDocumentItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId  String   @map("document_id") @db.Uuid
+  description String
+  quantity    Decimal  @db.Decimal(14, 3)
+  unit        String
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(14, 2)
+  totalPrice  Decimal  @map("total_price") @db.Decimal(14, 2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  document StandaloneDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("standalone_document_items")
 }
