@@ -209,6 +209,7 @@ model Company {
   fleetTransportJobs     TransportJob[]          @relation("FleetCompanyJobs")
   customerStandaloneDocs StandaloneDocument[]    @relation("CustomerCompanyStandaloneDocs")
   partnerStandaloneDocs  StandaloneDocument[]    @relation("PartnerCompanyStandaloneDocs")
+  invoices               Invoice[]
 
   @@map("companies")
 }
@@ -251,6 +252,7 @@ model Admin {
   uploadedProofs                    DeliveryProof[]            @relation("ProofUploader")
   openedDisputes                    Dispute[]                  @relation("DisputeOpener")
   closedDisputes                    Dispute[]                  @relation("DisputeCloser")
+  confirmedPayments                 Payment[]                  @relation("PaymentConfirmer")
 
   @@index([status])
   @@map("admins")
@@ -412,6 +414,7 @@ model Project {
   documentGroups  DocumentGroup[]
   customerOrders  CustomerOrder[]
   standaloneDocs  StandaloneDocument[]
+  invoices        Invoice[]
 
   @@index([customerCompanyId])
   @@index([customerSiteId])
@@ -492,6 +495,7 @@ model CustomerOrder {
   transportJobs   TransportJob[]
   standaloneDocs  StandaloneDocument[]
   disputes        Dispute[]
+  invoices        Invoice[]
 
   @@index([projectId])
   @@index([documentGroupId])
@@ -1203,4 +1207,102 @@ model DisputeStatusHistory {
 
   @@index([disputeId])
   @@map("dispute_status_history")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+  CREDIT_CARD
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model Invoice {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceNo         String        @unique @map("invoice_no")
+  invoiceStatus     InvoiceStatus @default(DRAFT) @map("invoice_status")
+  customerCompanyId String        @map("customer_company_id") @db.Uuid
+  customerOrderId   String?       @map("customer_order_id") @db.Uuid
+  projectId         String?       @map("project_id") @db.Uuid
+  invoiceDate       DateTime      @default(now()) @map("invoice_date")
+  dueDate           DateTime?     @map("due_date")
+  referenceNo       String?       @map("reference_no")
+  recipientAddress  String?       @map("recipient_address")
+  notes             String?
+  vatRate           Decimal       @default(0.07) @map("vat_rate") @db.Decimal(6, 4)
+  subtotal          Decimal       @db.Decimal(14, 2)
+  vatAmount         Decimal       @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount       Decimal       @map("total_amount") @db.Decimal(14, 2)
+  paidAmount        Decimal       @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  receiptNo         String?       @unique @map("receipt_no")
+  receiptIssuedAt   DateTime?     @map("receipt_issued_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  customerCompany Company        @relation(fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  customerOrder   CustomerOrder? @relation(fields: [customerOrderId], references: [id], onDelete: SetNull)
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  items           InvoiceItem[]
+  payments        Payment[]
+
+  @@index([customerCompanyId])
+  @@index([customerOrderId])
+  @@index([projectId])
+  @@index([invoiceStatus])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId   String   @map("invoice_id") @db.Uuid
+  description String
+  quantity    Decimal  @db.Decimal(14, 3)
+  unit        String   @default("รายการ")
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(14, 2)
+  totalPrice  Decimal  @map("total_price") @db.Decimal(14, 2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId     String        @map("invoice_id") @db.Uuid
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod PaymentMethod @map("payment_method")
+  amount        Decimal       @db.Decimal(14, 2)
+  paidAt        DateTime      @map("paid_at")
+  referenceNo   String?       @map("reference_no")
+  bankRef       String?       @map("bank_ref")
+  slipUrl       String?       @map("slip_url")
+  notes         String?
+  confirmedBy   String?       @map("confirmed_by") @db.Uuid
+  confirmedAt   DateTime?     @map("confirmed_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  invoice          Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  confirmedByAdmin Admin?  @relation("PaymentConfirmer", fields: [confirmedBy], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([paymentStatus])
+  @@map("payments")
 }
