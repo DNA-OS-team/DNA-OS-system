@@ -13,6 +13,9 @@ export type DashboardMetricSet = {
   documentGroups: number;
   pendingPartnerProducts: number;
   lowStockItems: number;
+  // Executive
+  grossMarginPct?: number | null;
+  revenueLast30d?: number;
   // Operations
   newOrders: number;
   pendingPOs: number;
@@ -20,11 +23,21 @@ export type DashboardMetricSet = {
   // Finance
   unpaidInvoices: number;
   overdueInvoices: number;
+  paymentUnreconciled?: number;
   totalOutstanding: number;
   supplierPayable: number;
   fleetPayable: number;
   // Alerts
   alerts?: AlertCounts;
+};
+
+export type RecentAlert = {
+  id: string;
+  alertType: string;
+  severity: "INFO" | "WARNING" | "CRITICAL";
+  message: string;
+  createdAt: string;
+  resolvedAt: string | null;
 };
 
 export type DashboardPartnerProduct = {
@@ -91,6 +104,7 @@ export type DashboardProject = {
 
 export type AdminDashboardData = {
   metrics: DashboardMetricSet;
+  recentAlerts: RecentAlert[];
   pendingPartnerProducts: DashboardPartnerProduct[];
   lowStockItems: DashboardInventoryItem[];
   recentProjects: DashboardProject[];

@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getAdminDashboard } from "./dashboard-api";
-import type { AdminDashboardData, DashboardMetricSet } from "./types";
+import type { AdminDashboardData, DashboardMetricSet, RecentAlert } from "./types";
 
 const emptyDashboard: AdminDashboardData = {
   metrics: {
@@ -47,16 +47,20 @@ const emptyDashboard: AdminDashboardData = {
     documentGroups: 0,
     pendingPartnerProducts: 0,
     lowStockItems: 0,
+    grossMarginPct: null,
+    revenueLast30d: 0,
     newOrders: 0,
     pendingPOs: 0,
     trucksNotAssigned: 0,
     unpaidInvoices: 0,
     overdueInvoices: 0,
+    paymentUnreconciled: 0,
     totalOutstanding: 0,
     supplierPayable: 0,
     fleetPayable: 0,
     alerts: { critical: 0, warning: 0, info: 0, total: 0 },
   },
+  recentAlerts: [],
   pendingPartnerProducts: [],
   lowStockItems: [],
   recentProjects: [],
@@ -179,6 +183,8 @@ export function AdminDashboard() {
       <OperationsRow metrics={dashboard.metrics} isLoading={isLoading} />
 
       <FinanceRow metrics={dashboard.metrics} isLoading={isLoading} />
+
+      <RecentAlertsPanel alerts={dashboard.recentAlerts} isLoading={isLoading} />
 
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <Card>
@@ -411,6 +417,57 @@ function MetricGrid({
   );
 }
 
+const SEVERITY_BADGE: Record<string, string> = {
+  CRITICAL: "bg-destructive text-destructive-foreground",
+  WARNING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  INFO: "bg-muted text-muted-foreground",
+};
+
+function RecentAlertsPanel({
+  alerts,
+  isLoading,
+}: {
+  alerts: RecentAlert[];
+  isLoading: boolean;
+}) {
+  if (!isLoading && alerts.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-base">Alert ล่าสุด</CardTitle>
+        <Link
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+          href="/admin/alerts"
+        >
+          ดูทั้งหมด
+        </Link>
+      </CardHeader>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div className="px-6 py-3 text-sm text-muted-foreground">กำลังโหลด...</div>
+        ) : (
+          <div className="divide-y">
+            {alerts.map((alert) => (
+              <div key={alert.id} className="flex items-start gap-3 px-6 py-3">
+                <span className={`mt-0.5 rounded px-1.5 py-0.5 text-xs font-medium ${SEVERITY_BADGE[alert.severity] ?? SEVERITY_BADGE.INFO}`}>
+                  {alert.severity}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm truncate">{alert.message}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(alert.createdAt).toLocaleString("th-TH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function OperationsRow({
   metrics,
   isLoading,
@@ -460,8 +517,11 @@ function FinanceRow({
   isLoading: boolean;
 }) {
   const cards = [
-    { label: "Invoice ยังไม่ชำระ", value: metrics.unpaidInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0 },
-    { label: "Invoice เกินกำหนด", value: metrics.overdueInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0 },
+    { label: "รายได้ 30 วัน", value: metrics.revenueLast30d ?? 0, href: "/admin/invoices", suffix: "บาท", isMoney: true, highlight: false },
+    { label: "Gross Margin", value: null, href: "/admin/invoices", suffix: "", isMoney: false, highlight: false, extra: metrics.grossMarginPct },
+    { label: "Invoice ยังไม่ชำระ", value: metrics.unpaidInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0, isMoney: false },
+    { label: "Invoice เกินกำหนด", value: metrics.overdueInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0, isMoney: false },
+    { label: "รอยืนยันการชำระ", value: metrics.paymentUnreconciled ?? 0, href: "/admin/invoices", suffix: "ใบ", highlight: (metrics.paymentUnreconciled ?? 0) > 0, isMoney: false },
     { label: "ยอดลูกหนี้คงค้าง", value: metrics.totalOutstanding, href: "/admin/debt", suffix: "บาท", isMoney: true, highlight: false },
     { label: "ต้องจ่ายซัพพลายเออร์", value: metrics.supplierPayable, href: "/admin/settlements", suffix: "บาท", isMoney: true, highlight: false },
     { label: "ต้องจ่ายผู้ขนส่ง", value: metrics.fleetPayable, href: "/admin/settlements", suffix: "บาท", isMoney: true, highlight: false },
@@ -470,17 +530,27 @@ function FinanceRow({
   return (
     <div>
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Finance</p>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <Link key={card.label} href={card.href}>
             <Card className={`h-full transition-colors hover:bg-muted/50 ${card.highlight ? "border-destructive" : ""}`}>
               <CardContent className="flex h-24 flex-col justify-between p-4">
                 <p className="text-sm text-muted-foreground">{card.label}</p>
                 <div>
-                  <span className={`text-xl font-semibold ${card.highlight ? "text-destructive" : ""}`}>
-                    {isLoading ? "-" : card.isMoney ? card.value.toLocaleString("th-TH", { maximumFractionDigits: 0 }) : card.value.toLocaleString()}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">{card.suffix}</span>
+                  {"extra" in card && card.extra !== undefined ? (
+                    <span className={`text-xl font-semibold ${card.extra !== null && card.extra < 20 ? "text-destructive" : "text-green-700 dark:text-green-400"}`}>
+                      {isLoading ? "-" : card.extra !== null ? `${card.extra}%` : "N/A"}
+                    </span>
+                  ) : (
+                    <>
+                      <span className={`text-xl font-semibold ${card.highlight ? "text-destructive" : ""}`}>
+                        {isLoading ? "-" : card.isMoney
+                          ? (card.value as number).toLocaleString("th-TH", { maximumFractionDigits: 0 })
+                          : (card.value as number).toLocaleString()}
+                      </span>
+                      {card.suffix && <span className="text-xs text-muted-foreground ml-1">{card.suffix}</span>}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
