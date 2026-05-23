@@ -9,6 +9,7 @@ import {
 } from "../../core/engines/dispatchEngine.js";
 import { getPrisma } from "../db/prisma.js";
 import { writeAuditLog } from "./auditService.js";
+import { checkAutoInvoiceTrigger, createInvoiceFromCompletedTrips } from "./debtService.js";
 
 export const transportJobInclude = {
   documentGroup: { include: { project: true } },
@@ -235,6 +236,28 @@ export async function updateTransportJobStatus(
     oldValue: job.status,
     newValue: toStatus,
   });
+
+  // When a delivery trip completes, increment deliveredTrips on each matched CustomerOrderItem
+  // and check if auto-invoice should be triggered
+  if (toStatus === "DELIVERED" && job.customerOrderId) {
+    const jobItems = await prisma.transportJobItem.findMany({
+      where: { transportJobId: jobId },
+      select: { productVariantId: true },
+    });
+    for (const item of jobItems) {
+      if (!item.productVariantId) continue;
+      await prisma.customerOrderItem.updateMany({
+        where: { customerOrderId: job.customerOrderId, productVariantId: item.productVariantId },
+        data: { deliveredTrips: { increment: 1 } },
+      });
+    }
+    const allDone = await checkAutoInvoiceTrigger(job.customerOrderId);
+    if (allDone) {
+      await createInvoiceFromCompletedTrips(job.customerOrderId).catch(() => {
+        // Suppress if invoice already exists or no QT items — admin can create manually
+      });
+    }
+  }
 
   return updated;
 }

@@ -1,3 +1,10 @@
+export type AlertCounts = {
+  critical: number;
+  warning: number;
+  info: number;
+  total: number;
+};
+
 export type DashboardMetricSet = {
   customers: number;
   suppliers: number;
@@ -6,6 +13,18 @@ export type DashboardMetricSet = {
   documentGroups: number;
   pendingPartnerProducts: number;
   lowStockItems: number;
+  // Operations
+  newOrders: number;
+  pendingPOs: number;
+  trucksNotAssigned: number;
+  // Finance
+  unpaidInvoices: number;
+  overdueInvoices: number;
+  totalOutstanding: number;
+  supplierPayable: number;
+  fleetPayable: number;
+  // Alerts
+  alerts?: AlertCounts;
 };
 
 export type DashboardPartnerProduct = {

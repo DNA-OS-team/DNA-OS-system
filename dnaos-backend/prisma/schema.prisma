@@ -186,6 +186,7 @@ model Company {
   email         String?
   bankName      String?       @map("bank_name")
   bankAccountNo String?       @map("bank_account_no")
+  isIndividual  Boolean       @default(false) @map("is_individual")
   type          CompanyType
   status        CompanyStatus @default(ACTIVE)
   createdAt     DateTime      @default(now()) @map("created_at")
@@ -211,8 +212,8 @@ model Company {
   partnerStandaloneDocs  StandaloneDocument[]    @relation("PartnerCompanyStandaloneDocs")
   invoices               Invoice[]
   debtSnapshot           DebtSnapshot?
-  collectionNotes        CollectionNote[]
   alerts                 Alert[]
+  settlementBatches      SettlementBatch[]      @relation("PartnerSettlementBatches")
 
   @@map("companies")
 }
@@ -257,6 +258,9 @@ model Admin {
   closedDisputes                    Dispute[]                  @relation("DisputeCloser")
   confirmedPayments                 Payment[]                  @relation("PaymentConfirmer")
   createdCollectionNotes            CollectionNote[]           @relation("CollectionNoteCreator")
+  createdSettlementBatches          SettlementBatch[]          @relation("SettlementCreator")
+  approvedSettlementBatches         SettlementBatch[]          @relation("SettlementApprover")
+  resolvedAlerts                    Alert[]                    @relation("AlertResolver")
 
   @@index([status])
   @@map("admins")
@@ -516,6 +520,8 @@ model CustomerOrderItem {
   description      String?
   quantity         Decimal  @db.Decimal(14, 3)
   unit             String
+  totalTrips       Int      @default(1) @map("total_trips")
+  deliveredTrips   Int      @default(0) @map("delivered_trips")
   sortOrder        Int      @default(0) @map("sort_order")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -1327,6 +1333,24 @@ enum AlertType {
   OVERDUE
   WARNING
   REMINDER
+  NEW_ORDER
+  SUPPLIER_NOT_CONFIRMED
+  TRUCK_NOT_ASSIGNED
+  TRUCK_DELAYED
+  DOCUMENT_PENDING_APPROVAL
+  INVOICE_OVERDUE
+  PAYMENT_UNRECONCILED
+  LOW_MARGIN
+  CREDIT_LIMIT_EXCEEDED
+  DELIVERY_PROOF_MISSING
+  LINE_SEND_FAILED
+  PDF_GENERATION_FAILED
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
 }
 
 model DebtSnapshot {
@@ -1337,6 +1361,8 @@ model DebtSnapshot {
   overdueAmount     Decimal         @default(0) @map("overdue_amount") @db.Decimal(14, 2)
   daysOverdue       Int             @default(0) @map("days_overdue")
   openInvoiceCount  Int             @default(0) @map("open_invoice_count")
+  firstContactAt    DateTime?       @map("first_contact_at")
+  debtStartAt       DateTime?       @map("debt_start_at")
   lastRefreshedAt   DateTime        @default(now()) @map("last_refreshed_at")
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
@@ -1364,18 +1390,99 @@ model CollectionNote {
 }
 
 model Alert {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customerCompanyId String    @map("customer_company_id") @db.Uuid
-  invoiceId         String?   @map("invoice_id") @db.Uuid
-  alertType         AlertType @map("alert_type")
-  message           String
-  isRead            Boolean   @default(false) @map("is_read")
-  createdAt         DateTime  @default(now()) @map("created_at")
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alertType           AlertType     @map("alert_type")
+  severity            AlertSeverity @default(WARNING) @map("severity")
+  entityType          String?       @map("entity_type")
+  entityId            String?       @map("entity_id") @db.Uuid
+  customerCompanyId   String?       @map("customer_company_id") @db.Uuid
+  invoiceId           String?       @map("invoice_id") @db.Uuid
+  message             String
+  isRead              Boolean       @default(false) @map("is_read")
+  resolvedAt          DateTime?     @map("resolved_at")
+  resolvedByAdminId   String?       @map("resolved_by_admin_id") @db.Uuid
+  createdAt           DateTime      @default(now()) @map("created_at")
 
-  customerCompany Company  @relation(fields: [customerCompanyId], references: [id], onDelete: Cascade)
-  invoice         Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customerCompany   Company?  @relation(fields: [customerCompanyId], references: [id], onDelete: SetNull)
+  invoice           Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  resolvedByAdmin   Admin?    @relation("AlertResolver", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
 
   @@index([customerCompanyId])
   @@index([isRead])
+  @@index([alertType])
+  @@index([severity])
+  @@index([resolvedAt])
   @@map("alerts")
+}
+
+// ─── Phase 15: Settlement / Payout ───────────────────────────────────────────
+
+enum SettlementPartnerType {
+  SUPPLIER
+  FLEET
+}
+
+enum SettlementStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PAYMENT_ORDERED
+  PAID
+  CANCELLED
+}
+
+enum SettlementItemRefType {
+  PURCHASE_ORDER
+  TRANSPORT_JOB
+}
+
+model SettlementBatch {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batchNo          String                 @unique @map("batch_no")
+  partnerCompanyId String                 @map("partner_company_id") @db.Uuid
+  partnerType      SettlementPartnerType  @map("partner_type")
+  status           SettlementStatus       @default(DRAFT)
+  periodFrom       DateTime               @map("period_from") @db.Date
+  periodTo         DateTime               @map("period_to") @db.Date
+  grossAmount      Decimal                @default(0) @map("gross_amount") @db.Decimal(14, 2)
+  whtAmount        Decimal                @default(0) @map("wht_amount") @db.Decimal(14, 2)
+  netAmount        Decimal                @default(0) @map("net_amount") @db.Decimal(14, 2)
+  paymentDueAt     DateTime?              @map("payment_due_at")
+  approvedAt       DateTime?              @map("approved_at")
+  paidAt           DateTime?              @map("paid_at")
+  notes            String?
+  createdByAdminId String?                @map("created_by_admin_id") @db.Uuid
+  approvedByAdminId String?               @map("approved_by_admin_id") @db.Uuid
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  partnerCompany   Company                @relation("PartnerSettlementBatches", fields: [partnerCompanyId], references: [id], onDelete: Restrict)
+  createdByAdmin   Admin?                 @relation("SettlementCreator", fields: [createdByAdminId], references: [id], onDelete: SetNull)
+  approvedByAdmin  Admin?                 @relation("SettlementApprover", fields: [approvedByAdminId], references: [id], onDelete: SetNull)
+  items            SettlementItem[]
+
+  @@index([partnerCompanyId])
+  @@index([partnerType])
+  @@index([status])
+  @@map("settlement_batches")
+}
+
+model SettlementItem {
+  id                  String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  settlementBatchId   String                  @map("settlement_batch_id") @db.Uuid
+  refType             SettlementItemRefType   @map("ref_type")
+  refId               String                  @map("ref_id") @db.Uuid
+  description         String
+  grossAmount         Decimal                 @map("gross_amount") @db.Decimal(14, 2)
+  whtRate             Decimal                 @default(0) @map("wht_rate") @db.Decimal(6, 4)
+  whtAmount           Decimal                 @default(0) @map("wht_amount") @db.Decimal(14, 2)
+  netAmount           Decimal                 @map("net_amount") @db.Decimal(14, 2)
+  sortOrder           Int                     @default(0) @map("sort_order")
+  createdAt           DateTime                @default(now()) @map("created_at")
+
+  settlementBatch SettlementBatch @relation(fields: [settlementBatchId], references: [id], onDelete: Cascade)
+
+  @@index([settlementBatchId])
+  @@index([refType, refId])
+  @@map("settlement_items")
 }

@@ -2,13 +2,18 @@
 
 import {
   AlertTriangle,
+  Banknote,
+  Bell,
   Boxes,
   Building2,
   ClipboardList,
   FileSearch,
   FolderKanban,
   PackageCheck,
+  ShieldAlert,
+  Truck,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -42,6 +47,15 @@ const emptyDashboard: AdminDashboardData = {
     documentGroups: 0,
     pendingPartnerProducts: 0,
     lowStockItems: 0,
+    newOrders: 0,
+    pendingPOs: 0,
+    trucksNotAssigned: 0,
+    unpaidInvoices: 0,
+    overdueInvoices: 0,
+    totalOutstanding: 0,
+    supplierPayable: 0,
+    fleetPayable: 0,
+    alerts: { critical: 0, warning: 0, info: 0, total: 0 },
   },
   pendingPartnerProducts: [],
   lowStockItems: [],
@@ -123,6 +137,32 @@ export function AdminDashboard() {
             <PackageCheck />
             สินค้าซัพพลายเออร์
           </Link>
+          <Link
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            href="/admin/debt"
+          >
+            <Wallet />
+            ลูกหนี้
+          </Link>
+          <Link
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            href="/admin/settlements"
+          >
+            <Banknote />
+            Settlement
+          </Link>
+          <Link
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            href="/admin/alerts"
+          >
+            <Bell />
+            Alerts
+            {(dashboard.metrics.alerts?.critical ?? 0) > 0 && (
+              <span className="ml-1 rounded-full bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 leading-none">
+                {dashboard.metrics.alerts?.critical}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 
@@ -135,6 +175,10 @@ export function AdminDashboard() {
       ) : null}
 
       <MetricGrid metrics={dashboard.metrics} isLoading={isLoading} />
+
+      <OperationsRow metrics={dashboard.metrics} isLoading={isLoading} />
+
+      <FinanceRow metrics={dashboard.metrics} isLoading={isLoading} />
 
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <Card>
@@ -363,6 +407,86 @@ function MetricGrid({
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+function OperationsRow({
+  metrics,
+  isLoading,
+}: {
+  metrics: DashboardMetricSet;
+  isLoading: boolean;
+}) {
+  const cards = [
+    { label: "คำสั่งซื้อใหม่ (24h)", value: metrics.newOrders, href: "/admin/orders", icon: ClipboardList, highlight: metrics.newOrders > 0 },
+    { label: "PO รอซัพพลายเออร์ยืนยัน", value: metrics.pendingPOs, href: "/admin/orders", icon: PackageCheck, highlight: metrics.pendingPOs > 0 },
+    { label: "งานรอรถ", value: metrics.trucksNotAssigned, href: "/admin/logistics", icon: Truck, highlight: metrics.trucksNotAssigned > 0 },
+    { label: "Alerts วิกฤต", value: metrics.alerts?.critical ?? 0, href: "/admin/alerts", icon: ShieldAlert, highlight: (metrics.alerts?.critical ?? 0) > 0 },
+  ];
+
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Operations</p>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link key={card.label} href={card.href}>
+              <Card className={`h-full transition-colors hover:bg-muted/50 ${card.highlight ? "border-yellow-400" : ""}`}>
+                <CardContent className="flex h-24 flex-col justify-between p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">{card.label}</p>
+                    <Icon className={`size-4 ${card.highlight ? "text-yellow-600" : "text-muted-foreground"}`} />
+                  </div>
+                  <div className={`text-2xl font-semibold ${card.highlight ? "text-yellow-700 dark:text-yellow-400" : ""}`}>
+                    {isLoading ? "-" : card.value.toLocaleString()}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FinanceRow({
+  metrics,
+  isLoading,
+}: {
+  metrics: DashboardMetricSet;
+  isLoading: boolean;
+}) {
+  const cards = [
+    { label: "Invoice ยังไม่ชำระ", value: metrics.unpaidInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0 },
+    { label: "Invoice เกินกำหนด", value: metrics.overdueInvoices, href: "/admin/invoices", suffix: "ใบ", highlight: metrics.overdueInvoices > 0 },
+    { label: "ยอดลูกหนี้คงค้าง", value: metrics.totalOutstanding, href: "/admin/debt", suffix: "บาท", isMoney: true, highlight: false },
+    { label: "ต้องจ่ายซัพพลายเออร์", value: metrics.supplierPayable, href: "/admin/settlements", suffix: "บาท", isMoney: true, highlight: false },
+    { label: "ต้องจ่ายผู้ขนส่ง", value: metrics.fleetPayable, href: "/admin/settlements", suffix: "บาท", isMoney: true, highlight: false },
+  ];
+
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Finance</p>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        {cards.map((card) => (
+          <Link key={card.label} href={card.href}>
+            <Card className={`h-full transition-colors hover:bg-muted/50 ${card.highlight ? "border-destructive" : ""}`}>
+              <CardContent className="flex h-24 flex-col justify-between p-4">
+                <p className="text-sm text-muted-foreground">{card.label}</p>
+                <div>
+                  <span className={`text-xl font-semibold ${card.highlight ? "text-destructive" : ""}`}>
+                    {isLoading ? "-" : card.isMoney ? card.value.toLocaleString("th-TH", { maximumFractionDigits: 0 }) : card.value.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-1">{card.suffix}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

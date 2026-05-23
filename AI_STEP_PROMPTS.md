@@ -1972,10 +1972,27 @@ Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first
 ## Prompt 14.1 — สร้าง Debt Tracking และ Collection Engine
 
 ```txt
-Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` and `WORKFLOW_AND_ROLE_RULES.md` (Section 20-21) first.
 
 เป้าหมาย:
-ติดตามหนี้จาก invoice unpaid/overdue
+ติดตามหนี้จาก invoice unpaid/overdue ตาม business rules จริง
+
+Business rules ที่ต้อง implement ให้ถูกต้อง:
+
+Debt Timer Rule (24h after first contact):
+- เมื่อมีการติดต่อลูกค้าครั้งแรก (first contact) → บันทึก firstContactAt
+- ถ้าไม่ชำระเงินภายใน 24 ชม. หลัง firstContactAt → เริ่มนับ debt period (debtStartAt)
+- CollectionState transitions: CURRENT → OVERDUE → WARNING → COLLECTION
+
+Auto-Invoice Rule (multiple delivery trips):
+- Order item ที่ส่งหลายเที่ยว (เช่น ดิน 10 รอบ) ต้องติดตาม deliveredTrips vs totalTrips
+- เมื่อ deliveredTrips >= totalTrips → trigger auto-invoice ไม่ต้องรอ admin กด
+
+Invoice State Machine:
+- ส่งสินค้าเสร็จ → ออก Invoice
+- ถ้าลูกค้าจ่ายแล้วก่อน Invoice ออก → Invoice issued, RCT ออกทันที
+- ถ้ายังไม่จ่าย → UNPAID, เริ่ม debt monitoring
+- ลูกค้า upload slip → PAYMENT = COMPLETED → RCT → PAID
 
 สิ่งที่ต้องทำ:
 1. เพิ่ม enum CollectionState:
@@ -1987,38 +2004,43 @@ Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first
    - PARTIAL
    - LEGAL
    - CLOSED
-2. เพิ่ม model DebtSnapshot
-3. เพิ่ม model CollectionNote
+2. เพิ่ม model DebtSnapshot (เพิ่ม firstContactAt, debtStartAt fields)
+3. เพิ่ม model CollectionNote (บันทึกการติดต่อแต่ละครั้ง)
 4. สร้าง collectionEngine:
    - autoState(overdueDays, paid, total)
    - canTransition(from, to)
    - nextActions(state)
+   - calculateDebtStartDate(firstContactAt) — returns firstContactAt + 24h
+   - isDebtStarted(invoice, now)
 5. สร้าง debtService:
    - calculateInvoiceDebt(documentId)
    - updateCollectionState(documentId)
    - createDailySnapshot()
+   - recordFirstContact(documentId, contactedBy) — บันทึก firstContactAt
+   - checkAutoInvoiceTrigger(orderId) — ตรวจว่าครบเที่ยวหรือยัง
+   - createInvoiceFromCompletedTrips(orderId)
 6. สร้าง routes:
-   - /admin/debt
+   - /admin/debt (real-time debt dashboard)
    - /admin/debt/[documentId]
-7. แสดง:
-   - invoice
-   - customer
-   - due date
-   - overdue days
-   - paid
-   - balance
-   - collection state
-8. เพิ่ม collection note
+7. /admin/debt แสดง:
+   - invoice, customer, due date, overdue days
+   - firstContactAt, debtStartAt (timer)
+   - paid, balance, collection state
+   - ปุ่ม "บันทึกการติดต่อ" ที่ตั้ง firstContactAt
+8. เพิ่ม collection note ต่อ invoice
+9. อัปเดต TransportJobItem: deliveredTrips, totalTrips fields
 
 ข้อห้าม:
 - ห้ามคิดดอกเบี้ยซ้ำหลายที่
 - ห้ามปิดหนี้ถ้ายังมียอดค้าง
 - ห้ามลบ collection history
+- ห้ามออก invoice ซ้ำจาก order เดิม
 
 ผลลัพธ์ที่ต้องได้:
-- ดูลูกหนี้ได้
-- เห็น overdue ได้
-- state เปลี่ยนตามวันค้างได้
+- ดูลูกหนี้ได้ พร้อม first contact timer
+- Auto-invoice เมื่อครบจำนวนเที่ยว
+- State เปลี่ยนตาม 24h debt rule
+- อัปเดต PROJECT_PROGRESS.md: [x] debt tracking created
 ```
 
 ---
@@ -2449,6 +2471,72 @@ Admin สร้างลูกค้า → สร้างไซต์งาน
 ---
 
 # END OF FILE
+
+ให้ใช้ prompt นี้สำหรับ Phase 14 (Debt & Collection) โดยเพิ่ม business rules จริงจาก operational flows:
+
+```txt
+Read AGENT.md, PROJECT_RULES.md, WORKFLOW_AND_ROLE_RULES.md (Section 20-21) before implementing Phase 14.
+
+Business rules ที่ต้อง implement ให้ถูกต้อง:
+
+1. Debt Timer Rule (24h after first contact):
+   - เมื่อมีการติดต่อลูกค้าครั้งแรก (first contact) → บันทึก firstContactAt
+   - ถ้าไม่ชำระเงินภายใน 24 ชั่วโมงหลัง firstContactAt → เริ่มนับ debt period
+   - CollectionState transitions: CURRENT → OVERDUE → WARNING → COLLECTION
+
+2. Auto-Invoice Rule (multiple delivery trips):
+   - Order item ที่ต้องการส่งหลายเที่ยว (เช่น ดิน 10 รอบ) ต้องติดตาม deliveredTrips vs totalTrips
+   - เมื่อ deliveredTrips >= totalTrips → trigger auto-invoice
+   - ระบบออก Invoice อัตโนมัติโดยไม่ต้องรอ admin
+
+3. Fleet Payment Credit (6 months):
+   - Fleet ได้รับเครดิตสูงสุด 6 เดือนหลังส่งงานสำเร็จ (COMPLETED)
+   - Settlement batch สำหรับ fleet ต้องคำนวณจาก transport jobs ที่ COMPLETED ในช่วง credit period
+   - ค่าแรงบันทึกตามจำนวนเที่ยวที่ส่งจริง
+
+4. Supplier Payment Credit (6 months):
+   - Supplier รอรับเงินหลัง PO status = FULFILLED
+   - วงเงินเครดิต supplier สูงสุด 6 เดือน
+   - ถ้า Supplier เป็นบุคคลธรรมดา หัก WHT 3% ก่อนจ่าย
+
+5. Invoice State Machine:
+   - ส่งสินค้าเสร็จ (DELIVERED/COMPLETED) → ออก Invoice
+   - ถ้าลูกค้าจ่ายแล้วก่อน Invoice ถูกออก → Invoice issued, RCT ออกทันที
+   - ถ้ายังไม่จ่าย → Invoice status = UNPAID, เริ่ม debt monitoring
+   - ลูกค้า upload slip → PAYMENT = COMPLETED → ออก RCT → PAID
+
+6. Supplier PO Rejection:
+   - Supplier ปฏิเสธ PO ต้องระบุเหตุผล
+   - รอ Admin ดำเนินการภายใน 30 นาที
+   - Admin ต้องหา Supplier ใหม่ หรือ confirm เหตุผล
+
+7. GPS Tracking Requirement:
+   - Transport job ที่ ACCEPTED ต้องเริ่ม GPS tracking
+   - Customer เห็นสถานะ real-time เมื่อ status = IN_TRANSIT และ ARRIVED_SITE
+   - GPS coordinate บันทึกใน delivery proof
+
+Models ที่ต้องเพิ่ม/อัปเดต:
+- DebtSnapshot: เพิ่ม firstContactAt, debtStartAt fields
+- CollectionNote: บันทึกการติดต่อแต่ละครั้ง
+- TransportJobItem: tracking deliveredTrips, totalTrips ต่อ order item
+- SupplierPurchaseOrder: creditTermDays, paymentDueAt
+- Vehicle: เพิ่ม gpsEnabled field
+
+collectionEngine ต้องมี:
+   - calculateDebtStartDate(firstContactAt) — returns firstContactAt + 24h
+   - isDebtStarted(invoice, now) — ตรวจว่าเริ่มนับหนี้แล้วหรือยัง
+   - autoTransitionState(invoice) — transition state ตาม business rules ข้างต้น
+
+debtService ต้องมี:
+   - recordFirstContact(documentId, contactedBy) — บันทึก firstContactAt
+   - checkAutoInvoiceTrigger(orderId) — ตรวจว่าครบเที่ยวหรือยัง
+   - createInvoiceFromCompletedTrips(orderId) — auto-invoice
+
+UI ที่ต้องมี:
+   - /admin/debt แสดง: invoice, customer, due date, overdue days, firstContactAt, debtStartAt
+   - ปุ่ม "บันทึกการติดต่อ" ที่ตั้ง firstContactAt
+   - แสดง timer ว่า debt เริ่มนับเมื่อไหร่
+```
 
 ---
 
