@@ -5,14 +5,22 @@ import {
   replyWithOrders,
 } from "../services/lineMessagingService.js";
 
-type LineEvent =
-  | { type: "follow"; source: { userId: string }; replyToken?: string }
-  | { type: "postback"; source: { userId: string }; replyToken: string; postback: { data: string } }
-  | { type: string; [k: string]: unknown };
+type FollowEvent = { type: "follow"; source: { userId: string }; replyToken?: string };
+type PostbackEvent = { type: "postback"; source: { userId: string }; replyToken: string; postback: { data: string } };
+type OtherEvent = { type: string; source?: { userId?: string }; [k: string]: unknown };
+type LineEvent = FollowEvent | PostbackEvent | OtherEvent;
 
 type LineWebhookBody = {
   events: LineEvent[];
 };
+
+function isFollowEvent(e: LineEvent): e is FollowEvent {
+  return e.type === "follow";
+}
+
+function isPostbackEvent(e: LineEvent): e is PostbackEvent {
+  return e.type === "postback" && "postback" in e;
+}
 
 export async function registerLineWebhookRoutes(app: FastifyInstance) {
   app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => {
@@ -26,7 +34,6 @@ export async function registerLineWebhookRoutes(app: FastifyInstance) {
   app.post<{ Body: LineWebhookBody }>(
     "/",
     {
-      config: { rawBody: true },
       schema: { hide: true },
     },
     async (request, reply) => {
@@ -40,16 +47,14 @@ export async function registerLineWebhookRoutes(app: FastifyInstance) {
       // Process events in parallel — fire-and-forget, always 200 to LINE
       const tasks = request.body.events.map(async (event) => {
         try {
-          if (event.type === "follow") {
-            // Fetch display name from LINE profile if needed — for now use userId as fallback
-            const displayName = (event as { type: "follow"; source: { userId: string; displayName?: string } }).source.displayName ?? "คุณ";
+          if (isFollowEvent(event)) {
+            const displayName = (event as FollowEvent & { source: { displayName?: string } }).source.displayName ?? "คุณ";
             await sendGreeting(event.source.userId, displayName);
             return;
           }
 
-          if (event.type === "postback" && (event as { type: "postback"; postback: { data: string }; source: { userId: string }; replyToken: string }).postback.data === "action=orders") {
-            const e = event as { type: "postback"; postback: { data: string }; source: { userId: string }; replyToken: string };
-            await replyWithOrders(e.replyToken, e.source.userId);
+          if (isPostbackEvent(event) && event.postback.data === "action=orders") {
+            await replyWithOrders(event.replyToken, event.source.userId);
             return;
           }
         } catch (err) {
