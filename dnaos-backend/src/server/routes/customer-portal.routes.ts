@@ -37,6 +37,22 @@ async function requireCustomer(request: Parameters<typeof getCurrentLineSession>
   return session;
 }
 
+const updateMeSchema = z.object({
+  contactName: z.string().trim().max(100).optional().nullable(),
+  phone: z.string().trim().max(20).optional().nullable(),
+});
+
+const createSiteSchema = z.object({
+  siteName: z.string().trim().min(1).max(200),
+  address: z.string().trim().min(1),
+  province: z.string().trim().default(""),
+  district: z.string().trim().default(""),
+  subdistrict: z.string().trim().default(""),
+  postalCode: z.string().trim().default(""),
+  gpsLat: z.coerce.number().optional().nullable(),
+  gpsLng: z.coerce.number().optional().nullable(),
+});
+
 export async function registerCustomerPortalRoutes(app: FastifyInstance) {
   app.get("/me", async (request, reply) => {
     const session = await getCurrentLineSession(request);
@@ -44,20 +60,93 @@ export async function registerCustomerPortalRoutes(app: FastifyInstance) {
       return reply.code(401).send({ error: "Unauthorized" });
     }
     const prisma = getPrisma();
-    const identity = await prisma.userIdentity.findFirst({
-      where: { userId: session.userId, provider: "LINE" },
-      select: { displayName: true, pictureUrl: true },
-    });
+    const [identity, user] = await Promise.all([
+      prisma.userIdentity.findFirst({
+        where: { userId: session.userId, provider: "LINE" },
+        select: { displayName: true, pictureUrl: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { name: true, phone: true },
+      }),
+    ]);
     return {
       userId: session.userId,
       displayName: identity?.displayName ?? session.user.name ?? "",
       pictureUrl: identity?.pictureUrl ?? null,
+      contactName: user?.name ?? null,
+      phone: user?.phone ?? null,
       company: {
         id: session.company.id,
         name: session.company.name,
         taxId: session.company.taxId,
       },
     };
+  });
+
+  app.patch("/me", async (request, reply) => {
+    const session = await getCurrentLineSession(request);
+    if (!session || session.user.status !== "ACTIVE") {
+      return reply.code(401).send({ error: "Unauthorized" });
+    }
+    const input = updateMeSchema.parse(request.body);
+    const prisma = getPrisma();
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: {
+        ...(input.contactName !== undefined ? { name: input.contactName || null } : {}),
+        ...(input.phone !== undefined ? { phone: input.phone || null } : {}),
+      },
+    });
+    return { ok: true };
+  });
+
+  app.get("/sites", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+    const prisma = getPrisma();
+    const sites = await prisma.customerSite.findMany({
+      where: { customerCompanyId: session.company.id },
+      select: { id: true, siteName: true, address: true, gpsLat: true, gpsLng: true, province: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return { sites };
+  });
+
+  app.post("/sites", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+    const input = createSiteSchema.parse(request.body);
+    const prisma = getPrisma();
+    const site = await prisma.customerSite.create({
+      data: {
+        customerCompanyId: session.company.id,
+        siteName: input.siteName,
+        address: input.address,
+        province: input.province,
+        district: input.district,
+        subdistrict: input.subdistrict,
+        postalCode: input.postalCode,
+        gpsLat: input.gpsLat ?? null,
+        gpsLng: input.gpsLng ?? null,
+      },
+      select: { id: true, siteName: true, address: true, gpsLat: true, gpsLng: true, province: true },
+    });
+    reply.code(201);
+    return { site };
+  });
+
+  app.delete("/sites/:id", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const prisma = getPrisma();
+    const site = await prisma.customerSite.findFirst({
+      where: { id, customerCompanyId: session.company.id },
+    });
+    if (!site) return reply.code(404).send({ error: "ไม่พบโลเคชั่น" });
+    await prisma.customerSite.delete({ where: { id } });
+    return { ok: true };
   });
 
   app.get("/orders", async (request, reply) => {

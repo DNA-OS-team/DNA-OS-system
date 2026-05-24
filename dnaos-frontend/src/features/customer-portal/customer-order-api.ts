@@ -43,6 +43,8 @@ export type CustomerMe = {
   userId: string;
   displayName: string;
   pictureUrl: string | null;
+  contactName: string | null;
+  phone: string | null;
   company: {
     id: string;
     name: string;
@@ -50,8 +52,42 @@ export type CustomerMe = {
   };
 };
 
+export type CustomerSite = {
+  id: string;
+  siteName: string;
+  address: string;
+  province: string;
+  gpsLat: string | null;
+  gpsLng: string | null;
+};
+
 export async function getCustomerMe(): Promise<CustomerMe> {
   return apiFetch<CustomerMe>("/customer/me");
+}
+
+export async function updateCustomerProfile(data: { contactName?: string | null; phone?: string | null }) {
+  return apiFetch("/customer/me", { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export async function listCustomerSites(): Promise<{ sites: CustomerSite[] }> {
+  return apiFetch<{ sites: CustomerSite[] }>("/customer/sites");
+}
+
+export async function createCustomerSite(data: {
+  siteName: string;
+  address: string;
+  province?: string;
+  district?: string;
+  subdistrict?: string;
+  postalCode?: string;
+  gpsLat?: number | null;
+  gpsLng?: number | null;
+}): Promise<{ site: CustomerSite }> {
+  return apiFetch<{ site: CustomerSite }>("/customer/sites", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function deleteCustomerSite(id: string) {
+  return apiFetch(`/customer/sites/${id}`, { method: "DELETE" });
 }
 
 export async function listCustomerOrders(params?: {

@@ -5,8 +5,15 @@ import {
   ChevronRight,
   ClipboardList,
   MapPin,
+  Pencil,
+  Phone,
+  Plus,
   Search,
+  Trash2,
+  UserCircle2,
+  User,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -21,9 +28,14 @@ import { OrderStatusBadge } from "@/components/shared/status-badge";
 import { useCustomerAuth } from "./use-customer-auth";
 import {
   listCustomerOrders,
+  listCustomerSites,
+  deleteCustomerSite,
   type CustomerOrder,
   type CustomerOrderStatus,
+  type CustomerSite,
 } from "./customer-order-api";
+import { CustomerProfileSheet } from "./customer-profile-sheet";
+import { CustomerLocationDialog } from "./customer-location-dialog";
 
 const STATUS_OPTIONS: Array<{ value: CustomerOrderStatus | "all"; label: string }> = [
   { value: "all", label: "ทุกสถานะ" },
@@ -105,6 +117,23 @@ export function CustomerOrderList() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<CustomerOrderStatus | "all">("all");
 
+  const [contactName, setContactName] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [sites, setSites] = useState<CustomerSite[]>([]);
+  const [showProfileSheet, setShowProfileSheet] = useState(false);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+
+  const meContactName = auth.status === "authenticated" ? auth.me.contactName : null;
+  const mePhone = auth.status === "authenticated" ? auth.me.phone : null;
+
+  useEffect(() => {
+    if (auth.status !== "authenticated") return;
+    setContactName(meContactName);
+    setPhone(mePhone);
+    listCustomerSites().then((r) => setSites(r.sites)).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.status]);
+
   useEffect(() => {
     if (auth.status !== "authenticated") return;
     let mounted = true;
@@ -134,10 +163,89 @@ export function CustomerOrderList() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="pt-2">
-        <p className="text-xs text-muted-foreground">สวัสดี,</p>
-        <h1 className="text-xl font-bold tracking-tight">{me.displayName}</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{me.company.name}</p>
+      <div className="flex items-center gap-3 pt-2">
+        <div className="relative size-14 shrink-0 overflow-hidden rounded-full border bg-muted">
+          {me.pictureUrl ? (
+            <Image src={me.pictureUrl} alt={me.displayName} fill className="object-cover" />
+          ) : (
+            <UserCircle2 className="size-full text-muted-foreground/40" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground">สวัสดี,</p>
+          <h1 className="text-xl font-bold tracking-tight truncate">{me.displayName}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5 truncate">{me.company.name}</p>
+        </div>
+      </div>
+
+      {/* Profile info row */}
+      <div
+        className="flex items-center justify-between rounded-xl border bg-card px-3 py-2.5 cursor-pointer hover:bg-muted/50"
+        onClick={() => setShowProfileSheet(true)}
+      >
+        <div className="flex items-center gap-3 text-sm min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <User className="size-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate text-xs">{contactName || <span className="text-muted-foreground">เพิ่มชื่อผู้ติดต่อ</span>}</span>
+          </div>
+          {(contactName || phone) && <span className="text-muted-foreground/40">·</span>}
+          {phone && (
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Phone className="size-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate text-xs">{phone}</span>
+            </div>
+          )}
+        </div>
+        <Pencil className="size-3.5 shrink-0 text-muted-foreground" />
+      </div>
+
+      {/* Locations */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium text-muted-foreground">โลเคชั่น</p>
+          <button
+            onClick={() => setShowLocationDialog(true)}
+            className="flex items-center gap-1 text-xs text-primary font-medium"
+          >
+            <Plus className="size-3.5" />
+            เพิ่ม
+          </button>
+        </div>
+        {sites.length === 0 ? (
+          <button
+            onClick={() => setShowLocationDialog(true)}
+            className="flex w-full items-center gap-2 rounded-xl border border-dashed px-3 py-2.5 text-xs text-muted-foreground hover:bg-muted/50"
+          >
+            <MapPin className="size-4 shrink-0" />
+            เพิ่มที่อยู่จัดส่ง
+          </button>
+        ) : (
+          <div className="flex gap-2 flex-wrap">
+            {sites.map((site) => (
+              <div key={site.id} className="flex items-center gap-1.5 rounded-xl border bg-card px-3 py-1.5">
+                <MapPin className="size-3 shrink-0 text-primary" />
+                <span className="text-xs font-medium">{site.siteName}</span>
+                <button
+                  onClick={() => {
+                    deleteCustomerSite(site.id).then(() =>
+                      setSites((prev) => prev.filter((s) => s.id !== site.id))
+                    );
+                  }}
+                  className="ml-1 rounded-full p-0.5 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowLocationDialog(true)}
+              className="flex items-center gap-1 rounded-xl border border-dashed px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/50"
+            >
+              <Plus className="size-3" />
+              เพิ่ม
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -194,6 +302,29 @@ export function CustomerOrderList() {
         <p className="text-center text-xs text-muted-foreground pb-4">
           {orders.length} รายการ
         </p>
+      )}
+
+      {showProfileSheet && (
+        <CustomerProfileSheet
+          contactName={contactName}
+          phone={phone}
+          onClose={() => setShowProfileSheet(false)}
+          onSaved={(name, tel) => {
+            setContactName(name);
+            setPhone(tel);
+            setShowProfileSheet(false);
+          }}
+        />
+      )}
+
+      {showLocationDialog && (
+        <CustomerLocationDialog
+          onClose={() => setShowLocationDialog(false)}
+          onCreated={(site) => {
+            setSites((prev) => [site, ...prev]);
+            setShowLocationDialog(false);
+          }}
+        />
       )}
     </div>
   );

@@ -70,8 +70,41 @@ export type SupplierOwnProduct = {
   };
 };
 
+export type AvailableVariant = {
+  id: string;
+  name: string;
+  unit: string;
+  product: {
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    category: string;
+  };
+};
+
+export type CreateSupplierProductInput = {
+  productVariantId: string;
+  price: number;
+  sku?: string;
+  minQty?: number;
+  serviceArea?: string;
+  leadTimeHours?: number;
+  isAvailable?: boolean;
+};
+
 export async function listSupplierProducts(): Promise<{ products: SupplierOwnProduct[] }> {
   return apiFetch<{ products: SupplierOwnProduct[] }>("/supplier/products");
+}
+
+export async function listAvailableVariants(): Promise<{ variants: AvailableVariant[] }> {
+  return apiFetch<{ variants: AvailableVariant[] }>("/supplier/products/available-variants");
+}
+
+export async function createSupplierProduct(input: CreateSupplierProductInput): Promise<{ product: SupplierOwnProduct }> {
+  return apiFetch<{ product: SupplierOwnProduct }>("/supplier/products", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function listSupplierPOs(): Promise<{ supplierPurchaseOrders: SupplierPO[] }> {

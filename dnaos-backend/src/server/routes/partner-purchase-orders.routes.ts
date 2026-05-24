@@ -114,6 +114,58 @@ const supplierProductInclude = {
   inventory: { select: { stockQty: true } },
 } as const;
 
+const createSupplierProductSchema = z.object({
+  productVariantId: z.string().uuid(),
+  price: z.coerce.number().positive(),
+  sku: z.string().trim().optional().nullable(),
+  minQty: z.coerce.number().min(0).optional(),
+  serviceArea: z.string().trim().optional().nullable(),
+  leadTimeHours: z.coerce.number().int().min(0).optional(),
+  isAvailable: z.boolean().optional(),
+});
+
+function mapSupplierProduct(sp: {
+  id: string;
+  sku: string | null;
+  price: unknown;
+  minQty: unknown;
+  isAvailable: boolean;
+  serviceArea: string | null;
+  inventory?: { stockQty: unknown } | null;
+  productVariant: {
+    id: string;
+    name: string;
+    unit: string;
+    product: {
+      id: string;
+      name: string;
+      imageUrl?: string | null;
+      category: { name: string };
+    };
+  };
+}) {
+  return {
+    id: sp.id,
+    sku: sp.sku,
+    price: sp.price,
+    minQty: sp.minQty,
+    isAvailable: sp.isAvailable,
+    serviceArea: sp.serviceArea,
+    stockQty: sp.inventory?.stockQty ?? null,
+    productVariant: {
+      id: sp.productVariant.id,
+      name: sp.productVariant.name,
+      unit: sp.productVariant.unit,
+      product: {
+        id: sp.productVariant.product.id,
+        name: sp.productVariant.product.name,
+        imageUrl: sp.productVariant.product.imageUrl ?? null,
+        category: sp.productVariant.product.category.name,
+      },
+    },
+  };
+}
+
 export async function registerSupplierProductRoutes(app: FastifyInstance) {
   app.get("/", async (request, reply) => {
     const session = await requireSupplierSession(request, reply);
@@ -126,28 +178,77 @@ export async function registerSupplierProductRoutes(app: FastifyInstance) {
       orderBy: { createdAt: "desc" },
     });
 
+    return { products: products.map(mapSupplierProduct) };
+  });
+
+  app.get("/available-variants", async (request, reply) => {
+    const session = await requireSupplierSession(request, reply);
+    if (!session) return reply;
+
+    const prisma = getPrisma();
+    const listed = await prisma.supplierProduct.findMany({
+      where: { supplierCompanyId: session.companyId },
+      select: { productVariantId: true },
+    });
+    const listedIds = listed.map((r) => r.productVariantId);
+
+    const variants = await prisma.productVariant.findMany({
+      where: {
+        isActive: true,
+        ...(listedIds.length > 0 ? { id: { notIn: listedIds } } : {}),
+      },
+      include: {
+        product: { include: { category: { select: { name: true } } } },
+      },
+      orderBy: [{ product: { name: "asc" } }, { name: "asc" }],
+    });
+
     return {
-      products: products.map((sp) => ({
-        id: sp.id,
-        sku: sp.sku,
-        price: sp.price,
-        minQty: sp.minQty,
-        isAvailable: sp.isAvailable,
-        serviceArea: sp.serviceArea,
-        stockQty: sp.inventory?.stockQty ?? null,
-        productVariant: {
-          id: sp.productVariant.id,
-          name: sp.productVariant.name,
-          unit: sp.productVariant.unit,
-          product: {
-            id: sp.productVariant.product.id,
-            name: sp.productVariant.product.name,
-            imageUrl: (sp.productVariant.product as { imageUrl?: string | null }).imageUrl ?? null,
-            category: sp.productVariant.product.category.name,
-          },
+      variants: variants.map((v) => ({
+        id: v.id,
+        name: v.name,
+        unit: v.unit,
+        product: {
+          id: v.product.id,
+          name: v.product.name,
+          imageUrl: (v.product as { imageUrl?: string | null }).imageUrl ?? null,
+          category: v.product.category.name,
         },
       })),
     };
+  });
+
+  app.post("/", async (request, reply) => {
+    const session = await requireSupplierSession(request, reply);
+    if (!session) return reply;
+
+    const input = createSupplierProductSchema.parse(request.body);
+    const prisma = getPrisma();
+
+    const existing = await prisma.supplierProduct.findFirst({
+      where: { supplierCompanyId: session.companyId, productVariantId: input.productVariantId },
+    });
+    if (existing) {
+      reply.code(409);
+      return { error: "สินค้านี้มีอยู่ในรายการแล้ว" };
+    }
+
+    const sp = await prisma.supplierProduct.create({
+      data: {
+        supplierCompanyId: session.companyId,
+        productVariantId: input.productVariantId,
+        price: input.price,
+        sku: input.sku ?? null,
+        minQty: input.minQty ?? 0,
+        serviceArea: input.serviceArea ?? null,
+        leadTimeHours: input.leadTimeHours ?? 0,
+        isAvailable: input.isAvailable ?? true,
+      },
+      include: supplierProductInclude,
+    });
+
+    reply.code(201);
+    return { product: mapSupplierProduct(sp) };
   });
 }
 

@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { listSupplierProducts, type SupplierOwnProduct } from "./supplier-api";
 import { useSupplierAuth } from "./use-supplier-auth";
+import { AddSupplierProductDialog } from "./add-supplier-product-dialog";
 
 function fmtPrice(n: string | number) {
   return Number(n).toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -58,6 +59,7 @@ export function SupplierProductList() {
   const auth = useSupplierAuth("/supplier/products");
   const [products, setProducts] = useState<SupplierOwnProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
     if (auth.status !== "authenticated") return;
@@ -81,9 +83,13 @@ export function SupplierProductList() {
           <h1 className="text-lg font-bold">สินค้าของฉัน</h1>
           <p className="text-xs text-muted-foreground">สินค้าที่คุณเพิ่มในระบบ DNA OS</p>
         </div>
-        {auth.status === "authenticated" && (
-          <p className="text-xs text-muted-foreground">{auth.me.company.name}</p>
-        )}
+        <button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+        >
+          <Plus className="size-3.5" />
+          เพิ่มรายการสินค้า
+        </button>
       </div>
 
       {loading ? (
@@ -93,15 +99,31 @@ export function SupplierProductList() {
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
           <Package className="size-12 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">ยังไม่มีสินค้าในระบบ</p>
-          <p className="text-xs text-muted-foreground">ติดต่อ admin เพื่อเพิ่มสินค้า</p>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            <Plus className="size-4" />
+            เพิ่มรายการสินค้า
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {products.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
+      )}
+
+      {showAdd && (
+        <AddSupplierProductDialog
+          onClose={() => setShowAdd(false)}
+          onCreated={(product) => {
+            setProducts((prev) => [product, ...prev]);
+            setShowAdd(false);
+          }}
+        />
       )}
     </div>
   );
