@@ -52,6 +52,178 @@ const inventoryUpdateSchema = z.object({
 export async function registerAdminPartnerProductRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAdminAccess);
 
+  app.get("/suppliers", async () => {
+    const prisma = getPrisma();
+    const suppliers = await prisma.company.findMany({
+      where: { type: "SUPPLIER" },
+      include: {
+        _count: {
+          select: {
+            supplierProducts: true,
+            partnerProductSubmissions: true,
+          },
+        },
+        members: {
+          where: { status: "ACTIVE" },
+          include: { user: { select: { name: true, phone: true, identities: { where: { provider: "LINE" }, select: { displayName: true, pictureUrl: true }, take: 1 } } } },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      suppliers: suppliers.map((s) => ({
+        id: s.id,
+        name: s.name,
+        taxId: s.taxId,
+        phone: s.phone,
+        email: s.email,
+        address: s.address,
+        status: s.status,
+        createdAt: s.createdAt,
+        productCount: s._count.supplierProducts,
+        submissionCount: s._count.partnerProductSubmissions,
+        contactName: s.members[0]?.user.name ?? null,
+        contactPhone: s.members[0]?.user.phone ?? null,
+        lineDisplayName: s.members[0]?.user.identities[0]?.displayName ?? null,
+        linePictureUrl: s.members[0]?.user.identities[0]?.pictureUrl ?? null,
+      })),
+    };
+  });
+
+  app.post("/suppliers", async (request, reply) => {
+    const input = z.object({
+      name: z.string().trim().min(1, "ชื่อบริษัทจำเป็น"),
+      taxId: z.string().trim().optional().nullable(),
+      phone: z.string().trim().optional().nullable(),
+      email: z.string().trim().email().optional().nullable(),
+      address: z.string().trim().optional().nullable(),
+      status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional().default("ACTIVE"),
+    }).parse(request.body);
+
+    const prisma = getPrisma();
+    const company = await prisma.company.create({
+      data: {
+        name: input.name,
+        taxId: input.taxId || null,
+        phone: input.phone || null,
+        email: input.email || null,
+        address: input.address || null,
+        status: input.status,
+        type: "SUPPLIER",
+        isIndividual: false,
+      },
+      include: {
+        _count: { select: { supplierProducts: true, partnerProductSubmissions: true } },
+        members: {
+          where: { status: "ACTIVE" },
+          include: { user: { select: { name: true, phone: true, identities: { where: { provider: "LINE" }, select: { displayName: true, pictureUrl: true }, take: 1 } } } },
+          take: 1,
+        },
+      },
+    });
+
+    reply.code(201);
+    return {
+      supplier: {
+        id: company.id,
+        name: company.name,
+        taxId: company.taxId,
+        phone: company.phone,
+        email: company.email,
+        address: company.address,
+        status: company.status,
+        createdAt: company.createdAt,
+        productCount: company._count.supplierProducts,
+        submissionCount: company._count.partnerProductSubmissions,
+        contactName: company.members[0]?.user.name ?? null,
+        contactPhone: company.members[0]?.user.phone ?? null,
+        lineDisplayName: company.members[0]?.user.identities[0]?.displayName ?? null,
+        linePictureUrl: company.members[0]?.user.identities[0]?.pictureUrl ?? null,
+      },
+    };
+  });
+
+  app.patch("/suppliers/:id", async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const input = z.object({
+      name: z.string().trim().min(1).optional(),
+      taxId: z.string().trim().optional().nullable(),
+      phone: z.string().trim().optional().nullable(),
+      email: z.string().trim().email().optional().nullable(),
+      address: z.string().trim().optional().nullable(),
+      status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
+    }).parse(request.body);
+
+    const prisma = getPrisma();
+    const company = await prisma.company.findFirst({ where: { id, type: "SUPPLIER" } });
+    if (!company) {
+      reply.code(404);
+      return { error: "ไม่พบซัพพลายเออร์" };
+    }
+
+    const updated = await prisma.company.update({
+      where: { id },
+      data: input,
+      include: {
+        _count: { select: { supplierProducts: true, partnerProductSubmissions: true } },
+        members: {
+          where: { status: "ACTIVE" },
+          include: { user: { select: { name: true, phone: true, identities: { where: { provider: "LINE" }, select: { displayName: true, pictureUrl: true }, take: 1 } } } },
+          take: 1,
+        },
+      },
+    });
+
+    return {
+      supplier: {
+        id: updated.id,
+        name: updated.name,
+        taxId: updated.taxId,
+        phone: updated.phone,
+        email: updated.email,
+        address: updated.address,
+        status: updated.status,
+        createdAt: updated.createdAt,
+        productCount: updated._count.supplierProducts,
+        submissionCount: updated._count.partnerProductSubmissions,
+        contactName: updated.members[0]?.user.name ?? null,
+        contactPhone: updated.members[0]?.user.phone ?? null,
+        lineDisplayName: updated.members[0]?.user.identities[0]?.displayName ?? null,
+        linePictureUrl: updated.members[0]?.user.identities[0]?.pictureUrl ?? null,
+      },
+    };
+  });
+
+  app.delete("/suppliers/:id", async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const prisma = getPrisma();
+
+    const company = await prisma.company.findFirst({
+      where: { id, type: "SUPPLIER" },
+      include: { _count: { select: { supplierProducts: true, partnerProductSubmissions: true } } },
+    });
+
+    if (!company) {
+      reply.code(404);
+      return { error: "ไม่พบซัพพลายเออร์" };
+    }
+
+    if (company._count.supplierProducts > 0 || company._count.partnerProductSubmissions > 0) {
+      reply.code(409);
+      return { error: "ไม่สามารถลบซัพพลายเออร์ที่มีสินค้าหรือ Submission ในระบบ กรุณาเปลี่ยนสถานะเป็น 'ปิดใช้งาน' แทน" };
+    }
+
+    await prisma.$transaction([
+      prisma.appSession.deleteMany({ where: { companyId: id } }),
+      prisma.companyMember.deleteMany({ where: { companyId: id } }),
+      prisma.company.delete({ where: { id } }),
+    ]);
+
+    return { ok: true };
+  });
+
   app.get("/partner-products/options", async () => {
     const prisma = getPrisma();
     const [suppliers, productVariants] = await Promise.all([

@@ -12,15 +12,17 @@ export type LineProfile = {
   pictureUrl?: string;
 };
 
+export type PendingRoleMembership = {
+  companyId: string;
+  companyName: string;
+  companyType: string;
+  role: string;
+};
+
 export type LineLoginResult =
-  | {
-      status: "SUCCESS";
-      sessionCookie: string;
-      redirectPath: string;
-    }
-  | {
-      status: "UNKNOWN_LINE_USER" | "USER_NOT_ACTIVE" | "NO_ACTIVE_MEMBERSHIP";
-    };
+  | { status: "SUCCESS"; sessionCookie: string; redirectPath: string }
+  | { status: "UNKNOWN_LINE_USER" | "USER_NOT_ACTIVE" | "NO_ACTIVE_MEMBERSHIP" }
+  | { status: "MULTI_ROLE"; userId: string; lineUserId: string; memberships: PendingRoleMembership[] };
 
 export type LineLinkResult =
   | {
@@ -196,29 +198,22 @@ export async function completeLineLogin(profile: LineProfile): Promise<LineLogin
     };
   }
 
-  const membership = identity.user.memberships[0];
+  const memberships = identity.user.memberships;
 
-  if (!membership) {
+  if (memberships.length === 0) {
     await writeAuditLog({
       actorUserId: identity.userId,
       companyId: null,
       entityType: "line_identity",
       entityId: identity.id,
       action: "LINE_LOGIN_FAILED",
-      newValue: {
-        reason: "no_active_membership"
-      }
+      newValue: { reason: "no_active_membership" }
     });
-
-    return {
-      status: "NO_ACTIVE_MEMBERSHIP"
-    };
+    return { status: "NO_ACTIVE_MEMBERSHIP" };
   }
 
   await prisma.userIdentity.update({
-    where: {
-      id: identity.id
-    },
+    where: { id: identity.id },
     data: {
       displayName: profile.displayName ?? identity.displayName,
       pictureUrl: profile.pictureUrl ?? identity.pictureUrl,
@@ -226,6 +221,21 @@ export async function completeLineLogin(profile: LineProfile): Promise<LineLogin
     }
   });
 
+  if (memberships.length > 1) {
+    return {
+      status: "MULTI_ROLE",
+      userId: identity.userId,
+      lineUserId: profile.userId,
+      memberships: memberships.map((m) => ({
+        companyId: m.companyId,
+        companyName: m.company.name,
+        companyType: m.company.type,
+        role: m.role
+      }))
+    };
+  }
+
+  const membership = memberships[0];
   const session = await createLineSession({
     userId: identity.userId,
     companyId: membership.companyId,
@@ -238,10 +248,7 @@ export async function completeLineLogin(profile: LineProfile): Promise<LineLogin
     companyId: membership.companyId,
     entityType: "line_session",
     action: "LINE_LOGIN",
-    newValue: {
-      role: membership.role,
-      companyId: membership.companyId
-    }
+    newValue: { role: membership.role, companyId: membership.companyId }
   });
 
   return {
@@ -397,7 +404,7 @@ export function buildFrontendRedirect(path: string) {
   return new URL(normalizeInternalPath(path), env.FRONTEND_URL).toString();
 }
 
-function getRoleHomePath(role: string) {
+export function getRoleHomePath(role: string) {
   if (role === "CUSTOMER") {
     return "/customer/orders";
   }

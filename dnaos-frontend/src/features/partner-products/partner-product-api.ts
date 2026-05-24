@@ -100,6 +100,63 @@ export function rejectPartnerProductSubmission(
   );
 }
 
+export type AdminSupplier = {
+  id: string;
+  name: string;
+  taxId: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  createdAt: string;
+  productCount: number;
+  submissionCount: number;
+  contactName: string | null;
+  contactPhone: string | null;
+  lineDisplayName: string | null;
+  linePictureUrl: string | null;
+};
+
+export function listAdminSuppliers() {
+  return apiFetch<{ suppliers: AdminSupplier[] }>("/admin/suppliers");
+}
+
+export type CreateSupplierInput = {
+  name: string;
+  taxId?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+};
+
+export function createAdminSupplier(input: CreateSupplierInput) {
+  return apiFetch<{ supplier: AdminSupplier }>("/admin/suppliers", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export type UpdateSupplierInput = {
+  name?: string;
+  taxId?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+};
+
+export function updateAdminSupplier(id: string, input: UpdateSupplierInput) {
+  return apiFetch<{ supplier: AdminSupplier }>(`/admin/suppliers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAdminSupplier(id: string) {
+  return apiFetch<{ ok: boolean }>(`/admin/suppliers/${id}`, { method: "DELETE" });
+}
+
 export function listSupplierInventory(filters: InventoryListFilters = {}) {
   const params = new URLSearchParams();
 

@@ -10,6 +10,7 @@ export const lineOAuthStateCookieName = "dnaos_line_oauth_state";
 export const lineOAuthNextCookieName = "dnaos_line_oauth_next";
 export const lineOAuthLinkTokenCookieName = "dnaos_line_link_token";
 export const lineRegProfileCookieName = "dnaos_line_reg_profile";
+export const linePendingRolesCookieName = "dnaos_line_pending_roles";
 
 export type LineRegProfile = {
   lineUserId: string;
@@ -25,6 +26,30 @@ export function createLineRegProfileCookie(profile: LineRegProfile) {
 export function parseLineRegProfileCookie(raw: string): LineRegProfile | null {
   try {
     return JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as LineRegProfile;
+  } catch {
+    return null;
+  }
+}
+
+export type LinePendingRoles = {
+  userId: string;
+  lineUserId: string;
+  memberships: Array<{
+    companyId: string;
+    companyName: string;
+    companyType: string;
+    role: string;
+  }>;
+};
+
+export function createLinePendingRolesCookie(data: LinePendingRoles) {
+  const value = Buffer.from(JSON.stringify(data)).toString("base64");
+  return serializeCookie(linePendingRolesCookieName, value, { maxAge: 15 * 60 });
+}
+
+export function parseLinePendingRolesCookie(raw: string): LinePendingRoles | null {
+  try {
+    return JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as LinePendingRoles;
   } catch {
     return null;
   }

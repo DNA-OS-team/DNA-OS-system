@@ -55,27 +55,41 @@ export async function registerAdminCustomerRoutes(app: FastifyInstance) {
   app.get("/", async () => {
     const prisma = getPrisma();
     const customers = await prisma.company.findMany({
-      where: {
-        type: "CUSTOMER"
-      },
+      where: { type: "CUSTOMER" },
       include: {
-        _count: {
-          select: {
-            customerSites: true
-          }
+        _count: { select: { customerSites: true } },
+        customerCreditProfile: true,
+        members: {
+          where: { status: "ACTIVE" },
+          include: {
+            user: {
+              select: {
+                name: true,
+                phone: true,
+                identities: {
+                  where: { provider: "LINE" },
+                  select: { displayName: true, pictureUrl: true },
+                  take: 1
+                }
+              }
+            }
+          },
+          take: 1,
         },
-        customerCreditProfile: true
       },
-      orderBy: {
-        createdAt: "desc"
-      }
+      orderBy: { createdAt: "desc" },
     });
 
     return {
-      customers: customers.map((customer) => ({
-        ...customer,
-        siteCount: customer._count.customerSites,
-        _count: undefined
+      customers: customers.map((c) => ({
+        ...c,
+        siteCount: c._count.customerSites,
+        lineDisplayName: c.members[0]?.user.identities[0]?.displayName ?? null,
+        linePictureUrl: c.members[0]?.user.identities[0]?.pictureUrl ?? null,
+        contactName: c.members[0]?.user.name ?? null,
+        contactPhone: c.members[0]?.user.phone ?? null,
+        _count: undefined,
+        members: undefined,
       }))
     };
   });
@@ -110,13 +124,155 @@ export async function registerAdminCustomerRoutes(app: FastifyInstance) {
 
   app.get("/:id", async (request, reply) => {
     const { id } = idParamsSchema.parse(request.params);
-    const customer = await getCustomerOr404(id, reply);
+    const prisma = getPrisma();
+    const customer = await prisma.company.findFirst({
+      where: { id, type: "CUSTOMER" },
+      include: {
+        _count: { select: { customerSites: true } },
+        customerCreditProfile: true,
+        members: {
+          where: { status: "ACTIVE" },
+          include: {
+            user: {
+              select: {
+                name: true,
+                phone: true,
+                identities: {
+                  where: { provider: "LINE" },
+                  select: { displayName: true, pictureUrl: true },
+                  take: 1
+                }
+              }
+            }
+          },
+          take: 1,
+        },
+      },
+    });
 
     if (!customer) {
-      return reply;
+      reply.code(404);
+      return { error: "Customer not found" };
     }
 
-    return { customer };
+    return {
+      customer: {
+        ...customer,
+        siteCount: customer._count.customerSites,
+        lineDisplayName: customer.members[0]?.user.identities[0]?.displayName ?? null,
+        linePictureUrl: customer.members[0]?.user.identities[0]?.pictureUrl ?? null,
+        contactName: customer.members[0]?.user.name ?? null,
+        contactPhone: customer.members[0]?.user.phone ?? null,
+        _count: undefined,
+        members: undefined,
+      }
+    };
+  });
+
+  app.get("/:id/orders", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const customer = await getCustomerOr404(id, reply);
+    if (!customer) return reply;
+
+    const prisma = getPrisma();
+    const [orders, orderRequests] = await Promise.all([
+      prisma.customerOrder.findMany({
+        where: { customerCompanyId: id },
+        select: {
+          id: true,
+          orderNo: true,
+          status: true,
+          requestedDeliveryAt: true,
+          createdAt: true,
+          updatedAt: true,
+          items: {
+            select: {
+              id: true,
+              productVariant: {
+                select: {
+                  name: true,
+                  unit: true,
+                  product: { select: { name: true } }
+                }
+              }
+            },
+            take: 3,
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      prisma.customerOrderRequest.findMany({
+        where: { customerCompanyId: id },
+        select: {
+          id: true,
+          reqNo: true,
+          status: true,
+          deliveryAddress: true,
+          requestedDeliveryAt: true,
+          note: true,
+          createdAt: true,
+          updatedAt: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              unit: true,
+              productVariant: {
+                select: {
+                  name: true,
+                  product: { select: { name: true } }
+                }
+              }
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+    ]);
+
+    return { orders, orderRequests };
+  });
+
+  app.delete("/:id", async (request, reply) => {
+    const { id } = idParamsSchema.parse(request.params);
+    const prisma = getPrisma();
+
+    const company = await prisma.company.findFirst({
+      where: { id, type: "CUSTOMER" },
+      include: {
+        _count: { select: { customerOrders: true, orderRequests: true } },
+      },
+    });
+
+    if (!company) {
+      reply.code(404);
+      return { error: "ไม่พบลูกค้า" };
+    }
+
+    if (company._count.customerOrders > 0 || company._count.orderRequests > 0) {
+      reply.code(409);
+      return { error: "ไม่สามารถลบลูกค้าที่มีออร์เดอร์ในระบบ กรุณาเปลี่ยนสถานะเป็น 'ปิดใช้งาน' แทน" };
+    }
+
+    await prisma.$transaction([
+      prisma.customerSite.deleteMany({ where: { customerCompanyId: id } }),
+      prisma.customerCreditProfile.deleteMany({ where: { customerCompanyId: id } }),
+      prisma.appSession.deleteMany({ where: { companyId: id } }),
+      prisma.companyMember.deleteMany({ where: { companyId: id } }),
+      prisma.company.delete({ where: { id } }),
+    ]);
+
+    await writeAuditLog({
+      companyId: id,
+      entityType: "customer",
+      entityId: id,
+      action: "DELETE",
+      newValue: { id, name: company.name },
+    });
+
+    return { ok: true };
   });
 
   app.patch("/:id", async (request, reply) => {

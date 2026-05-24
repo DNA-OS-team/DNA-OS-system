@@ -2,6 +2,8 @@ import { apiFetch } from "@/lib/api";
 import type {
   Customer,
   CustomerCreditProfile,
+  CustomerOrderRequestSummary,
+  CustomerOrderSummary,
   CustomerSite,
 } from "./types";
 import type {
@@ -66,6 +68,17 @@ export function upsertCustomerCredit(
       body: JSON.stringify(sanitizeCreditInput(input)),
     }
   );
+}
+
+export function deleteCustomer(customerId: string) {
+  return apiFetch<{ ok: boolean }>(`/admin/customers/${customerId}`, { method: "DELETE" });
+}
+
+export function listCustomerOrders(customerId: string) {
+  return apiFetch<{
+    orders: CustomerOrderSummary[];
+    orderRequests: CustomerOrderRequestSummary[];
+  }>(`/admin/customers/${customerId}/orders`);
 }
 
 function sanitizeSiteInput(input: CustomerSiteFormValues) {

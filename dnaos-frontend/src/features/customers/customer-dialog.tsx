@@ -2,18 +2,29 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AlertTriangle, ArrowLeft, Building2, CreditCard, MapPinned, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { AlertTriangle, Building2, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   deleteCustomer,
-  getCustomer,
   listCustomerOrders,
   updateCustomer,
 } from "./customer-api";
@@ -50,179 +61,162 @@ const REQUEST_STATUS: Record<OrderRequestStatus, { label: string; color: string 
   CANCELLED:  { label: "ยกเลิก",         color: "bg-red-100 text-red-600" },
 };
 
-const PIPELINE_STEPS: CustomerOrderStatus[] = [
-  "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED",
-  "PROCUREMENT", "DISPATCHING", "DELIVERED", "INVOICED", "PAID",
-];
+// ─── Main dialog ──────────────────────────────────────────────────────────────
 
-// ─── Page root ────────────────────────────────────────────────────────────────
+type Props = {
+  customer: Customer | null;
+  onClose: () => void;
+  onUpdated?: (customer: Customer) => void;
+  onDeleted?: (id: string) => void;
+};
+
+export function CustomerDialog({ customer, onClose, onUpdated, onDeleted }: Props) {
+  return (
+    <Dialog open={customer !== null} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0" showCloseButton={false}>
+        {customer && (
+          <CustomerDialogInner
+            customer={customer}
+            onClose={onClose}
+            onUpdated={onUpdated}
+            onDeleted={onDeleted}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 type View = "detail" | "edit" | "confirmDelete";
 
-type CustomerDetailProps = { customerId: string };
-
-export function CustomerDetail({ customerId }: CustomerDetailProps) {
-  const router = useRouter();
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+function CustomerDialogInner({
+  customer,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: {
+  customer: Customer;
+  onClose: () => void;
+  onUpdated?: (customer: Customer) => void;
+  onDeleted?: (id: string) => void;
+}) {
   const [view, setView] = useState<View>("detail");
-
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
   const [orderRequests, setOrderRequests] = useState<CustomerOrderRequestSummary[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    getCustomer(customerId)
-      .then((r) => { if (active) setCustomer(r.customer); })
-      .catch(() => {})
-      .finally(() => { if (active) setIsLoading(false); });
-    return () => { active = false; };
-  }, [customerId]);
+  // Reset view when a different customer is opened
+  useEffect(() => { setView("detail"); setOrdersLoaded(false); }, [customer.id]);
 
   function loadOrders() {
     if (ordersLoaded) return;
     setLoadingOrders(true);
-    listCustomerOrders(customerId)
+    listCustomerOrders(customer.id)
       .then((r) => { setOrders(r.orders); setOrderRequests(r.orderRequests); setOrdersLoaded(true); })
       .catch(() => {})
       .finally(() => setLoadingOrders(false));
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Link className={buttonVariants({ variant: "ghost", size: "sm" })} href="/admin/customers">
-          <ArrowLeft className="size-4" /> ลูกค้า
-        </Link>
-        <div className="h-24 animate-pulse rounded-xl bg-muted" />
-      </div>
-    );
-  }
-
-  if (!customer) {
-    return (
-      <div className="space-y-4">
-        <Link className={buttonVariants({ variant: "ghost", size: "sm" })} href="/admin/customers">
-          <ArrowLeft className="size-4" /> ลูกค้า
-        </Link>
-        <p className="text-sm text-muted-foreground">ไม่พบข้อมูลลูกค้า</p>
-      </div>
-    );
-  }
-
   if (view === "edit") {
     return (
-      <div className="space-y-5">
-        <Link className={buttonVariants({ variant: "ghost", size: "sm" })} href="/admin/customers">
-          <ArrowLeft className="size-4" /> ลูกค้า
-        </Link>
-        <EditSection
-          customer={customer}
-          onSaved={(updated) => { setCustomer(updated); setView("detail"); }}
-          onCancel={() => setView("detail")}
-        />
-      </div>
+      <EditView
+        customer={customer}
+        onSaved={(updated) => { onUpdated?.(updated); setView("detail"); }}
+        onCancel={() => setView("detail")}
+      />
     );
   }
 
   if (view === "confirmDelete") {
     return (
-      <div className="space-y-5">
-        <Link className={buttonVariants({ variant: "ghost", size: "sm" })} href="/admin/customers">
-          <ArrowLeft className="size-4" /> ลูกค้า
-        </Link>
-        <ConfirmDeleteSection
-          customer={customer}
-          onDeleted={() => router.push("/admin/customers")}
-          onCancel={() => setView("detail")}
-        />
-      </div>
+      <ConfirmDeleteView
+        customer={customer}
+        onDeleted={() => { onDeleted?.(customer.id); onClose(); }}
+        onCancel={() => setView("detail")}
+      />
     );
   }
 
   return (
-    <div className="space-y-5">
-      <Link className={buttonVariants({ variant: "ghost", size: "sm" })} href="/admin/customers">
-        <ArrowLeft className="size-4" /> ลูกค้า
-      </Link>
-
+    <>
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          {customer.linePictureUrl ? (
-            <Image
-              src={customer.linePictureUrl}
-              alt={customer.name}
-              width={48}
-              height={48}
-              className="size-12 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950">
-              <Building2 className="size-6 text-blue-500" />
-            </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight truncate">{customer.name}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <StatusBadge status={customer.status} />
-              <LineBadge lineDisplayName={customer.lineDisplayName ?? null} />
-            </div>
+      <div className="flex items-center gap-3 border-b px-5 py-4">
+        {customer.linePictureUrl ? (
+          <Image
+            src={customer.linePictureUrl}
+            alt={customer.name}
+            width={44}
+            height={44}
+            className="size-11 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blue-50">
+            <Building2 className="size-5 text-blue-500" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <DialogHeader>
+            <DialogTitle className="truncate">{customer.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={customer.status} />
+            <LineBadge lineDisplayName={customer.lineDisplayName ?? null} />
           </div>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <Link
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-            href={`/admin/customers/${customer.id}/sites`}
-          >
-            <MapPinned className="size-4" /> สถานที่
-          </Link>
-          <Link
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-            href={`/admin/customers/${customer.id}/credit`}
-          >
-            <CreditCard className="size-4" /> เครดิต
-          </Link>
+        <div className="flex shrink-0 items-center gap-1">
           <button
             onClick={() => setView("edit")}
             className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            title="แก้ไข"
+            title="แก้ไขบัญชี"
           >
             <Pencil className="size-4" />
           </button>
           <button
             onClick={() => setView("confirmDelete")}
             className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-destructive transition-colors"
-            title="ลบ"
+            title="ลบบัญชี"
           >
             <Trash2 className="size-4" />
+          </button>
+          <a
+            href={`/admin/customers/${customer.id}`}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title="เปิดหน้าเต็ม"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="size-4" />
+          </a>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title="ปิด"
+          >
+            <span className="text-base leading-none">✕</span>
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="detail">
-        <TabsList className="w-fit">
+      <Tabs defaultValue="detail" className="flex flex-col flex-1 overflow-hidden">
+        <TabsList className="mx-5 mt-3 w-fit shrink-0">
           <TabsTrigger value="detail">ข้อมูล</TabsTrigger>
           <TabsTrigger value="orders" onClick={loadOrders}>ออร์เดอร์</TabsTrigger>
         </TabsList>
-        <TabsContent value="detail" className="mt-4">
+        <TabsContent value="detail" className="flex-1 overflow-y-auto px-5 pb-5">
           <DetailTab customer={customer} />
         </TabsContent>
-        <TabsContent value="orders" className="mt-4">
+        <TabsContent value="orders" className="flex-1 overflow-y-auto px-5 pb-5">
           <OrdersTab orders={orders} orderRequests={orderRequests} loading={loadingOrders} />
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }
 
-// ─── Edit section ─────────────────────────────────────────────────────────────
+// ─── Edit view ────────────────────────────────────────────────────────────────
 
-function EditSection({
+function EditView({
   customer,
   onSaved,
   onCancel,
@@ -255,59 +249,73 @@ function EditSection({
       onSaved({ ...customer, ...result.customer });
     } catch (err) {
       setError(err instanceof Error ? err.message : "บันทึกไม่สำเร็จ");
+    } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6 space-y-4 max-w-xl">
-      <h2 className="font-semibold">แก้ไขบัญชีลูกค้า</h2>
-      <div className="grid gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="e-name">ชื่อบริษัท <span className="text-destructive">*</span></Label>
-          <Input id="e-name" value={form.name} onChange={(e) => set("name", e.target.value)} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="e-taxId">เลขประจำตัวผู้เสียภาษี</Label>
-            <Input id="e-taxId" value={form.taxId ?? ""} onChange={(e) => set("taxId", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="e-phone">เบอร์โทร</Label>
-            <Input id="e-phone" value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="e-email">อีเมล</Label>
-          <Input id="e-email" type="email" value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="e-address">ที่อยู่</Label>
-          <Textarea id="e-address" rows={2} value={form.address ?? ""} onChange={(e) => set("address", e.target.value)} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="e-bank">ธนาคาร</Label>
-            <Input id="e-bank" value={form.bankName ?? ""} onChange={(e) => set("bankName", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="e-bankNo">เลขบัญชี</Label>
-            <Input id="e-bankNo" value={form.bankAccountNo ?? ""} onChange={(e) => set("bankAccountNo", e.target.value)} />
-          </div>
-        </div>
-        {error && <p className="text-xs text-destructive">{error}</p>}
+    <>
+      <div className="border-b px-5 py-4">
+        <DialogHeader>
+          <DialogTitle>แก้ไขบัญชีลูกค้า</DialogTitle>
+        </DialogHeader>
+        <p className="mt-0.5 text-xs text-muted-foreground">{customer.name}</p>
       </div>
-      <div className="flex justify-end gap-2 pt-1">
+
+      <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="e-name">ชื่อบริษัท <span className="text-destructive">*</span></Label>
+              <Input id="e-name" value={form.name} onChange={(e) => set("name", e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="e-taxId">เลขประจำตัวผู้เสียภาษี</Label>
+              <Input id="e-taxId" value={form.taxId ?? ""} onChange={(e) => set("taxId", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="e-phone">เบอร์โทร</Label>
+              <Input id="e-phone" value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-email">อีเมล</Label>
+            <Input id="e-email" type="email" value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-address">ที่อยู่</Label>
+            <Textarea id="e-address" rows={2} value={form.address ?? ""} onChange={(e) => set("address", e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="e-bank">ธนาคาร</Label>
+              <Input id="e-bank" value={form.bankName ?? ""} onChange={(e) => set("bankName", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="e-bankNo">เลขบัญชี</Label>
+              <Input id="e-bankNo" value={form.bankAccountNo ?? ""} onChange={(e) => set("bankAccountNo", e.target.value)} />
+            </div>
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
+      </div>
+
+      <DialogFooter>
         <Button variant="outline" onClick={onCancel} disabled={saving}>ยกเลิก</Button>
-        <Button onClick={handleSave} disabled={saving}>{saving ? "กำลังบันทึก..." : "บันทึก"}</Button>
-      </div>
-    </div>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "กำลังบันทึก..." : "บันทึก"}
+        </Button>
+      </DialogFooter>
+    </>
   );
 }
 
-// ─── Confirm delete section ───────────────────────────────────────────────────
+// ─── Confirm Delete view ──────────────────────────────────────────────────────
 
-function ConfirmDeleteSection({
+function ConfirmDeleteView({
   customer,
   onDeleted,
   onCancel,
@@ -331,23 +339,33 @@ function ConfirmDeleteSection({
   }
 
   return (
-    <div className="rounded-xl border border-destructive/30 bg-card p-6 space-y-4 max-w-md">
-      <div className="flex items-center gap-2 text-destructive">
-        <AlertTriangle className="size-5" />
-        <h2 className="font-semibold">ยืนยันการลบ</h2>
+    <>
+      <div className="border-b px-5 py-4">
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertTriangle className="size-5" />
+          <DialogHeader>
+            <DialogTitle className="text-destructive">ยืนยันการลบ</DialogTitle>
+          </DialogHeader>
+        </div>
       </div>
-      <p className="text-sm">คุณต้องการลบลูกค้า <span className="font-semibold">{customer.name}</span> ออกจากระบบหรือไม่?</p>
-      <p className="text-xs text-muted-foreground">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
-      {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{error}</div>
-      )}
-      <div className="flex justify-end gap-2">
+
+      <div className="flex-1 px-5 py-4 space-y-2 text-sm">
+        <p>คุณต้องการลบลูกค้า <span className="font-semibold">{customer.name}</span> ออกจากระบบหรือไม่?</p>
+        <p className="text-muted-foreground">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+            {error}
+          </div>
+        )}
+      </div>
+
+      <DialogFooter>
         <Button variant="outline" onClick={onCancel} disabled={deleting}>ยกเลิก</Button>
         <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
           {deleting ? "กำลังลบ..." : "ลบ"}
         </Button>
-      </div>
-    </div>
+      </DialogFooter>
+    </>
   );
 }
 
@@ -356,14 +374,14 @@ function ConfirmDeleteSection({
 function DetailTab({ customer }: { customer: Customer }) {
   const credit = customer.customerCreditProfile;
   return (
-    <div className="space-y-6">
+    <div className="mt-4 space-y-5">
       <section>
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">ข้อมูลบริษัท</p>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">ข้อมูลบริษัท</p>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2.5 text-sm">
           <InfoRow label="เลขภาษี">{customer.taxId ?? "-"}</InfoRow>
           <InfoRow label="เบอร์โทร">{customer.phone ?? "-"}</InfoRow>
           <InfoRow label="อีเมล">{customer.email ?? "-"}</InfoRow>
-          {customer.address && <InfoRow label="ที่อยู่" className="col-span-2 sm:col-span-3">{customer.address}</InfoRow>}
+          {customer.address && <InfoRow label="ที่อยู่" className="col-span-2">{customer.address}</InfoRow>}
           {customer.bankName && <InfoRow label="ธนาคาร">{customer.bankName}</InfoRow>}
           {customer.bankAccountNo && <InfoRow label="เลขบัญชี">{customer.bankAccountNo}</InfoRow>}
           <InfoRow label="สมัครเมื่อ">
@@ -375,8 +393,8 @@ function DetailTab({ customer }: { customer: Customer }) {
 
       {(customer.contactName ?? customer.contactPhone) && (
         <section>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">ผู้ติดต่อ (LINE)</p>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">ผู้ติดต่อ (LINE)</p>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2.5 text-sm">
             <InfoRow label="ชื่อ">{customer.contactName ?? "-"}</InfoRow>
             <InfoRow label="เบอร์">{customer.contactPhone ?? "-"}</InfoRow>
             {customer.lineDisplayName && <InfoRow label="LINE">{customer.lineDisplayName}</InfoRow>}
@@ -386,8 +404,8 @@ function DetailTab({ customer }: { customer: Customer }) {
 
       {credit && (
         <section>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">เครดิต</p>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">เครดิต</p>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2.5 text-sm">
             <InfoRow label="สถานะเครดิต"><CreditStatusBadge status={credit.creditStatus} /></InfoRow>
             <InfoRow label="วงเงินเครดิต">{fmtMoney(credit.creditLimit)} บาท</InfoRow>
             <InfoRow label="เทอมชำระ">{credit.creditTermDays} วัน</InfoRow>
@@ -410,19 +428,19 @@ function OrdersTab({ orders, orderRequests, loading }: {
 }) {
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="mt-4 space-y-2">
         {[1, 2, 3].map((i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}
       </div>
     );
   }
   if (orders.length + orderRequests.length === 0) {
-    return <p className="text-sm text-muted-foreground">ยังไม่มีออร์เดอร์</p>;
+    return <div className="mt-8 text-center text-sm text-muted-foreground">ยังไม่มีออร์เดอร์</div>;
   }
   return (
-    <div className="space-y-6">
+    <div className="mt-4 space-y-5">
       {orderRequests.length > 0 && (
         <section>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             คำขอสั่งซื้อ (LINE) — {orderRequests.length} รายการ
           </p>
           <div className="space-y-2">
@@ -457,7 +475,7 @@ function OrdersTab({ orders, orderRequests, loading }: {
 
       {orders.length > 0 && (
         <section>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             ออร์เดอร์ — {orders.length} รายการ
           </p>
           <div className="space-y-2">
@@ -495,7 +513,12 @@ function OrdersTab({ orders, orderRequests, loading }: {
   );
 }
 
-// ─── Order status pipeline ────────────────────────────────────────────────────
+// ─── Order status pipeline bar ────────────────────────────────────────────────
+
+const PIPELINE_STEPS: CustomerOrderStatus[] = [
+  "SUBMITTED", "PRICING", "QUOTED", "CONFIRMED",
+  "PROCUREMENT", "DISPATCHING", "DELIVERED", "INVOICED", "PAID",
+];
 
 function OrderStatusPipeline({ status }: { status: CustomerOrderStatus }) {
   if (status === "DRAFT" || status === "CANCELLED") return null;
@@ -509,7 +532,7 @@ function OrderStatusPipeline({ status }: { status: CustomerOrderStatus }) {
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Shared helpers ───────────────────────────────────────────────────────────
 
 function InfoRow({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (

@@ -13,6 +13,47 @@ export type Customer = {
   updatedAt: string;
   siteCount?: number;
   customerCreditProfile?: CustomerCreditProfile | null;
+  lineDisplayName?: string | null;
+  linePictureUrl?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+};
+
+export type CustomerOrderStatus =
+  | "DRAFT" | "SUBMITTED" | "PRICING" | "QUOTED" | "CONFIRMED"
+  | "PROCUREMENT" | "DISPATCHING" | "PARTIALLY_DELIVERED" | "DELIVERED"
+  | "INVOICED" | "PAID" | "CANCELLED";
+
+export type OrderRequestStatus = "PENDING" | "PROCESSING" | "CONFIRMED" | "CANCELLED";
+
+export type CustomerOrderSummary = {
+  id: string;
+  orderNo: string;
+  status: CustomerOrderStatus;
+  requestedDeliveryAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    productVariant: { name: string; unit: string; product: { name: string } } | null;
+  }>;
+};
+
+export type CustomerOrderRequestSummary = {
+  id: string;
+  reqNo: string;
+  status: OrderRequestStatus;
+  deliveryAddress: string;
+  requestedDeliveryAt: string | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    quantity: number;
+    unit: string;
+    productVariant: { name: string; product: { name: string } } | null;
+  }>;
 };
 
 export type CustomerSite = {

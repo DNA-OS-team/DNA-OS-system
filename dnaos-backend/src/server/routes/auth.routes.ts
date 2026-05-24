@@ -13,6 +13,7 @@ import {
   exchangeLineCodeForToken,
   getChannelConfig,
   getLineProfile,
+  getRoleHomePath,
   normalizeInternalPath
 } from "../services/lineAuthService.js";
 import {
@@ -20,7 +21,9 @@ import {
   clearCookie,
   createAdminSession,
   createLineSession,
+  createLinePendingRolesCookie,
   createOAuthCookie,
+  linePendingRolesCookieName,
   lineOAuthLinkTokenCookieName,
   lineOAuthNextCookieName,
   lineOAuthStateCookieName,
@@ -28,6 +31,7 @@ import {
   lineSessionCookieName,
   parseCookieHeader,
   parseLineRegProfileCookie,
+  parseLinePendingRolesCookie,
   revokeAdminSession,
   revokeLineSession
 } from "../services/sessionService.js";
@@ -170,6 +174,16 @@ function makeLineCallbackHandler(channel: Channel) {
         return reply.redirect(buildFrontendRedirect(nextPath ?? homePath));
       }
 
+      if (loginResult.status === "MULTI_ROLE") {
+        const pendingCookie = createLinePendingRolesCookie({
+          userId: loginResult.userId,
+          lineUserId: loginResult.lineUserId,
+          memberships: loginResult.memberships
+        });
+        reply.header("Set-Cookie", [...clearOAuthCookies, pendingCookie]);
+        return reply.redirect(buildFrontendRedirect(nextPath ?? "/line/choose-role"));
+      }
+
       if (loginResult.status !== "SUCCESS") {
         reply.header("Set-Cookie", clearOAuthCookies);
         return reply.redirect(buildFrontendRedirect(`/line/error?reason=${loginResult.status.toLowerCase()}`));
@@ -279,6 +293,48 @@ export async function registerAuthRoutes(app: FastifyInstance) {
 
     reply.header("Set-Cookie", [clearCookie(lineRegProfileCookieName), session.cookie]);
     return { ok: true };
+  });
+
+  app.get("/line/pending-roles", async (request, reply) => {
+    const cookies = parseCookieHeader(request.headers.cookie);
+    const raw = cookies.get(linePendingRolesCookieName);
+    const data = raw ? parseLinePendingRolesCookie(raw) : null;
+
+    if (!data) {
+      reply.code(400);
+      return { error: "No pending role selection" };
+    }
+
+    return { memberships: data.memberships };
+  });
+
+  app.post("/line/select-role", async (request, reply) => {
+    const cookies = parseCookieHeader(request.headers.cookie);
+    const raw = cookies.get(linePendingRolesCookieName);
+    const data = raw ? parseLinePendingRolesCookie(raw) : null;
+
+    if (!data) {
+      reply.code(400);
+      return { error: "Role selection session expired. Please log in again." };
+    }
+
+    const { companyId } = z.object({ companyId: z.string().uuid() }).parse(request.body);
+    const membership = data.memberships.find((m) => m.companyId === companyId);
+
+    if (!membership) {
+      reply.code(400);
+      return { error: "Invalid company selection." };
+    }
+
+    const session = await createLineSession({
+      userId: data.userId,
+      companyId: membership.companyId,
+      role: membership.role as import("../../generated/prisma/enums.js").Role,
+      lineUserId: data.lineUserId
+    });
+
+    reply.header("Set-Cookie", [clearCookie(linePendingRolesCookieName), session.cookie]);
+    return { redirectPath: getRoleHomePath(membership.role) };
   });
 
   app.post("/logout", async (request, reply) => {
