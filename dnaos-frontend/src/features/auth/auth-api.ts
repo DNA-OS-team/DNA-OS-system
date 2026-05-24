@@ -36,3 +36,7 @@ export async function loginAdmin(values: AdminLoginValues) {
     body: JSON.stringify(values),
   });
 }
+
+export async function logoutAdmin() {
+  return apiFetch("/auth/logout", { method: "POST" });
+}

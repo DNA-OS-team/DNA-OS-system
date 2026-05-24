@@ -14,7 +14,7 @@ import { registerAdminProcurementRoutes } from "./server/routes/admin-procuremen
 import { registerAdminProjectRoutes } from "./server/routes/admin-projects.routes.js";
 import { registerAuthRoutes } from "./server/routes/auth.routes.js";
 import { registerHealthRoutes } from "./server/routes/health.routes.js";
-import { registerPartnerPurchaseOrderRoutes } from "./server/routes/partner-purchase-orders.routes.js";
+import { registerPartnerPurchaseOrderRoutes, registerSupplierProductRoutes } from "./server/routes/partner-purchase-orders.routes.js";
 import { registerAdminLogisticsRoutes } from "./server/routes/admin-logistics.routes.js";
 import { registerFleetJobRoutes } from "./server/routes/fleet-jobs.routes.js";
 import { registerAdminDisputeRoutes } from "./server/routes/admin-disputes.routes.js";
@@ -57,6 +57,7 @@ export async function buildServer() {
   await app.register(registerAdminDocumentRoutes, { prefix: "/admin" });
   await app.register(registerAdminPartnerProductRoutes, { prefix: "/admin" });
   await app.register(registerPartnerPurchaseOrderRoutes, { prefix: "/partner/purchase-orders" });
+  await app.register(registerSupplierProductRoutes, { prefix: "/supplier/products" });
   await app.register(registerAdminLogisticsRoutes, { prefix: "/admin/logistics" });
   await app.register(registerFleetJobRoutes, { prefix: "/fleet/jobs" });
   await app.register(registerAdminDisputeRoutes, { prefix: "/admin/disputes" });

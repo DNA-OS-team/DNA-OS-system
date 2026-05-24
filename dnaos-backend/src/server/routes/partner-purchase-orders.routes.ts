@@ -105,6 +105,52 @@ async function updateSupplierResponse(
   return { supplierPurchaseOrder: updatedSupplierPurchaseOrder };
 }
 
+const supplierProductInclude = {
+  productVariant: {
+    include: {
+      product: { include: { category: { select: { name: true } } } },
+    },
+  },
+  inventory: { select: { stockQty: true } },
+} as const;
+
+export async function registerSupplierProductRoutes(app: FastifyInstance) {
+  app.get("/", async (request, reply) => {
+    const session = await requireSupplierSession(request, reply);
+    if (!session) return reply;
+
+    const prisma = getPrisma();
+    const products = await prisma.supplierProduct.findMany({
+      where: { supplierCompanyId: session.companyId },
+      include: supplierProductInclude,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      products: products.map((sp) => ({
+        id: sp.id,
+        sku: sp.sku,
+        price: sp.price,
+        minQty: sp.minQty,
+        isAvailable: sp.isAvailable,
+        serviceArea: sp.serviceArea,
+        stockQty: sp.inventory?.stockQty ?? null,
+        productVariant: {
+          id: sp.productVariant.id,
+          name: sp.productVariant.name,
+          unit: sp.productVariant.unit,
+          product: {
+            id: sp.productVariant.product.id,
+            name: sp.productVariant.product.name,
+            imageUrl: (sp.productVariant.product as { imageUrl?: string | null }).imageUrl ?? null,
+            category: sp.productVariant.product.category.name,
+          },
+        },
+      })),
+    };
+  });
+}
+
 async function requireSupplierSession(
   request: FastifyRequest,
   reply: FastifyReply

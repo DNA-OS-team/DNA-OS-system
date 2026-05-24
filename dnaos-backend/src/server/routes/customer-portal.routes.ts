@@ -4,6 +4,25 @@ import { getCurrentLineSession } from "../services/authService.js";
 import { getPrisma } from "../db/prisma.js";
 import type { CustomerOrderStatus } from "../../generated/prisma/enums.js";
 
+function fmtPrice(n: unknown) {
+  return Number(n).toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+async function generateReqNo(): Promise<string> {
+  const prisma = getPrisma();
+  const now = new Date();
+  const yymm = `${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const prefix = `REQ-${yymm}-`;
+  const latest = await prisma.customerOrderRequest.findFirst({
+    where: { reqNo: { startsWith: prefix } },
+    orderBy: { reqNo: "desc" },
+  });
+  const next = latest
+    ? parseInt(latest.reqNo.replace(prefix, ""), 10) + 1
+    : 1;
+  return `${prefix}${String(next).padStart(4, "0")}`;
+}
+
 const listQuerySchema = z.object({
   status: z.string().optional(),
   q: z.string().optional(),
@@ -107,6 +126,121 @@ export async function registerCustomerPortalRoutes(app: FastifyInstance) {
     if (!order) return reply.code(404).send({ error: "ไม่พบคำสั่งซื้อ" });
 
     return { order };
+  });
+
+  // ─── Products (available supplier products) ────────────────────────────────
+  app.get("/products", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+
+    const prisma = getPrisma();
+    const supplierProducts = await prisma.supplierProduct.findMany({
+      where: { isAvailable: true },
+      include: {
+        productVariant: {
+          include: {
+            product: {
+              include: { category: { select: { name: true } } },
+            },
+          },
+        },
+        supplierCompany: { select: { id: true, name: true } },
+      },
+      orderBy: { productVariant: { product: { name: "asc" } } },
+    });
+
+    // Group by Product — show cheapest price per unit
+    const productMap = new Map<string, {
+      id: string; name: string; imageUrl: string | null; category: string;
+      pricePerTon: number | null; pricePerCubic: number | null;
+      variants: { variantId: string; variantName: string; unit: string; price: number }[];
+    }>();
+
+    for (const sp of supplierProducts) {
+      const pv = sp.productVariant;
+      const prod = pv.product;
+      const price = Number(sp.price);
+      const unit = pv.unit.toLowerCase();
+      const isTon = unit.includes("ตัน") || unit === "ton" || unit === "t";
+      const isCubic = unit.includes("คิว") || unit.includes("ลูกบาศก์") || unit.includes("m3") || unit === "cubic";
+
+      if (!productMap.has(prod.id)) {
+        productMap.set(prod.id, {
+          id: prod.id, name: prod.name, imageUrl: prod.imageUrl,
+          category: prod.category.name,
+          pricePerTon: isTon ? price : null,
+          pricePerCubic: isCubic ? price : null,
+          variants: [],
+        });
+      }
+      const entry = productMap.get(prod.id)!;
+      if (isTon && (entry.pricePerTon === null || price < entry.pricePerTon)) entry.pricePerTon = price;
+      if (isCubic && (entry.pricePerCubic === null || price < entry.pricePerCubic)) entry.pricePerCubic = price;
+      entry.variants.push({ variantId: pv.id, variantName: pv.name, unit: pv.unit, price });
+    }
+
+    return { products: Array.from(productMap.values()) };
+  });
+
+  // ─── Order Requests ─────────────────────────────────────────────────────────
+  app.post("/orders/request", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+
+    const body = z.object({
+      items: z.array(z.object({
+        productVariantId: z.string().uuid(),
+        quantity: z.number().positive(),
+        unit: z.string().min(1),
+      })).min(1),
+      deliveryAddress: z.string().trim().min(1),
+      requestedDeliveryAt: z.string().datetime().optional().nullable(),
+      note: z.string().trim().optional().nullable(),
+    }).parse(request.body);
+
+    const prisma = getPrisma();
+    const reqNo = await generateReqNo();
+
+    const req = await prisma.customerOrderRequest.create({
+      data: {
+        reqNo,
+        customerCompanyId: session.company.id,
+        deliveryAddress: body.deliveryAddress,
+        requestedDeliveryAt: body.requestedDeliveryAt ? new Date(body.requestedDeliveryAt) : null,
+        note: body.note ?? null,
+        items: {
+          create: body.items.map((item) => ({
+            productVariantId: item.productVariantId,
+            quantity: item.quantity,
+            unit: item.unit,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+
+    reply.code(201);
+    return { ok: true, reqNo: req.reqNo, id: req.id };
+  });
+
+  app.get("/orders/requests", async (request, reply) => {
+    const session = await requireCustomer(request, reply as Parameters<typeof requireCustomer>[1]);
+    if (!session) return;
+
+    const prisma = getPrisma();
+    const requests = await prisma.customerOrderRequest.findMany({
+      where: { customerCompanyId: session.company.id },
+      include: {
+        items: {
+          include: {
+            productVariant: { include: { product: { select: { name: true } } } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { requests };
   });
 
   app.get("/dashboard", async (request, reply) => {

@@ -255,6 +255,135 @@ export async function replyWithOrders(replyToken: string, lineUserId: string) {
   ]);
 }
 
+// ─── Product Catalog Flex Message ────────────────────────────────────────────
+
+function fmtPrice(n: number) {
+  return n.toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function productBubble(p: {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  category: string;
+  pricePerTon: number | null;
+  pricePerCubic: number | null;
+}) {
+  const orderUrl = `${env.FRONTEND_URL}/customer/order/new?productId=${p.id}`;
+  const priceRows = [
+    p.pricePerTon !== null
+      ? { type: "box", layout: "horizontal", contents: [
+          { type: "text", text: "ต่อตัน", size: "xs", color: "#6b7280", flex: 2 },
+          { type: "text", text: `฿${fmtPrice(p.pricePerTon)}`, size: "xs", color: "#111827", flex: 3, weight: "bold" },
+        ] }
+      : null,
+    p.pricePerCubic !== null
+      ? { type: "box", layout: "horizontal", contents: [
+          { type: "text", text: "ต่อคิว", size: "xs", color: "#6b7280", flex: 2 },
+          { type: "text", text: `฿${fmtPrice(p.pricePerCubic)}`, size: "xs", color: "#111827", flex: 3, weight: "bold" },
+        ] }
+      : null,
+  ].filter(Boolean);
+
+  const bubble: Record<string, unknown> = {
+    type: "bubble",
+    size: "kilo",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "sm",
+      paddingAll: "0px",
+      contents: [
+        ...(p.imageUrl
+          ? [{ type: "image", url: p.imageUrl, aspectRatio: "4:3", aspectMode: "cover", size: "full" }]
+          : []),
+        {
+          type: "box",
+          layout: "vertical",
+          spacing: "xs",
+          paddingAll: "12px",
+          contents: [
+            { type: "text", text: p.category, size: "xxs", color: "#9ca3af" },
+            { type: "text", text: p.name, weight: "bold", size: "sm", color: "#111827", wrap: true },
+            { type: "separator", margin: "sm" },
+            ...(priceRows.length > 0 ? priceRows : [
+              { type: "text", text: "ติดต่อเพื่อขอราคา", size: "xs", color: "#6b7280" }
+            ]),
+          ],
+        },
+      ],
+    },
+    footer: {
+      type: "box",
+      layout: "vertical",
+      paddingAll: "10px",
+      contents: [{
+        type: "button",
+        action: { type: "uri", label: "ดูและสั่งซื้อ", uri: orderUrl },
+        style: "primary",
+        height: "sm",
+        color: "#1d4ed8",
+      }],
+    },
+  };
+  return bubble;
+}
+
+export async function replyWithProductCatalog(replyToken: string) {
+  const prisma = getPrisma();
+
+  const supplierProducts = await prisma.supplierProduct.findMany({
+    where: { isAvailable: true },
+    include: {
+      productVariant: {
+        include: {
+          product: { include: { category: { select: { name: true } } } },
+        },
+      },
+    },
+    orderBy: { productVariant: { product: { name: "asc" } } },
+  });
+
+  if (supplierProducts.length === 0) {
+    await lineReply(replyToken, [{ type: "text", text: "ยังไม่มีสินค้าในระบบขณะนี้ กรุณาติดต่อเจ้าหน้าที่" }]);
+    return;
+  }
+
+  // Group by Product, cheapest price per unit
+  const productMap = new Map<string, {
+    id: string; name: string; imageUrl: string | null; category: string;
+    pricePerTon: number | null; pricePerCubic: number | null;
+  }>();
+
+  for (const sp of supplierProducts) {
+    const pv = sp.productVariant;
+    const prod = pv.product;
+    const price = Number(sp.price);
+    const unit = pv.unit.toLowerCase();
+    const isTon = unit.includes("ตัน") || unit === "ton" || unit === "t";
+    const isCubic = unit.includes("คิว") || unit.includes("ลูกบาศก์") || unit.includes("m3");
+
+    if (!productMap.has(prod.id)) {
+      productMap.set(prod.id, {
+        id: prod.id, name: prod.name, imageUrl: (prod as { imageUrl?: string | null }).imageUrl ?? null,
+        category: prod.category.name,
+        pricePerTon: null, pricePerCubic: null,
+      });
+    }
+    const entry = productMap.get(prod.id)!;
+    if (isTon && (entry.pricePerTon === null || price < entry.pricePerTon)) entry.pricePerTon = price;
+    if (isCubic && (entry.pricePerCubic === null || price < entry.pricePerCubic)) entry.pricePerCubic = price;
+  }
+
+  const bubbles = Array.from(productMap.values()).slice(0, 12).map(productBubble);
+
+  await lineReply(replyToken, [{
+    type: "flex",
+    altText: `สินค้า DNA OS (${bubbles.length} รายการ)`,
+    contents: { type: "carousel", contents: bubbles },
+  }]);
+}
+
 // ─── Rich Menu creation (run once manually) ───────────────────────────────────
 
 export async function createDnaRichMenu(): Promise<string> {
@@ -273,7 +402,7 @@ export async function createDnaRichMenu(): Promise<string> {
       },
       {
         bounds: { x: 833, y: 0, width: 834, height: 843 },
-        action: { type: "uri", label: "สินค้า", uri: `${frontendUrl}/customer/products` },
+        action: { type: "postback", label: "สินค้า", data: "action=products", displayText: "ดูสินค้าทั้งหมด" },
       },
       {
         bounds: { x: 1667, y: 0, width: 833, height: 843 },

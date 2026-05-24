@@ -3,6 +3,7 @@ import {
   verifyLineSignature,
   sendGreeting,
   replyWithOrders,
+  replyWithProductCatalog,
 } from "../services/lineMessagingService.js";
 
 type LineEvent =
@@ -43,9 +44,13 @@ export async function registerLineWebhookRoutes(app: FastifyInstance) {
             return;
           }
 
-          if (event.type === "postback" && (event as { type: "postback"; postback: { data: string }; source: { userId: string }; replyToken: string }).postback.data === "action=orders") {
+          if (event.type === "postback") {
             const e = event as { type: "postback"; postback: { data: string }; source: { userId: string }; replyToken: string };
-            await replyWithOrders(e.replyToken, e.source.userId);
+            if (e.postback.data === "action=orders") {
+              await replyWithOrders(e.replyToken, e.source.userId);
+            } else if (e.postback.data === "action=products") {
+              await replyWithProductCatalog(e.replyToken);
+            }
             return;
           }
         } catch (err) {

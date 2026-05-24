@@ -68,3 +68,68 @@ export async function listCustomerOrders(params?: {
 export async function getCustomerOrder(id: string): Promise<{ order: CustomerOrder }> {
   return apiFetch<{ order: CustomerOrder }>(`/customer/orders/${id}`);
 }
+
+// ─── Products ────────────────────────────────────────────────────────────────
+
+export type ProductVariantOption = {
+  variantId: string;
+  variantName: string;
+  unit: string;
+  price: number;
+};
+
+export type CustomerProduct = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  category: string;
+  pricePerTon: number | null;
+  pricePerCubic: number | null;
+  variants: ProductVariantOption[];
+};
+
+export async function listCustomerProducts(): Promise<{ products: CustomerProduct[] }> {
+  return apiFetch<{ products: CustomerProduct[] }>("/customer/products");
+}
+
+// ─── Order Requests ──────────────────────────────────────────────────────────
+
+export type OrderRequestItem = {
+  productVariantId: string;
+  quantity: number;
+  unit: string;
+};
+
+export type OrderRequestPayload = {
+  items: OrderRequestItem[];
+  deliveryAddress: string;
+  requestedDeliveryAt?: string | null;
+  note?: string | null;
+};
+
+export async function createOrderRequest(payload: OrderRequestPayload): Promise<{ ok: boolean; reqNo: string; id: string }> {
+  return apiFetch("/customer/orders/request", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export type CustomerOrderRequest = {
+  id: string;
+  reqNo: string;
+  status: "PENDING" | "PROCESSING" | "CONFIRMED" | "CANCELLED";
+  deliveryAddress: string;
+  requestedDeliveryAt: string | null;
+  note: string | null;
+  createdAt: string;
+  items: {
+    id: string;
+    quantity: number;
+    unit: string;
+    productVariant: { id: string; name: string; product: { name: string } };
+  }[];
+};
+
+export async function listOrderRequests(): Promise<{ requests: CustomerOrderRequest[] }> {
+  return apiFetch<{ requests: CustomerOrderRequest[] }>("/customer/orders/requests");
+}

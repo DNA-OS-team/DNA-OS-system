@@ -49,6 +49,31 @@ export async function getSupplierMe(): Promise<PortalMe> {
   return apiFetch<PortalMe>("/portal/me");
 }
 
+export type SupplierOwnProduct = {
+  id: string;
+  sku: string | null;
+  price: string | number;
+  minQty: string | number;
+  isAvailable: boolean;
+  serviceArea: string | null;
+  stockQty: string | number | null;
+  productVariant: {
+    id: string;
+    name: string;
+    unit: string;
+    product: {
+      id: string;
+      name: string;
+      imageUrl: string | null;
+      category: string;
+    };
+  };
+};
+
+export async function listSupplierProducts(): Promise<{ products: SupplierOwnProduct[] }> {
+  return apiFetch<{ products: SupplierOwnProduct[] }>("/supplier/products");
+}
+
 export async function listSupplierPOs(): Promise<{ supplierPurchaseOrders: SupplierPO[] }> {
   return apiFetch("/partner/purchase-orders");
 }
