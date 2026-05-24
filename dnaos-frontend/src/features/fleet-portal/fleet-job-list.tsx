@@ -83,7 +83,7 @@ export function FleetJobList() {
           <p className="font-semibold">{auth.me.company.name}</p>
           <p className="text-xs text-muted-foreground">{auth.me.displayName}</p>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => { if (v) setStatusFilter(v); }}>
           <SelectTrigger className="w-32 h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
