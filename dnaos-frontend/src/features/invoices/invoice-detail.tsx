@@ -35,7 +35,7 @@ import {
   type Invoice,
   type PaymentMethod,
 } from "./invoice-api";
-import { STATUS_LABEL, STATUS_VARIANT } from "./invoice-list";
+import { InvoiceStatusBadge } from "@/components/shared/status-badge";
 
 const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   BANK_TRANSFER: "โอนเงิน",
@@ -152,9 +152,7 @@ export function InvoiceDetail({ invoiceId }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-mono text-2xl font-semibold tracking-normal">{invoice.invoiceNo}</h1>
-            <Badge variant={STATUS_VARIANT[invoice.invoiceStatus]}>
-              {STATUS_LABEL[invoice.invoiceStatus]}
-            </Badge>
+            <InvoiceStatusBadge status={invoice.invoiceStatus} />
           </div>
           <p className="text-sm text-muted-foreground">
             {invoice.customerCompany?.name ?? "-"}

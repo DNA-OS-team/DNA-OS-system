@@ -3,7 +3,6 @@
 import { Plus, Truck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,7 +22,7 @@ import {
 import { getOrderTransportJobs } from "./transport-job-api";
 import { TransportJobForm } from "./transport-job-form";
 import type { TransportJob } from "./types";
-import { STATUS_LABEL, STATUS_VARIANT } from "./transport-job-list";
+import { TransportStatusBadge } from "@/components/shared/status-badge";
 
 type Props = { orderId: string };
 
@@ -104,9 +103,7 @@ export function TransportJobPanel({ orderId }: Props) {
                 <TableCell className="font-mono text-sm">{job.jobNo}</TableCell>
                 <TableCell>{job.fleetCompany?.name ?? "-"}</TableCell>
                 <TableCell>
-                  <Badge variant={STATUS_VARIANT[job.status]}>
-                    {STATUS_LABEL[job.status]}
-                  </Badge>
+                  <TransportStatusBadge status={job.status} />
                 </TableCell>
                 <TableCell className="text-right">
                   <Link

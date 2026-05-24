@@ -4,7 +4,6 @@ import { ArrowLeft, Truck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,10 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TransportStatusBadge } from "@/components/shared/status-badge";
 import { assignFleetToJob, getTransportJob, listFleetCompanies, updateTransportJobStatus } from "./transport-job-api";
 import type { FleetCompany, TransportJob, TransportJobStatus } from "./types";
-import { STATUS_LABEL, STATUS_VARIANT } from "./transport-job-list";
 import { DeliveryProofPanel } from "./delivery-proof-panel";
+
+const STATUS_LABEL: Record<TransportJobStatus, string> = {
+  CREATED: "รอมอบหมาย",
+  ASSIGNED: "มอบหมายแล้ว",
+  ACCEPTED: "รับงานแล้ว",
+  GOING_TO_PICKUP: "กำลังไปรับ",
+  ARRIVED_PICKUP: "ถึงจุดรับ",
+  LOADED: "บรรทุกแล้ว",
+  IN_TRANSIT: "กำลังขนส่ง",
+  ARRIVED_SITE: "ถึงไซต์",
+  DELIVERED: "ส่งสำเร็จ",
+  COMPLETED: "เสร็จสิ้น",
+  CANCELLED: "ยกเลิก",
+  FAILED: "ล้มเหลว",
+};
 
 type Props = { jobId: string };
 
@@ -115,9 +129,7 @@ export function TransportJobDetail({ jobId }: Props) {
             <h1 className="text-2xl font-semibold tracking-normal font-mono">
               {job.jobNo}
             </h1>
-            <Badge variant={STATUS_VARIANT[job.status]}>
-              {STATUS_LABEL[job.status]}
-            </Badge>
+            <TransportStatusBadge status={job.status} />
           </div>
           <p className="text-sm text-muted-foreground">
             Order: {job.customerOrder?.orderNo ?? "-"} ·{" "}
@@ -270,15 +282,13 @@ export function TransportJobDetail({ jobId }: Props) {
                   </TableCell>
                   <TableCell>
                     {h.fromStatus ? (
-                      <Badge variant="outline">{STATUS_LABEL[h.fromStatus]}</Badge>
+                      <TransportStatusBadge status={h.fromStatus} />
                     ) : (
                       "-"
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[h.toStatus]}>
-                      {STATUS_LABEL[h.toStatus]}
-                    </Badge>
+                    <TransportStatusBadge status={h.toStatus} />
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {h.note ?? "-"}

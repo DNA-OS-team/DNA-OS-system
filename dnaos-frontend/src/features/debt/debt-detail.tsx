@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DebtStateBadge } from "@/components/shared/status-badge";
 import {
   addCollectionNote,
   getDebtDetail,
@@ -25,7 +25,17 @@ import {
   type DebtInvoice,
   type CollectionNote,
 } from "./debt-api";
-import { STATE_LABEL, STATE_VARIANT } from "./debt-list";
+
+const STATE_LABEL: Record<CollectionState, string> = {
+  CURRENT:    "ปกติ",
+  OVERDUE:    "เกินกำหนด",
+  WARNING:    "แจ้งเตือน",
+  COLLECTION: "ติดตามหนี้",
+  PROMISED:   "สัญญาชำระ",
+  PARTIAL:    "ชำระบางส่วน",
+  LEGAL:      "ดำเนินคดี",
+  CLOSED:     "ปิดแล้ว",
+};
 
 const MANUAL_STATES: CollectionState[] = ["PROMISED", "PARTIAL", "LEGAL", "CLOSED"];
 
@@ -171,11 +181,7 @@ export function DebtDetail({ customerCompanyId }: { customerCompanyId: string })
           </h1>
         </div>
         <div className="flex gap-2 items-center">
-          {snapshot && (
-            <Badge variant={STATE_VARIANT[snapshot.collectionState]} className="text-sm px-3 py-1">
-              {STATE_LABEL[snapshot.collectionState]}
-            </Badge>
-          )}
+          {snapshot && <DebtStateBadge state={snapshot.collectionState} />}
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isSaving}>
             รีเฟรช
           </Button>
@@ -328,9 +334,7 @@ export function DebtDetail({ customerCompanyId }: { customerCompanyId: string })
                 <div key={n.id} className="py-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 text-sm">{n.note}</div>
-                    <Badge variant={STATE_VARIANT[n.collectionState]} className="shrink-0 text-xs">
-                      {STATE_LABEL[n.collectionState]}
-                    </Badge>
+                    <DebtStateBadge state={n.collectionState} />
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground flex gap-3">
                     <span>{new Date(n.createdAt).toLocaleString("th-TH")}</span>
