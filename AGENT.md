@@ -1,3 +1,15 @@
+```md
+# Important
+
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first.
+
+Use minimum-token mode:
+- Read only files related to the current task.
+- Do not scan the whole project.
+- Do not retry more than once.
+- Do not refactor outside the requested scope.
+- Stop after completing the current task.
+
 # DNA OS Construction Commerce Platform — System Blueprint
 
 เอกสารนี้ออกแบบสำหรับใช้เป็นไฟล์หลักใน VSCode เพื่อเริ่มพัฒนาระบบ **DNA OS Construction Commerce Platform**
@@ -3515,4 +3527,25 @@ Updated Score: 9.2 / 10
 - Wireframe รายหน้า
 - Test cases ราย engine
 - Sequence diagram ราย workflow
+```
+
+---
+
+# UPDATE — Workflow And LINE-First Agent Rules
+
+AI agents must read `WORKFLOW_AND_ROLE_RULES.md` before implementing workflow, role, dashboard, LINE, product, inventory, debt, or document features.
+
+Additional rules:
+
+```txt
+1. Admin UX must be desktop-first.
+2. Partner/Customer/Fleet UX must be LINE-first and mobile-first.
+3. Partner product submission is a core feature, not optional.
+4. Admin approval is required before partner products become sellable.
+5. Supplier inventory must track stockQty, reservedQty, availableQty.
+6. Every stock update must create inventory movement.
+7. Project and Document Group must be used for unified document control.
+8. Document number must include project reference when available.
+9. Admin must be able to search by any document/project reference.
+10. Debt dashboard must be real-time and must allow detail drilldown.
 ```

@@ -1360,3 +1360,62 @@ When AI starts work:
 ---
 
 # END OF TECH STACK
+
+---
+
+# UPDATE — LINE-First Tools & Realtime Dashboard Additions
+
+## Additional Recommended Tools
+
+```txt
+LINE Messaging API
+LINE LIFF
+LINE Rich Menu
+LINE Flex Message
+Supabase Realtime
+line_action_tokens table
+line_notification_logs table
+event_logs table
+```
+
+## UI Strategy Update
+
+```txt
+Admin: desktop-first, dashboard/table/detail heavy
+Partner: LINE-first, mobile action pages
+Customer: LINE-first, mobile action pages
+Fleet/Driver: LINE-first, mobile action pages
+```
+
+## Additional Modules
+
+```txt
+Partner Product Submission
+Supplier Inventory
+Supplier Inventory Movement
+Product Approval Flow
+LINE Action Handler
+LINE Notification Template Registry
+Project Model
+Document Group Model
+Document Reference Engine
+Real-time Debt Dashboard
+Document Search
+Project Document Timeline
+```
+
+## Realtime Events
+
+```txt
+supplier_product.submitted
+supplier_product.approved
+supplier_product.stock_updated
+order.created
+quotation.confirmed
+supplier_po.confirmed
+transport_job.status_changed
+invoice.created
+payment.confirmed
+debt.overdue
+alert.created
+```

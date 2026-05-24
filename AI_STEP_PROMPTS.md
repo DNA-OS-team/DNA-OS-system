@@ -110,7 +110,7 @@ Architecture:
 ## Prompt 0.1 — สร้าง Next.js Project Foundation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะเริ่ม Phase 0: Project Setup
 
@@ -167,7 +167,7 @@ Architecture:
 ## Prompt 0.2 — ติดตั้ง Tailwind CSS และ shadcn/ui
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะทำ Phase 0 ต่อ: ติดตั้ง UI foundation
 
@@ -219,7 +219,7 @@ Architecture:
 ## Prompt 0.3 — ตั้งค่า Environment Variables
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะตั้งค่า environment variables สำหรับระบบ
 
@@ -271,7 +271,7 @@ Architecture:
 ## Prompt 1.1 — Setup Prisma และ Database Connection
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะเริ่ม Phase 1: Identity & Tenant Foundation
 
@@ -315,7 +315,7 @@ Architecture:
 ## Prompt 1.2 — สร้าง Models: Company, User, CompanyMember
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 ตอนนี้เราจะสร้าง database foundation ชุดแรก
 
@@ -417,7 +417,7 @@ CompanyMember fields:
 ## Prompt 1.3 — สร้าง Permission System เบื้องต้น
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง permission system เบื้องต้นสำหรับตรวจ role ใน application layer
@@ -470,7 +470,7 @@ CompanyMember fields:
 ## Prompt 1.4 — สร้าง Audit Log Model และ Audit Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง audit log foundation สำหรับบันทึก action สำคัญ
@@ -524,7 +524,7 @@ CompanyMember fields:
 ## Prompt 2.1 — สร้าง Customer Site และ Credit Profile Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับ customer site และ credit profile
@@ -590,7 +590,7 @@ CompanyMember fields:
 ## Prompt 2.2 — สร้าง Customer Admin Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+อ่าน AGENT.md ,PROJECT_RULES และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
 
 เป้าหมาย:
 สร้างหน้า admin สำหรับจัดการลูกค้าและไซต์งาน
@@ -642,7 +642,7 @@ CompanyMember fields:
 ## Prompt 3.1 — สร้าง Product Catalog Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง master data สินค้ากลาง
@@ -698,7 +698,7 @@ CompanyMember fields:
 ## Prompt 3.2 — สร้าง Product Admin Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin สำหรับจัดการหมวดสินค้า สินค้า และ variant
@@ -742,7 +742,7 @@ CompanyMember fields:
 ## Prompt 4.1 — สร้าง Supplier Product, Contract และ Price History Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง data model สำหรับ supplier, ราคาสินค้า, สัญญาราคา และประวัติราคา
@@ -817,7 +817,7 @@ CompanyMember fields:
 ## Prompt 4.2 — สร้าง Supplier Admin และ Partner Product Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้าจัดการ supplier และสินค้า supplier
@@ -866,7 +866,7 @@ CompanyMember fields:
 ## Prompt 5.1 — สร้าง Fleet Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับรถร่วม
@@ -931,7 +931,7 @@ CompanyMember fields:
 ## Prompt 5.2 — สร้าง Fleet Admin และ Fleet Portal Pages
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin/fleet สำหรับจัดการรถร่วม
@@ -971,7 +971,7 @@ CompanyMember fields:
 ## Prompt 6.1 — สร้าง Customer Order Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับคำสั่งซื้อของลูกค้า
@@ -1048,7 +1048,7 @@ CompanyMember fields:
 ## Prompt 6.2 — สร้าง Customer Order Pages และ Form
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างหน้า admin/customer สำหรับสร้าง order
@@ -1098,7 +1098,7 @@ CompanyMember fields:
 ## Prompt 7.1 — สร้าง Pricing Engine MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง pricingEngine เพื่อคำนวณต้นทุน ราคาขาย VAT และ margin
@@ -1151,7 +1151,7 @@ CompanyMember fields:
 ## Prompt 7.2 — สร้าง BOQ Models และ BOQ Generation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง BOQ ทั้งแบบ internal และ customer
@@ -1219,7 +1219,7 @@ CompanyMember fields:
 ## Prompt 7.3 — สร้าง BOQ UI
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง UI สำหรับดู BOQ จาก order
@@ -1264,7 +1264,7 @@ CompanyMember fields:
 ## Prompt 8.1 — สร้าง Document Models และ Counters
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบเอกสารหลักและเลขเอกสาร
@@ -1342,7 +1342,7 @@ CompanyMember fields:
 ## Prompt 8.2 — สร้าง Numbering Engine และ Document Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง engine สำหรับเลขเอกสารและการสร้างเอกสาร
@@ -1386,7 +1386,7 @@ CompanyMember fields:
 ## Prompt 8.3 — สร้าง PDF Preview Foundation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง document preview foundation ก่อน generate PDF จริง
@@ -1430,7 +1430,7 @@ CompanyMember fields:
 ## Prompt 9.1 — สร้าง Quotation จาก BOQ / Order
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างใบเสนอราคา QT จาก Customer BOQ หรือ Order
@@ -1475,7 +1475,7 @@ CompanyMember fields:
 ## Prompt 9.2 — ลูกค้ายืนยัน Quotation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ให้ลูกค้าหรือ admin ยืนยัน quotation และเปลี่ยน order เป็น CONFIRMED
@@ -1516,7 +1516,7 @@ CompanyMember fields:
 ## Prompt 10.1 — สร้าง Order Split Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง orderSplitEngine สำหรับแยก order item ตาม supplier
@@ -1555,7 +1555,7 @@ CompanyMember fields:
 ## Prompt 10.2 — สร้าง Supplier PO Models / Service / UI
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง Supplier Purchase Order จาก order split
@@ -1615,7 +1615,7 @@ CompanyMember fields:
 ## Prompt 11.1 — สร้าง Transport Job Models
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง database สำหรับงานขนส่ง
@@ -1672,7 +1672,7 @@ CompanyMember fields:
 ## Prompt 11.2 — สร้าง Fleet Matching และ Dispatch MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบสร้าง transport job และ assign รถแบบ manual/MVP
@@ -1722,7 +1722,7 @@ CompanyMember fields:
 ## Prompt 12.1 — สร้าง Delivery Proof Checklist และ Upload
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบหลักฐานการส่งของ
@@ -1773,7 +1773,7 @@ CompanyMember fields:
 ## Prompt 12.2 — สร้าง Dispute Module
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบแจ้งปัญหา / claim / dispute
@@ -1833,7 +1833,7 @@ CompanyMember fields:
 ## Prompt 13.1 — สร้าง Payment Models และ Payment Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบ payment foundation
@@ -1882,7 +1882,7 @@ CompanyMember fields:
 ## Prompt 13.2 — สร้าง Invoice จาก Delivered Order
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง invoice / tax invoice จาก order
@@ -1923,7 +1923,7 @@ CompanyMember fields:
 ## Prompt 13.3 — บันทึก Payment และออก Receipt
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 รับชำระเงิน, match invoice, และออกใบเสร็จ
@@ -1972,10 +1972,27 @@ CompanyMember fields:
 ## Prompt 14.1 — สร้าง Debt Tracking และ Collection Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` and `WORKFLOW_AND_ROLE_RULES.md` (Section 20-21) first.
 
 เป้าหมาย:
-ติดตามหนี้จาก invoice unpaid/overdue
+ติดตามหนี้จาก invoice unpaid/overdue ตาม business rules จริง
+
+Business rules ที่ต้อง implement ให้ถูกต้อง:
+
+Debt Timer Rule (24h after first contact):
+- เมื่อมีการติดต่อลูกค้าครั้งแรก (first contact) → บันทึก firstContactAt
+- ถ้าไม่ชำระเงินภายใน 24 ชม. หลัง firstContactAt → เริ่มนับ debt period (debtStartAt)
+- CollectionState transitions: CURRENT → OVERDUE → WARNING → COLLECTION
+
+Auto-Invoice Rule (multiple delivery trips):
+- Order item ที่ส่งหลายเที่ยว (เช่น ดิน 10 รอบ) ต้องติดตาม deliveredTrips vs totalTrips
+- เมื่อ deliveredTrips >= totalTrips → trigger auto-invoice ไม่ต้องรอ admin กด
+
+Invoice State Machine:
+- ส่งสินค้าเสร็จ → ออก Invoice
+- ถ้าลูกค้าจ่ายแล้วก่อน Invoice ออก → Invoice issued, RCT ออกทันที
+- ถ้ายังไม่จ่าย → UNPAID, เริ่ม debt monitoring
+- ลูกค้า upload slip → PAYMENT = COMPLETED → RCT → PAID
 
 สิ่งที่ต้องทำ:
 1. เพิ่ม enum CollectionState:
@@ -1987,38 +2004,43 @@ CompanyMember fields:
    - PARTIAL
    - LEGAL
    - CLOSED
-2. เพิ่ม model DebtSnapshot
-3. เพิ่ม model CollectionNote
+2. เพิ่ม model DebtSnapshot (เพิ่ม firstContactAt, debtStartAt fields)
+3. เพิ่ม model CollectionNote (บันทึกการติดต่อแต่ละครั้ง)
 4. สร้าง collectionEngine:
    - autoState(overdueDays, paid, total)
    - canTransition(from, to)
    - nextActions(state)
+   - calculateDebtStartDate(firstContactAt) — returns firstContactAt + 24h
+   - isDebtStarted(invoice, now)
 5. สร้าง debtService:
    - calculateInvoiceDebt(documentId)
    - updateCollectionState(documentId)
    - createDailySnapshot()
+   - recordFirstContact(documentId, contactedBy) — บันทึก firstContactAt
+   - checkAutoInvoiceTrigger(orderId) — ตรวจว่าครบเที่ยวหรือยัง
+   - createInvoiceFromCompletedTrips(orderId)
 6. สร้าง routes:
-   - /admin/debt
+   - /admin/debt (real-time debt dashboard)
    - /admin/debt/[documentId]
-7. แสดง:
-   - invoice
-   - customer
-   - due date
-   - overdue days
-   - paid
-   - balance
-   - collection state
-8. เพิ่ม collection note
+7. /admin/debt แสดง:
+   - invoice, customer, due date, overdue days
+   - firstContactAt, debtStartAt (timer)
+   - paid, balance, collection state
+   - ปุ่ม "บันทึกการติดต่อ" ที่ตั้ง firstContactAt
+8. เพิ่ม collection note ต่อ invoice
+9. อัปเดต TransportJobItem: deliveredTrips, totalTrips fields
 
 ข้อห้าม:
 - ห้ามคิดดอกเบี้ยซ้ำหลายที่
 - ห้ามปิดหนี้ถ้ายังมียอดค้าง
 - ห้ามลบ collection history
+- ห้ามออก invoice ซ้ำจาก order เดิม
 
 ผลลัพธ์ที่ต้องได้:
-- ดูลูกหนี้ได้
-- เห็น overdue ได้
-- state เปลี่ยนตามวันค้างได้
+- ดูลูกหนี้ได้ พร้อม first contact timer
+- Auto-invoice เมื่อครบจำนวนเที่ยว
+- State เปลี่ยนตาม 24h debt rule
+- อัปเดต PROJECT_PROGRESS.md: [x] debt tracking created
 ```
 
 ---
@@ -2028,7 +2050,7 @@ CompanyMember fields:
 ## Prompt 15.1 — สร้าง Settlement Models และ Engine
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 คำนวณและจ่ายเงินให้ supplier / fleet
@@ -2082,7 +2104,7 @@ CompanyMember fields:
 ## Prompt 16.1 — สร้าง Alert Center
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้างระบบ alert กลางสำหรับสิ่งที่ต้องจัดการ
@@ -2130,7 +2152,7 @@ CompanyMember fields:
 ## Prompt 16.2 — สร้าง Dashboard MVP
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 สร้าง dashboard MVP ที่แสดงตัวเลขจริงจาก database
@@ -2175,7 +2197,7 @@ CompanyMember fields:
 ## Prompt 17.1 — Setup Inngest และ Background Jobs
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ตั้งค่า background jobs สำหรับ automation
@@ -2211,7 +2233,7 @@ CompanyMember fields:
 ## Prompt 17.2 — LINE Notification Automation
 
 ```txt
-อ่าน AGENT.md และ PROJECT_PROGRESS.md ก่อนเริ่มงาน
+Before doing any task, read `AGENT_TOKEN_SAVING_RULES.md` first 
 
 เป้าหมาย:
 ส่ง notification ผ่าน LINE หรือ channel ที่ตั้งค่าไว้
@@ -2449,3 +2471,105 @@ Admin สร้างลูกค้า → สร้างไซต์งาน
 ---
 
 # END OF FILE
+
+ให้ใช้ prompt นี้สำหรับ Phase 14 (Debt & Collection) โดยเพิ่ม business rules จริงจาก operational flows:
+
+```txt
+Read AGENT.md, PROJECT_RULES.md, WORKFLOW_AND_ROLE_RULES.md (Section 20-21) before implementing Phase 14.
+
+Business rules ที่ต้อง implement ให้ถูกต้อง:
+
+1. Debt Timer Rule (24h after first contact):
+   - เมื่อมีการติดต่อลูกค้าครั้งแรก (first contact) → บันทึก firstContactAt
+   - ถ้าไม่ชำระเงินภายใน 24 ชั่วโมงหลัง firstContactAt → เริ่มนับ debt period
+   - CollectionState transitions: CURRENT → OVERDUE → WARNING → COLLECTION
+
+2. Auto-Invoice Rule (multiple delivery trips):
+   - Order item ที่ต้องการส่งหลายเที่ยว (เช่น ดิน 10 รอบ) ต้องติดตาม deliveredTrips vs totalTrips
+   - เมื่อ deliveredTrips >= totalTrips → trigger auto-invoice
+   - ระบบออก Invoice อัตโนมัติโดยไม่ต้องรอ admin
+
+3. Fleet Payment Credit (6 months):
+   - Fleet ได้รับเครดิตสูงสุด 6 เดือนหลังส่งงานสำเร็จ (COMPLETED)
+   - Settlement batch สำหรับ fleet ต้องคำนวณจาก transport jobs ที่ COMPLETED ในช่วง credit period
+   - ค่าแรงบันทึกตามจำนวนเที่ยวที่ส่งจริง
+
+4. Supplier Payment Credit (6 months):
+   - Supplier รอรับเงินหลัง PO status = FULFILLED
+   - วงเงินเครดิต supplier สูงสุด 6 เดือน
+   - ถ้า Supplier เป็นบุคคลธรรมดา หัก WHT 3% ก่อนจ่าย
+
+5. Invoice State Machine:
+   - ส่งสินค้าเสร็จ (DELIVERED/COMPLETED) → ออก Invoice
+   - ถ้าลูกค้าจ่ายแล้วก่อน Invoice ถูกออก → Invoice issued, RCT ออกทันที
+   - ถ้ายังไม่จ่าย → Invoice status = UNPAID, เริ่ม debt monitoring
+   - ลูกค้า upload slip → PAYMENT = COMPLETED → ออก RCT → PAID
+
+6. Supplier PO Rejection:
+   - Supplier ปฏิเสธ PO ต้องระบุเหตุผล
+   - รอ Admin ดำเนินการภายใน 30 นาที
+   - Admin ต้องหา Supplier ใหม่ หรือ confirm เหตุผล
+
+7. GPS Tracking Requirement:
+   - Transport job ที่ ACCEPTED ต้องเริ่ม GPS tracking
+   - Customer เห็นสถานะ real-time เมื่อ status = IN_TRANSIT และ ARRIVED_SITE
+   - GPS coordinate บันทึกใน delivery proof
+
+Models ที่ต้องเพิ่ม/อัปเดต:
+- DebtSnapshot: เพิ่ม firstContactAt, debtStartAt fields
+- CollectionNote: บันทึกการติดต่อแต่ละครั้ง
+- TransportJobItem: tracking deliveredTrips, totalTrips ต่อ order item
+- SupplierPurchaseOrder: creditTermDays, paymentDueAt
+- Vehicle: เพิ่ม gpsEnabled field
+
+collectionEngine ต้องมี:
+   - calculateDebtStartDate(firstContactAt) — returns firstContactAt + 24h
+   - isDebtStarted(invoice, now) — ตรวจว่าเริ่มนับหนี้แล้วหรือยัง
+   - autoTransitionState(invoice) — transition state ตาม business rules ข้างต้น
+
+debtService ต้องมี:
+   - recordFirstContact(documentId, contactedBy) — บันทึก firstContactAt
+   - checkAutoInvoiceTrigger(orderId) — ตรวจว่าครบเที่ยวหรือยัง
+   - createInvoiceFromCompletedTrips(orderId) — auto-invoice
+
+UI ที่ต้องมี:
+   - /admin/debt แสดง: invoice, customer, due date, overdue days, firstContactAt, debtStartAt
+   - ปุ่ม "บันทึกการติดต่อ" ที่ตั้ง firstContactAt
+   - แสดง timer ว่า debt เริ่มนับเมื่อไหร่
+```
+
+---
+
+# UPDATE PROMPT — Add LINE-First Workflow & Document Control
+
+Use this prompt when implementing the new workflow requirements:
+
+```txt
+Read AGENT.md, PROJECT_RULES.md, PROJECT_PROGRESS.md, TECH_STACK.md, API_DESCRIPTION.md, and WORKFLOW_AND_ROLE_RULES.md first.
+
+Implement the system with these updated rules:
+1. Admin dashboard is desktop-first.
+2. Partner, Customer, Fleet, and Driver are LINE-first and mobile-first.
+3. Partner can submit products and stock through LINE/mobile web.
+4. Admin can also add products for partner.
+5. Partner product requires Admin approval before it is sellable.
+6. Supplier inventory and inventory movements are required.
+7. Every important document must belong to Project and DocumentGroup when applicable.
+8. Document number must include projectNo if project exists.
+9. Admin can search any reference number and see the full document group.
+10. Debt dashboard must be real-time and drilldown-able.
+11. LINE actions must be tokenized and verified.
+12. Unknown LINE users must never be auto-created.
+13. Do not build complex mobile dashboards for partner/customer/fleet.
+14. Use one-screen-one-action design for mobile/LINE flows.
+
+Start by implementing:
+- Project model
+- DocumentGroup model
+- DocumentReference model
+- PartnerProductSubmission model
+- SupplierInventory model
+- SupplierInventoryMovement model
+- lineActionToken model
+- lineNotificationLog model
+```

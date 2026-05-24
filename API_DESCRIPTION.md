@@ -4104,3 +4104,76 @@ For every API endpoint:
 ---
 
 # END OF API DESCRIPTION
+
+---
+
+# UPDATE — New APIs For LINE-First Workflow, Partner Products, Inventory, Project Documents
+
+## Partner Product Submission APIs
+
+```http
+POST /api/partner/products/submit
+GET  /api/partner/products
+GET  /api/partner/products/:id
+PATCH /api/partner/products/:id
+PATCH /api/partner/products/:id/stock
+POST /api/admin/partner-products/:id/approve
+POST /api/admin/partner-products/:id/reject
+GET  /api/admin/partner-products/pending
+```
+
+## Inventory APIs
+
+```http
+GET  /api/admin/inventory
+GET  /api/partner/inventory
+POST /api/partner/inventory/:supplierProductId/adjust
+GET  /api/supplier-products/:id/movements
+```
+
+## Project / Document Group APIs
+
+```http
+POST /api/projects
+GET  /api/projects
+GET  /api/projects/:projectNo
+GET  /api/projects/:projectNo/documents
+GET  /api/document-groups/:groupNo
+GET  /api/documents/search?q=
+GET  /api/documents/:documentId/references
+```
+
+## LINE Action APIs
+
+```http
+POST /api/line/actions/product-submit
+POST /api/line/actions/stock-update
+POST /api/line/actions/po-confirm
+POST /api/line/actions/po-reject
+POST /api/line/actions/job-accept
+POST /api/line/actions/job-status
+POST /api/line/actions/proof-upload
+POST /api/webhooks/line
+```
+
+## Admin Dashboard APIs
+
+```http
+GET /api/dashboard/admin/realtime-summary
+GET /api/dashboard/admin/debt-summary
+GET /api/debt
+GET /api/debt/:documentId
+GET /api/debt/:documentId/timeline
+GET /api/debt/:documentId/related-documents
+```
+
+## API Rules Added
+
+```txt
+- Partner product submission must create PENDING_REVIEW status.
+- Admin approval is required before a partner product becomes sellable.
+- Stock update must create supplier_inventory_movements.
+- LINE actions must use line_action_tokens.
+- Document search must support projectNo, groupNo, orderNo, documentNo, invoiceNo, receiptNo.
+- Debt dashboard must support drilldown by invoice/documentId.
+```
