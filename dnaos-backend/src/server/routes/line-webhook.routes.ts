@@ -25,10 +25,7 @@ export async function registerLineWebhookRoutes(app: FastifyInstance) {
 
   app.post<{ Body: LineWebhookBody }>(
     "/",
-    {
-      config: { rawBody: true },
-      schema: { hide: true },
-    },
+    { schema: { hide: true } },
     async (request, reply) => {
       const signature = request.headers["x-line-signature"] as string | undefined;
       const rawBody = JSON.stringify(request.body);
@@ -37,13 +34,12 @@ export async function registerLineWebhookRoutes(app: FastifyInstance) {
         return reply.code(401).send({ error: "Invalid signature" });
       }
 
-      // Process events in parallel — fire-and-forget, always 200 to LINE
       const tasks = request.body.events.map(async (event) => {
         try {
           if (event.type === "follow") {
-            // Fetch display name from LINE profile if needed — for now use userId as fallback
-            const displayName = (event as { type: "follow"; source: { userId: string; displayName?: string } }).source.displayName ?? "คุณ";
-            await sendGreeting(event.source.userId, displayName);
+            const e = event as { type: "follow"; source: { userId: string; displayName?: string } };
+            const displayName = e.source.displayName ?? "คุณ";
+            await sendGreeting(e.source.userId, displayName);
             return;
           }
 
