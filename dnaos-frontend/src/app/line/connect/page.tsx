@@ -22,14 +22,15 @@ type LineConnectPageProps = {
   searchParams: Promise<{
     next?: string;
     token?: string;
+    channel?: string;
   }>;
 };
 
 export default async function LineConnectPage({
   searchParams,
 }: LineConnectPageProps) {
-  const { next, token } = await searchParams;
-  const lineStartUrl = buildLineStartUrl({ next, token });
+  const { next, token, channel } = await searchParams;
+  const lineStartUrl = buildLineStartUrl({ next, token, channel });
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 text-foreground md:px-8">
@@ -74,20 +75,15 @@ export default async function LineConnectPage({
   );
 }
 
-function buildLineStartUrl(input: { next?: string; token?: string }) {
-  const apiBaseUrl =
-    process.env.BACKEND_API_URL ??
-    process.env.NEXT_PUBLIC_BACKEND_API_URL ??
-    "http://localhost:5100";
-  const url = new URL("/auth/line/start", apiBaseUrl);
+const CHANNEL_START: Record<string, string> = {
+  fleet:    "/api/backend/auth/line-fleet/start",
+  supplier: "/api/backend/auth/line-supplier/start",
+};
 
-  if (input.next) {
-    url.searchParams.set("next", input.next);
-  }
-
-  if (input.token) {
-    url.searchParams.set("token", input.token);
-  }
-
-  return url.toString();
+function buildLineStartUrl(input: { next?: string; token?: string; channel?: string }) {
+  const startPath = CHANNEL_START[input.channel ?? ""] ?? "/api/backend/auth/line/start";
+  const url = new URL(startPath, "http://x");
+  if (input.next) url.searchParams.set("next", input.next);
+  if (input.token) url.searchParams.set("token", input.token);
+  return url.pathname + url.search;
 }

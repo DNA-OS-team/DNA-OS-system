@@ -9,6 +9,26 @@ export const adminSessionCookieName = "dnaos_admin_session";
 export const lineOAuthStateCookieName = "dnaos_line_oauth_state";
 export const lineOAuthNextCookieName = "dnaos_line_oauth_next";
 export const lineOAuthLinkTokenCookieName = "dnaos_line_link_token";
+export const lineRegProfileCookieName = "dnaos_line_reg_profile";
+
+export type LineRegProfile = {
+  lineUserId: string;
+  displayName: string;
+  pictureUrl?: string;
+};
+
+export function createLineRegProfileCookie(profile: LineRegProfile) {
+  const value = Buffer.from(JSON.stringify(profile)).toString("base64");
+  return serializeCookie(lineRegProfileCookieName, value, { maxAge: 15 * 60 });
+}
+
+export function parseLineRegProfileCookie(raw: string): LineRegProfile | null {
+  try {
+    return JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as LineRegProfile;
+  } catch {
+    return null;
+  }
+}
 
 const lineSessionDays = 7;
 const adminSessionHours = 12;

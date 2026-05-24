@@ -33,32 +33,57 @@ export type LineLinkResult =
 
 const allowedUserStatuses = new Set(["ACTIVE", "LINE_LINKED"]);
 
-export function createLineAuthorizeUrl(input: { state: string }) {
-  if (!env.LINE_CHANNEL_ID || !env.LINE_CHANNEL_SECRET || !env.LINE_CALLBACK_URL) {
-    throw new Error("LINE auth is not configured.");
-  }
+export type LineChannelConfig = {
+  channelId: string;
+  channelSecret: string;
+  callbackUrl: string;
+};
 
+export function getChannelConfig(channel: "customer" | "fleet" | "supplier"): LineChannelConfig {
+  if (channel === "fleet") {
+    if (!env.LINE_FLEET_CHANNEL_ID || !env.LINE_FLEET_CHANNEL_SECRET)
+      throw new Error("LINE Fleet channel is not configured.");
+    return { channelId: env.LINE_FLEET_CHANNEL_ID, channelSecret: env.LINE_FLEET_CHANNEL_SECRET, callbackUrl: env.LINE_FLEET_CALLBACK_URL };
+  }
+  if (channel === "supplier") {
+    if (!env.LINE_SUPPLIER_CHANNEL_ID || !env.LINE_SUPPLIER_CHANNEL_SECRET)
+      throw new Error("LINE Supplier channel is not configured.");
+    return { channelId: env.LINE_SUPPLIER_CHANNEL_ID, channelSecret: env.LINE_SUPPLIER_CHANNEL_SECRET, callbackUrl: env.LINE_SUPPLIER_CALLBACK_URL };
+  }
+  if (!env.LINE_CHANNEL_ID || !env.LINE_CHANNEL_SECRET)
+    throw new Error("LINE auth is not configured.");
+  return { channelId: env.LINE_CHANNEL_ID, channelSecret: env.LINE_CHANNEL_SECRET, callbackUrl: env.LINE_CALLBACK_URL };
+}
+
+export function createLineAuthorizeUrl(input: { state: string; channel?: "customer" | "fleet" | "supplier" }) {
+  const cfg = getChannelConfig(input.channel ?? "customer");
   const authorizeUrl = new URL("https://access.line.me/oauth2/v2.1/authorize");
   authorizeUrl.searchParams.set("response_type", "code");
-  authorizeUrl.searchParams.set("client_id", env.LINE_CHANNEL_ID);
-  authorizeUrl.searchParams.set("redirect_uri", env.LINE_CALLBACK_URL);
+  authorizeUrl.searchParams.set("client_id", cfg.channelId);
+  authorizeUrl.searchParams.set("redirect_uri", cfg.callbackUrl);
   authorizeUrl.searchParams.set("state", input.state);
   authorizeUrl.searchParams.set("scope", "profile openid");
-
   return authorizeUrl.toString();
 }
 
-export async function exchangeLineCodeForToken(code: string) {
-  if (!env.LINE_CHANNEL_ID || !env.LINE_CHANNEL_SECRET || !env.LINE_CALLBACK_URL) {
-    throw new Error("LINE auth is not configured.");
-  }
+export function createLineAuthorizeUrlFor(cfg: LineChannelConfig, state: string) {
+  const authorizeUrl = new URL("https://access.line.me/oauth2/v2.1/authorize");
+  authorizeUrl.searchParams.set("response_type", "code");
+  authorizeUrl.searchParams.set("client_id", cfg.channelId);
+  authorizeUrl.searchParams.set("redirect_uri", cfg.callbackUrl);
+  authorizeUrl.searchParams.set("state", state);
+  authorizeUrl.searchParams.set("scope", "profile openid");
+  return authorizeUrl.toString();
+}
 
+export async function exchangeLineCodeForToken(code: string, cfg?: LineChannelConfig) {
+  const config = cfg ?? getChannelConfig("customer");
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
-    redirect_uri: env.LINE_CALLBACK_URL,
-    client_id: env.LINE_CHANNEL_ID,
-    client_secret: env.LINE_CHANNEL_SECRET
+    redirect_uri: config.callbackUrl,
+    client_id: config.channelId,
+    client_secret: config.channelSecret
   });
 
   const response = await fetch("https://api.line.me/oauth2/v2.1/token", {

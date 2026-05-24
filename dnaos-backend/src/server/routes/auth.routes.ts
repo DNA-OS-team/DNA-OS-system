@@ -9,9 +9,9 @@ import {
   buildFrontendRedirect,
   completeLineAccountLink,
   completeLineLogin,
-  createLineAuthorizeUrl,
   createLineLinkToken,
   exchangeLineCodeForToken,
+  getChannelConfig,
   getLineProfile,
   normalizeInternalPath
 } from "../services/lineAuthService.js";
@@ -19,12 +19,15 @@ import {
   adminSessionCookieName,
   clearCookie,
   createAdminSession,
+  createLineSession,
   createOAuthCookie,
   lineOAuthLinkTokenCookieName,
   lineOAuthNextCookieName,
   lineOAuthStateCookieName,
+  lineRegProfileCookieName,
   lineSessionCookieName,
   parseCookieHeader,
+  parseLineRegProfileCookie,
   revokeAdminSession,
   revokeLineSession
 } from "../services/sessionService.js";
@@ -54,30 +57,77 @@ const lineLinkSchema = z.object({
   userId: z.string().uuid("userId must be a UUID")
 });
 
-export async function registerAuthRoutes(app: FastifyInstance) {
-  app.get("/line/start", async (request, reply) => {
+// ─── Shared helpers ──────────────────────────────────────────────────────────
+
+type Channel = "customer" | "fleet" | "supplier";
+
+const CHANNEL_DEFAULTS: Record<Channel, { companyType: string; role: string; homePath: string }> = {
+  customer: { companyType: "CUSTOMER", role: "CUSTOMER", homePath: "/customer/orders" },
+  fleet:    { companyType: "FLEET",    role: "FLEET_OWNER", homePath: "/fleet/jobs" },
+  supplier: { companyType: "SUPPLIER", role: "SUPPLIER",  homePath: "/supplier/orders" },
+};
+
+async function autoRegisterLine(profile: { userId: string; displayName?: string; pictureUrl?: string }, channel: Channel) {
+  const { companyType, role, homePath } = CHANNEL_DEFAULTS[channel];
+  const displayName = profile.displayName ?? "ผู้ใช้ใหม่";
+  const prisma = getPrisma();
+
+  const [company, user] = await prisma.$transaction(async (tx) => {
+    const co = await tx.company.create({
+      data: { name: displayName, type: companyType as "CUSTOMER" | "FLEET" | "SUPPLIER", isIndividual: true, status: "ACTIVE" }
+    });
+    const u = await tx.user.create({
+      data: { email: `line.${profile.userId}@dnaos.internal`, name: displayName, status: "ACTIVE" }
+    });
+    await tx.userIdentity.create({
+      data: {
+        userId: u.id, provider: "LINE", providerUserId: profile.userId,
+        displayName: profile.displayName, pictureUrl: profile.pictureUrl, lastLoginAt: new Date()
+      }
+    });
+    await tx.companyMember.create({
+      data: { companyId: co.id, userId: u.id, role: role as "CUSTOMER" | "FLEET_OWNER" | "SUPPLIER", status: "ACTIVE" }
+    });
+    return [co, u];
+  });
+
+  const session = await createLineSession({
+    userId: user.id, companyId: company.id,
+    role: role as "CUSTOMER" | "FLEET_OWNER" | "SUPPLIER",
+    lineUserId: profile.userId
+  });
+
+  return { session, homePath };
+}
+
+function makeLineStartHandler(channel: Channel) {
+  return async (request: import("fastify").FastifyRequest, reply: import("fastify").FastifyReply) => {
     const query = lineStartQuerySchema.parse(request.query);
     const state = createOpaqueToken(24);
     const nextPath = normalizeInternalPath(query.next);
     const cookies = [
       createOAuthCookie(lineOAuthStateCookieName, state),
-      createOAuthCookie(lineOAuthNextCookieName, nextPath)
+      createOAuthCookie(lineOAuthNextCookieName, nextPath),
     ];
-
-    if (query.token) {
-      cookies.push(createOAuthCookie(lineOAuthLinkTokenCookieName, query.token));
-    }
-
+    if (query.token) cookies.push(createOAuthCookie(lineOAuthLinkTokenCookieName, query.token));
     reply.header("Set-Cookie", cookies);
-
     try {
-      return reply.redirect(createLineAuthorizeUrl({ state }));
+      const cfg = getChannelConfig(channel);
+      const authorizeUrl = new URL("https://access.line.me/oauth2/v2.1/authorize");
+      authorizeUrl.searchParams.set("response_type", "code");
+      authorizeUrl.searchParams.set("client_id", cfg.channelId);
+      authorizeUrl.searchParams.set("redirect_uri", cfg.callbackUrl);
+      authorizeUrl.searchParams.set("state", state);
+      authorizeUrl.searchParams.set("scope", "profile openid");
+      return reply.redirect(authorizeUrl.toString());
     } catch {
       return reply.redirect(buildFrontendRedirect("/line/error?reason=line_not_configured"));
     }
-  });
+  };
+}
 
-  app.get("/line/callback", async (request, reply) => {
+function makeLineCallbackHandler(channel: Channel) {
+  return async (request: import("fastify").FastifyRequest, reply: import("fastify").FastifyReply) => {
     const query = lineCallbackQuerySchema.parse(request.query);
     const cookies = parseCookieHeader(request.headers.cookie);
     const expectedState = cookies.get(lineOAuthStateCookieName);
@@ -87,44 +137,42 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     const clearOAuthCookies = [
       clearCookie(lineOAuthStateCookieName),
       clearCookie(lineOAuthNextCookieName),
-      clearCookie(lineOAuthLinkTokenCookieName)
+      clearCookie(lineOAuthLinkTokenCookieName),
     ];
 
     if (query.error) {
       reply.header("Set-Cookie", clearOAuthCookies);
       return reply.redirect(buildFrontendRedirect(`/line/error?reason=${query.error}`));
     }
-
     if (!query.code || !query.state || !expectedState || query.state !== expectedState) {
       reply.header("Set-Cookie", clearOAuthCookies);
       return reply.redirect(buildFrontendRedirect("/line/error?reason=invalid_state"));
     }
 
     try {
-      const accessToken = await exchangeLineCodeForToken(query.code);
+      const cfg = getChannelConfig(channel);
+      const accessToken = await exchangeLineCodeForToken(query.code, cfg);
       const profile = await getLineProfile(accessToken);
 
       if (linkToken) {
-        const linkResult = await completeLineAccountLink({
-          rawToken: linkToken,
-          profile
-        });
-
+        const linkResult = await completeLineAccountLink({ rawToken: linkToken, profile });
         if (linkResult.status !== "SUCCESS") {
           reply.header("Set-Cookie", clearOAuthCookies);
-          return reply.redirect(
-            buildFrontendRedirect(`/line/error?reason=${linkResult.status.toLowerCase()}`)
-          );
+          return reply.redirect(buildFrontendRedirect(`/line/error?reason=${linkResult.status.toLowerCase()}`));
         }
       }
 
       const loginResult = await completeLineLogin(profile);
 
+      if (loginResult.status === "UNKNOWN_LINE_USER") {
+        const { session, homePath } = await autoRegisterLine(profile, channel);
+        reply.header("Set-Cookie", [...clearOAuthCookies, session.cookie]);
+        return reply.redirect(buildFrontendRedirect(nextPath ?? homePath));
+      }
+
       if (loginResult.status !== "SUCCESS") {
         reply.header("Set-Cookie", clearOAuthCookies);
-        return reply.redirect(
-          buildFrontendRedirect(`/line/error?reason=${loginResult.status.toLowerCase()}`)
-        );
+        return reply.redirect(buildFrontendRedirect(`/line/error?reason=${loginResult.status.toLowerCase()}`));
       }
 
       reply.header("Set-Cookie", [...clearOAuthCookies, loginResult.sessionCookie]);
@@ -134,7 +182,23 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       reply.header("Set-Cookie", clearOAuthCookies);
       return reply.redirect(buildFrontendRedirect("/line/error?reason=line_callback_failed"));
     }
-  });
+  };
+}
+
+// ─── Routes ──────────────────────────────────────────────────────────────────
+
+export async function registerAuthRoutes(app: FastifyInstance) {
+  // Customer (default channel)
+  app.get("/line/start", makeLineStartHandler("customer"));
+  app.get("/line/callback", makeLineCallbackHandler("customer"));
+
+  // Fleet channel
+  app.get("/line-fleet/start", makeLineStartHandler("fleet"));
+  app.get("/line-fleet/callback", makeLineCallbackHandler("fleet"));
+
+  // Supplier channel
+  app.get("/line-supplier/start", makeLineStartHandler("supplier"));
+  app.get("/line-supplier/callback", makeLineCallbackHandler("supplier"));
 
   app.post("/line/link", async (request, reply) => {
     if (!env.SESSION_SECRET) {
@@ -154,6 +218,67 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       linkUrl: linkToken.linkUrl,
       expiresAt: linkToken.expiresAt
     };
+  });
+
+  app.post("/line/register", async (request, reply) => {
+    const cookies = parseCookieHeader(request.headers.cookie);
+    const rawProfile = cookies.get(lineRegProfileCookieName);
+    const profile = rawProfile ? parseLineRegProfileCookie(rawProfile) : null;
+
+    if (!profile) {
+      reply.code(400);
+      return { error: "Registration session expired. Please try logging in again." };
+    }
+
+    const body = z.object({
+      name: z.string().trim().min(1),
+      phone: z.string().trim().optional()
+    }).parse(request.body);
+
+    const prisma = getPrisma();
+
+    const existing = await prisma.userIdentity.findUnique({
+      where: { provider_providerUserId: { provider: "LINE", providerUserId: profile.lineUserId } }
+    });
+    if (existing) {
+      reply.code(409);
+      return { error: "LINE account is already registered." };
+    }
+
+    const placeholderEmail = `line.${profile.lineUserId}@dnaos.internal`;
+
+    const [company, user] = await prisma.$transaction(async (tx) => {
+      const co = await tx.company.create({
+        data: { name: body.name, type: "CUSTOMER", isIndividual: true, status: "ACTIVE" }
+      });
+      const u = await tx.user.create({
+        data: { email: placeholderEmail, name: body.name, phone: body.phone, status: "ACTIVE" }
+      });
+      await tx.userIdentity.create({
+        data: {
+          userId: u.id,
+          provider: "LINE",
+          providerUserId: profile.lineUserId,
+          displayName: profile.displayName,
+          pictureUrl: profile.pictureUrl,
+          lastLoginAt: new Date()
+        }
+      });
+      await tx.companyMember.create({
+        data: { companyId: co.id, userId: u.id, role: "CUSTOMER", status: "ACTIVE" }
+      });
+      return [co, u];
+    });
+
+    const session = await createLineSession({
+      userId: user.id,
+      companyId: company.id,
+      role: "CUSTOMER",
+      lineUserId: profile.lineUserId
+    });
+
+    reply.header("Set-Cookie", [clearCookie(lineRegProfileCookieName), session.cookie]);
+    return { ok: true };
   });
 
   app.post("/logout", async (request, reply) => {

@@ -11,9 +11,18 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   LINE_CHANNEL_ACCESS_TOKEN: z.string().optional(),
   LINE_NOTIFY_TOKEN: z.string().optional(),
+  // Customer LINE Login channel
   LINE_CHANNEL_ID: z.string().optional(),
   LINE_CHANNEL_SECRET: z.string().optional(),
   LINE_CALLBACK_URL: z.string().default("http://localhost:3000/line/callback"),
+  // Fleet LINE Login channel
+  LINE_FLEET_CHANNEL_ID: z.string().optional(),
+  LINE_FLEET_CHANNEL_SECRET: z.string().optional(),
+  LINE_FLEET_CALLBACK_URL: z.string().default("http://localhost:3000/line/callback/fleet"),
+  // Supplier LINE Login channel
+  LINE_SUPPLIER_CHANNEL_ID: z.string().optional(),
+  LINE_SUPPLIER_CHANNEL_SECRET: z.string().optional(),
+  LINE_SUPPLIER_CALLBACK_URL: z.string().default("http://localhost:3000/line/callback/supplier"),
   INNGEST_EVENT_KEY: z.string().optional(),
   INNGEST_SIGNING_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),

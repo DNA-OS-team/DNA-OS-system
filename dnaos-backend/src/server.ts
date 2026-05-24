@@ -23,6 +23,9 @@ import { registerAdminDebtRoutes } from "./server/routes/admin-debt.routes.js";
 import { registerAdminSettlementRoutes } from "./server/routes/admin-settlements.routes.js";
 import { registerAdminAlertRoutes } from "./server/routes/admin-alerts.routes.js";
 import { registerWebhookRoutes } from "./server/routes/webhooks.routes.js";
+import { registerLineWebhookRoutes } from "./server/routes/line-webhook.routes.js";
+import { registerPortalRoutes } from "./server/routes/portal.routes.js";
+import { registerCustomerPortalRoutes } from "./server/routes/customer-portal.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -62,6 +65,9 @@ export async function buildServer() {
   await app.register(registerAdminSettlementRoutes, { prefix: "/admin/settlements" });
   await app.register(registerAdminAlertRoutes, { prefix: "/admin/alerts" });
   await app.register(registerWebhookRoutes, { prefix: "/api/webhooks" });
+  await app.register(registerLineWebhookRoutes, { prefix: "/webhook/line" });
+  await app.register(registerPortalRoutes, { prefix: "/portal" });
+  await app.register(registerCustomerPortalRoutes, { prefix: "/customer" });
 
   return app;
 }
