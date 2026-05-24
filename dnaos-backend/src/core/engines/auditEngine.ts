@@ -12,7 +12,15 @@ export type AuditAction =
   | "EXPORT"
   | "IMPORT"
   | "GENERATE_DOCUMENT"
-  | "SEND_NOTIFICATION";
+  | "SEND_NOTIFICATION"
+  | "ADMIN_LOGIN"
+  | "ADMIN_LOGIN_FAILED"
+  | "SUPERADMIN_LOGIN"
+  | "SUPERADMIN_LOGIN_FAILED"
+  | "LINE_LOGIN"
+  | "LINE_LOGIN_FAILED"
+  | "LINE_ACCOUNT_LINKED"
+  | "LINE_LINK_TOKEN_CREATED";
 
 export type AuditValue =
   | string

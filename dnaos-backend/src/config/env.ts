@@ -11,11 +11,16 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   LINE_CHANNEL_ACCESS_TOKEN: z.string().optional(),
   LINE_NOTIFY_TOKEN: z.string().optional(),
+  LINE_CHANNEL_ID: z.string().optional(),
+  LINE_CHANNEL_SECRET: z.string().optional(),
+  LINE_CALLBACK_URL: z.string().default("http://localhost:3000/line/callback"),
   INNGEST_EVENT_KEY: z.string().optional(),
   INNGEST_SIGNING_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   PDF_SECRET: z.string().optional(),
-  APP_URL: z.string().default("http://localhost:5100")
+  APP_URL: z.string().default("http://localhost:5100"),
+  FRONTEND_URL: z.string().default("http://localhost:3000"),
+  SESSION_SECRET: z.string().optional()
 });
 
 export const env = envSchema.parse(process.env);

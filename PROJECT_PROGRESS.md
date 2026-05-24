@@ -1058,10 +1058,10 @@ FAILED
 ### Done When
 
 ```txt
-[ ] Transport job can be created
-[ ] Fleet can see assigned job
-[ ] Fleet can accept job
-[ ] Status can be updated
+[x] Transport job can be created
+[x] Fleet can see assigned job
+[x] Fleet can accept job
+[x] Status can be updated
 [ ] Delivery proof can be uploaded
 ```
 
@@ -1402,12 +1402,12 @@ dashboard.metrics.refresh
 [ ] Order item editor
 [ ] Select customer site
 [ ] Select product and quantity
-[ ] Build pricingEngine MVP
-[ ] Calculate supplier cost
-[ ] Calculate customer price
-[ ] Calculate VAT
-[ ] Create internal BOQ
-[ ] Create customer BOQ
+[x] Build pricingEngine MVP
+[x] Calculate supplier cost
+[x] Calculate customer price
+[x] Calculate VAT
+[x] Create internal BOQ
+[ ] Create customer BOQ (Quotation — Phase 9)
 ```
 
 ## Week 4: Document MVP
@@ -1592,40 +1592,106 @@ Use this section to tell AI what has already been completed.
 [x] shadcn/ui installed
 [ ] Supabase connected
 [x] Prisma setup completed
-[ ] Prisma connected
-[ ] companies table created
-[ ] users table created
-[ ] company_members table created
-[ ] login working
+[x] Prisma connected
+[x] companies table created
+[x] users table created
+[x] company_members table created
+[x] superadmin login working
+[x] admin username/password login working
+[x] LINE auth route created
+[x] LINE callback route created
+[x] LINE account linking created
+[x] LINE connect placeholder created
+[x] Unknown LINE user blocked
+[x] No public register page exists
+[x] Superadmin login page created
+[x] Superadmin limited to one account
+[x] Non-admin users cannot use password login
+[x] Middleware redirects unauthenticated admin users to admin login
+[x] Middleware redirects unauthenticated users to LINE connect
+[x] Middleware redirects unauthenticated non-admin users to LINE connect
+[x] Auth audit logs created
 [x] roles working
-[ ] customer page created
-[ ] customer site page created
-[ ] product catalog created
-[ ] supplier product created
-[ ] customer order created
-[ ] pricing engine created
-[ ] BOQ created
-[ ] quotation created
-[ ] PO created
+[x] customer page created
+[x] customer site page created
+[x] customer credit model created
+[x] product catalog created
+[x] supplier product created
+[x] project model created
+[x] document group model created
+[x] document reference model created
+[x] project numbering engine created
+[x] document search by reference number created
+[x] partner product submission created
+[x] supplier inventory created
+[x] supplier inventory movement created
+[x] customer order created
+[x] pricing engine created
+[x] BOQ created
+[x] quotation created
+[x] PO created
 [ ] invoice created
 [ ] receipt created
 [ ] payment created
-[ ] dashboard created
+[x] dashboard created
 ```
 
 ## Current Step
 
 ```txt
-Current Step: Phase 1 — Identity & Tenant Foundation
+Current Step: Invoice, Payment, Receipt (Phase 13) — COMPLETED
 ```
 
 ## Next Step
 
 ```txt
-Next Step: Configure valid DATABASE_URL / DIRECT_URL, then run Prisma migration
-Pending: Identity foundation models and migration file are ready, but tables are not marked created until database credentials pass db:check.
+Next Step: Debt & Collection (Phase 14)
+Completed: Local Docker PostgreSQL runs on localhost:55432 and Prisma migrations are applied.
 Completed: Basic application-layer role permission helpers are ready.
 Completed: Audit log model, audit engine, and server-side audit service are ready.
+Completed: Customer site and customer credit profile models are ready.
+Completed: Admin customer, site, and credit management pages are ready.
+Completed: Product category, product, and product variant master data tables are ready.
+Completed: Admin product category, product, and variant management pages are ready.
+Completed: Supplier product, supplier contract, contract item, and price history tables are ready.
+Completed: Admin password login is available at /admin/login for ADMIN role only.
+Completed: Superadmin password login remains at /superadmin/login for break-glass access.
+Completed: Admin credential table is separated from users and limited to one break-glass account.
+Completed: LINE connect and LINE error pages are wired to real LINE OAuth start/callback flow.
+Completed: LINE identity, link token, and app session tables are ready.
+Completed: Unknown LINE users are blocked and cannot self-register.
+Completed: Protected portal routes redirect unauthenticated users to LINE connect.
+Completed: Project, document group, and document reference models are ready.
+Completed: Project/document group/document number server-side numbering is ready.
+Completed: Admin project pages, document group pages, and document search are ready.
+Completed: Partner product submission, approval, and rejection foundation is ready.
+Completed: Supplier inventory and required movement logging are ready.
+Completed: Admin partner product and supplier inventory pages are ready.
+Completed: Admin dashboard is available as the first page after admin login.
+Completed: Customer order and order item models are ready.
+Completed: Admin customer order pages are ready.
+Completed: Order numbers are generated server-side with project document numbering.
+Completed: Pricing snapshots and pricing snapshot items are ready.
+Completed: pricingEngine selects available supplier products and checks stock before pricing.
+Completed: Admin order detail can run pricing and review cost, sell price, margin, and warnings.
+Completed: Boq and BoqItem models and migration are ready.
+Completed: boqEngine calculates subtotal, VAT (7%), and total from pricing snapshot items.
+Completed: Admin order detail can create BOQ from latest pricing snapshot and view all BOQs.
+Completed: BOQ panel shows internal cost, sell price, margin per item, and VAT summary.
+Completed: SupplierPurchaseOrder and SupplierPurchaseOrderItem models and migration are ready.
+Completed: orderSplitEngine groups confirmed order items by supplier and blocks missing supplier items.
+Completed: procurementService creates supplier PO documents per supplier and blocks duplicate PO generation.
+Completed: Admin order detail can create and view Supplier PO records.
+Completed: Partner Supplier PO API only returns PO records for the supplier company in the LINE session.
+Completed: TransportJob, TransportJobItem, and TransportJobStatusHistory models and migration are ready.
+Completed: CustomerOrderStatus extended with DISPATCHING, PARTIALLY_DELIVERED, DELIVERED, INVOICED, PAID.
+Completed: dispatchEngine state machine for transport job status transitions is ready.
+Completed: fleetMatchingEngine MVP for filtering and ranking available fleet companies is ready.
+Completed: transportService covers create, assign fleet, update status, list, and get transport jobs.
+Completed: Admin logistics routes (/admin/logistics) for CRUD + fleet assignment are ready.
+Completed: Fleet job routes (/fleet/jobs) for fleet-only access and status updates are ready.
+Completed: Admin logistics pages /admin/logistics and /admin/logistics/[jobId] are ready.
+Completed: Transport job panel on order detail shows jobs and allows creating new transport jobs.
 ```
 
 ---
@@ -1714,4 +1780,66 @@ Default assumption for MVP:
 - Supplier/fleet payout requires admin approval
 - Quotation approval required for high amount or low margin
 - Low margin creates alert
+```
+
+---
+
+# UPDATE — LINE-First Workflow, Partner Product Submission, Project Documents, Realtime Debt
+
+เพิ่ม requirement ล่าสุด:
+
+```txt
+[x] Requirement added: Admin dashboard is desktop-first
+[x] Requirement added: Partner / Customer / Fleet are LINE-first
+[x] Requirement added: Partner can submit products and stock mostly through LINE/mobile web
+[x] Requirement added: Admin can also add products for partner
+[x] Requirement added: Partner product requires admin approval before selling
+[x] Requirement added: Supplier inventory and inventory movements
+[x] Requirement added: Project model and document group model
+[x] Requirement added: Unified document numbering with project reference
+[x] Requirement added: Document search by reference number
+[x] Requirement added: Real-time admin dashboard
+[x] Requirement added: Real-time debt dashboard with drilldown details
+[x] Requirement added: Web UI content must primarily use Thai language
+```
+
+## New Required Modules
+
+```txt
+[x] Project model
+[x] Document Group model
+[x] Document Reference model
+[x] Project Numbering Engine
+[x] Document Reference Engine
+[x] Partner Product Submission
+[x] Supplier Inventory
+[x] Supplier Inventory Movement
+[x] Admin Product Approval
+[ ] LINE Rich Menu
+[ ] LINE Action Token
+[ ] LINE Product Submit Action
+[ ] LINE Stock Update Action
+[ ] LINE PO Confirm Action
+[ ] LINE Job Status Action
+[ ] Real-time Admin Dashboard
+[ ] Real-time Debt Dashboard
+[x] Document Search by Reference Number
+[x] Project Document Timeline
+```
+
+## Updated Build Priority
+
+```txt
+1. LINE-only auth foundation
+2. Project + Document Group + Document Reference
+3. Partner Product Submission + Supplier Inventory
+4. Admin Product Approval
+5. Customer Order
+6. BOQ
+7. Quotation
+8. Supplier PO
+9. Invoice / Payment / Receipt
+10. Real-time Debt Dashboard
+11. LINE action handlers
+12. Advanced realtime dashboard
 ```

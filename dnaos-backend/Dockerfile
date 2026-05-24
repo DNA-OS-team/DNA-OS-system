@@ -24,4 +24,5 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dnaos-backend ./dnaos-backend
 WORKDIR /app/dnaos-backend
 EXPOSE 5100
-CMD ["pnpm", "start"]
+# run migrations then start (uses DIRECT_URL for DDL)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
