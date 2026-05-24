@@ -104,6 +104,37 @@ async function autoRegisterLine(profile: { userId: string; displayName?: string;
   return { session, homePath };
 }
 
+// user มี LINE identity แล้วแต่ไม่มี active membership → สร้าง company + member ใหม่
+async function autoAddMembership(profile: { userId: string; displayName?: string; pictureUrl?: string }, channel: Channel) {
+  const { companyType, role, homePath } = CHANNEL_DEFAULTS[channel];
+  const displayName = profile.displayName ?? "ผู้ใช้ใหม่";
+  const prisma = getPrisma();
+
+  const identity = await prisma.userIdentity.findUnique({
+    where: { provider_providerUserId: { provider: "LINE", providerUserId: profile.userId } }
+  });
+
+  if (!identity) return autoRegisterLine(profile, channel);
+
+  const company = await prisma.$transaction(async (tx) => {
+    const co = await tx.company.create({
+      data: { name: displayName, type: companyType as "CUSTOMER" | "FLEET" | "SUPPLIER", isIndividual: true, status: "ACTIVE" }
+    });
+    await tx.companyMember.create({
+      data: { companyId: co.id, userId: identity.userId, role: role as "CUSTOMER" | "FLEET_OWNER" | "SUPPLIER", status: "ACTIVE" }
+    });
+    return co;
+  });
+
+  const session = await createLineSession({
+    userId: identity.userId, companyId: company.id,
+    role: role as "CUSTOMER" | "FLEET_OWNER" | "SUPPLIER",
+    lineUserId: profile.userId
+  });
+
+  return { session, homePath };
+}
+
 function makeLineStartHandler(channel: Channel) {
   return async (request: import("fastify").FastifyRequest, reply: import("fastify").FastifyReply) => {
     const query = lineStartQuerySchema.parse(request.query);
@@ -170,6 +201,12 @@ function makeLineCallbackHandler(channel: Channel) {
 
       if (loginResult.status === "UNKNOWN_LINE_USER") {
         const { session, homePath } = await autoRegisterLine(profile, channel);
+        reply.header("Set-Cookie", [...clearOAuthCookies, session.cookie]);
+        return reply.redirect(buildFrontendRedirect(nextPath ?? homePath));
+      }
+
+      if (loginResult.status === "NO_ACTIVE_MEMBERSHIP") {
+        const { session, homePath } = await autoAddMembership(profile, channel);
         reply.header("Set-Cookie", [...clearOAuthCookies, session.cookie]);
         return reply.redirect(buildFrontendRedirect(nextPath ?? homePath));
       }
