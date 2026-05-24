@@ -42,19 +42,28 @@ export type LineChannelConfig = {
 };
 
 export function getChannelConfig(channel: "customer" | "fleet" | "supplier"): LineChannelConfig {
-  if (channel === "fleet") {
-    if (!env.LINE_FLEET_CHANNEL_ID || !env.LINE_FLEET_CHANNEL_SECRET)
-      throw new Error("LINE Fleet channel is not configured.");
-    return { channelId: env.LINE_FLEET_CHANNEL_ID, channelSecret: env.LINE_FLEET_CHANNEL_SECRET, callbackUrl: env.LINE_FLEET_CALLBACK_URL };
-  }
-  if (channel === "supplier") {
-    if (!env.LINE_SUPPLIER_CHANNEL_ID || !env.LINE_SUPPLIER_CHANNEL_SECRET)
-      throw new Error("LINE Supplier channel is not configured.");
-    return { channelId: env.LINE_SUPPLIER_CHANNEL_ID, channelSecret: env.LINE_SUPPLIER_CHANNEL_SECRET, callbackUrl: env.LINE_SUPPLIER_CALLBACK_URL };
-  }
   if (!env.LINE_CHANNEL_ID || !env.LINE_CHANNEL_SECRET)
     throw new Error("LINE auth is not configured.");
-  return { channelId: env.LINE_CHANNEL_ID, channelSecret: env.LINE_CHANNEL_SECRET, callbackUrl: env.LINE_CALLBACK_URL };
+
+  if (channel === "fleet") {
+    return {
+      channelId: env.LINE_FLEET_CHANNEL_ID || env.LINE_CHANNEL_ID,
+      channelSecret: env.LINE_FLEET_CHANNEL_SECRET || env.LINE_CHANNEL_SECRET,
+      callbackUrl: env.LINE_FLEET_CALLBACK_URL,
+    };
+  }
+  if (channel === "supplier") {
+    return {
+      channelId: env.LINE_SUPPLIER_CHANNEL_ID || env.LINE_CHANNEL_ID,
+      channelSecret: env.LINE_SUPPLIER_CHANNEL_SECRET || env.LINE_CHANNEL_SECRET,
+      callbackUrl: env.LINE_SUPPLIER_CALLBACK_URL,
+    };
+  }
+  return {
+    channelId: env.LINE_CHANNEL_ID,
+    channelSecret: env.LINE_CHANNEL_SECRET,
+    callbackUrl: env.LINE_CALLBACK_URL,
+  };
 }
 
 export function createLineAuthorizeUrl(input: { state: string; channel?: "customer" | "fleet" | "supplier" }) {

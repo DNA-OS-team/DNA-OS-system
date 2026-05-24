@@ -157,6 +157,12 @@ export function deleteAdminSupplier(id: string) {
   return apiFetch<{ ok: boolean }>(`/admin/suppliers/${id}`, { method: "DELETE" });
 }
 
+export function generateSupplierLineInvite(id: string) {
+  return apiFetch<{ inviteUrl: string; expiresAt: string }>(`/admin/suppliers/${id}/line-invite`, {
+    method: "POST",
+  });
+}
+
 export function listSupplierInventory(filters: InventoryListFilters = {}) {
   const params = new URLSearchParams();
 

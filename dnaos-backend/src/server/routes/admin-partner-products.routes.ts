@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getPrisma } from "../db/prisma.js";
 import { requireAdminAccess, getCurrentAdminSession } from "../services/authService.js";
 import { writeAuditLog } from "../services/auditService.js";
+import { createLineLinkToken } from "../services/lineAuthService.js";
 import {
   setInventoryStock,
   setInventoryStockInTransaction
@@ -222,6 +223,61 @@ export async function registerAdminPartnerProductRoutes(app: FastifyInstance) {
     ]);
 
     return { ok: true };
+  });
+
+  app.post("/suppliers/:id/line-invite", async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const prisma = getPrisma();
+
+    const company = await prisma.company.findFirst({ where: { id, type: "SUPPLIER" } });
+    if (!company) {
+      reply.code(404);
+      return { error: "ไม่พบซัพพลายเออร์" };
+    }
+
+    // ถ้ามี LINE เชื่อมต่ออยู่แล้ว ไม่ต้องสร้าง invite
+    const linkedMember = await prisma.companyMember.findFirst({
+      where: {
+        companyId: id,
+        status: "ACTIVE",
+        user: { identities: { some: { provider: "LINE" } } },
+      },
+    });
+    if (linkedMember) {
+      reply.code(409);
+      return { error: "ซัพพลายเออร์นี้มีบัญชี LINE เชื่อมต่ออยู่แล้ว" };
+    }
+
+    // ใช้ INVITED user ที่มีอยู่ หรือสร้างใหม่
+    const existingInvitedMember = await prisma.companyMember.findFirst({
+      where: {
+        companyId: id,
+        status: "ACTIVE",
+        user: { status: "INVITED" },
+      },
+    });
+
+    let userId: string;
+    if (existingInvitedMember) {
+      userId = existingInvitedMember.userId;
+    } else {
+      const user = await prisma.user.create({
+        data: {
+          email: `invite.${id}@dnaos.internal`,
+          name: company.name,
+          status: "INVITED",
+          memberships: {
+            create: { companyId: id, role: "SUPPLIER", status: "ACTIVE" },
+          },
+        },
+      });
+      userId = user.id;
+    }
+
+    const linkResult = await createLineLinkToken({ userId });
+    const inviteUrl = `${linkResult.linkUrl}&channel=supplier`;
+
+    return { inviteUrl, expiresAt: linkResult.expiresAt };
   });
 
   app.get("/partner-products/options", async () => {

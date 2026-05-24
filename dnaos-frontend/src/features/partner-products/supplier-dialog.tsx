@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { Check, Copy, Link2, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ import {
   createAdminSupplier,
   updateAdminSupplier,
   deleteAdminSupplier,
+  generateSupplierLineInvite,
   type AdminSupplier,
   type CreateSupplierInput,
   type UpdateSupplierInput,
@@ -160,6 +161,32 @@ function DetailView({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [loadingInvite, setLoadingInvite] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function handleGenerateInvite() {
+    setLoadingInvite(true);
+    setInviteError(null);
+    try {
+      const result = await generateSupplierLineInvite(supplier.id);
+      setInviteUrl(result.inviteUrl);
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
+    } finally {
+      setLoadingInvite(false);
+    }
+  }
+
+  function handleCopy() {
+    if (!inviteUrl) return;
+    navigator.clipboard.writeText(inviteUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
     <>
       <DialogHeader>
@@ -221,6 +248,39 @@ function DetailView({
           })}
         </InfoRow>
       </div>
+
+      {/* LINE invite section — แสดงเฉพาะเมื่อยังไม่มี LINE */}
+      {!supplier.lineDisplayName && (
+        <div className="rounded-xl border border-dashed bg-muted/30 p-3 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">เชิญซัพพลายเออร์เข้าสู่ระบบผ่าน LINE</p>
+          {!inviteUrl ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateInvite}
+                disabled={loadingInvite}
+                className="w-full"
+              >
+                <Link2 className="size-3.5" />
+                {loadingInvite ? "กำลังสร้างลิงก์..." : "สร้างลิงก์เชิญ LINE"}
+              </Button>
+              {inviteError && <p className="text-xs text-destructive">{inviteError}</p>}
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={inviteUrl}
+                className="h-8 flex-1 min-w-0 rounded-md border bg-background px-2 text-xs text-muted-foreground font-mono truncate"
+              />
+              <Button size="sm" variant="outline" onClick={handleCopy} className="shrink-0">
+                {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <DialogFooter>
         <Button variant="destructive" size="sm" onClick={onDelete} className="mr-auto">
