@@ -1,6 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";

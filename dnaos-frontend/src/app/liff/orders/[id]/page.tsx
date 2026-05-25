@@ -147,9 +147,6 @@ export default function LiffOrderDetailPage() {
                   {item.productVariant?.name} · {fmtPrice(item.quantity)} {item.unit}
                 </p>
               </div>
-              {Number(item.unitCost) > 0 && (
-                <p className="shrink-0 font-semibold">฿{fmtPrice(item.totalCost)}</p>
-              )}
             </div>
           ))}
         </div>

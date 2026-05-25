@@ -1,6 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

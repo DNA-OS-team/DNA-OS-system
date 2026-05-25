@@ -223,7 +223,7 @@ export async function registerLiffSupplierRoutes(app: FastifyInstance) {
 
     const sp = await prisma.supplierProduct.findFirst({
       where: { id: supplierProductId, supplierCompanyId: session.companyId },
-      include: { inventory: true },
+      include: { inventory: true, productVariant: { select: { unit: true } } },
     });
 
     if (!sp) {
@@ -247,7 +247,7 @@ export async function registerLiffSupplierRoutes(app: FastifyInstance) {
         prisma.supplierInventoryMovement.create({
           data: {
             supplierProductId,
-            movementType: stockQty >= beforeQty ? "ADJUSTMENT_IN" : "ADJUSTMENT_OUT",
+            movementType: "ADJUST",
             qty: Math.abs(stockQty - beforeQty),
             beforeQty,
             afterQty: stockQty,
@@ -265,14 +265,14 @@ export async function registerLiffSupplierRoutes(app: FastifyInstance) {
             stockQty,
             availableQty: newAvailable,
             reservedQty: 0,
-            unit: sp.productVariant?.unit ?? "",
+            unit: sp.productVariant.unit,
             updatedBy: session.userId,
           },
         }),
         prisma.supplierInventoryMovement.create({
           data: {
             supplierProductId,
-            movementType: "ADJUSTMENT_IN",
+            movementType: "INITIAL",
             qty: stockQty,
             beforeQty: 0,
             afterQty: stockQty,
