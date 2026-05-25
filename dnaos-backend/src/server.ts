@@ -24,6 +24,8 @@ import { registerAdminSettlementRoutes } from "./server/routes/admin-settlements
 import { registerAdminAlertRoutes } from "./server/routes/admin-alerts.routes.js";
 import { registerWebhookRoutes } from "./server/routes/webhooks.routes.js";
 import { registerLineWebhookRoutes } from "./server/routes/line-webhook.routes.js";
+import { registerLineSupplierWebhookRoutes } from "./server/routes/line-webhook-supplier.routes.js";
+import { registerLineFleetWebhookRoutes } from "./server/routes/line-webhook-fleet.routes.js";
 import { registerPortalRoutes } from "./server/routes/portal.routes.js";
 import { registerCustomerPortalRoutes } from "./server/routes/customer-portal.routes.js";
 import { registerLiffRoutes } from "./server/routes/liff.routes.js";
@@ -70,6 +72,8 @@ export async function buildServer() {
   await app.register(registerAdminAlertRoutes, { prefix: "/admin/alerts" });
   await app.register(registerWebhookRoutes, { prefix: "/api/webhooks" });
   await app.register(registerLineWebhookRoutes, { prefix: "/webhook/line" });
+  await app.register(registerLineSupplierWebhookRoutes, { prefix: "/webhook/line/supplier" });
+  await app.register(registerLineFleetWebhookRoutes, { prefix: "/webhook/line/fleet" });
   await app.register(registerPortalRoutes, { prefix: "/portal" });
   await app.register(registerCustomerPortalRoutes, { prefix: "/customer" });
   await app.register(registerLiffRoutes, { prefix: "/liff" });

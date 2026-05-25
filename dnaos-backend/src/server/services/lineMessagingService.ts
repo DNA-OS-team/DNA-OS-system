@@ -15,16 +15,28 @@ export function verifyLineSignature(rawBody: string, signature: string): boolean
   return expected === signature;
 }
 
+// ─── Signature helpers ────────────────────────────────────────────────────────
+
+export function verifySupplierSignature(rawBody: string, signature: string): boolean {
+  const secret = env.LINE_SUPPLIER_OA_SECRET;
+  if (!secret) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("base64");
+  return expected === signature;
+}
+
+export function verifyFleetSignature(rawBody: string, signature: string): boolean {
+  const secret = env.LINE_FLEET_OA_SECRET;
+  if (!secret) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("base64");
+  return expected === signature;
+}
+
 // ─── Low-level send helpers ───────────────────────────────────────────────────
 
-async function linePost(path: string, body: unknown) {
-  if (!env.LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not set");
+async function oaPost(token: string, path: string, body: unknown) {
   const res = await fetch(`${LINE_API}${path}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -32,6 +44,21 @@ async function linePost(path: string, body: unknown) {
     throw new Error(`LINE API ${path} failed (${res.status}): ${text}`);
   }
   return res.json();
+}
+
+async function linePost(path: string, body: unknown) {
+  if (!env.LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not set");
+  return oaPost(env.LINE_CHANNEL_ACCESS_TOKEN, path, body);
+}
+
+async function supplierOaPost(path: string, body: unknown) {
+  if (!env.LINE_SUPPLIER_OA_ACCESS_TOKEN) throw new Error("LINE_SUPPLIER_OA_ACCESS_TOKEN not set");
+  return oaPost(env.LINE_SUPPLIER_OA_ACCESS_TOKEN, path, body);
+}
+
+async function fleetOaPost(path: string, body: unknown) {
+  if (!env.LINE_FLEET_OA_ACCESS_TOKEN) throw new Error("LINE_FLEET_OA_ACCESS_TOKEN not set");
+  return oaPost(env.LINE_FLEET_OA_ACCESS_TOKEN, path, body);
 }
 
 async function linePush(to: string, messages: unknown[]) {
@@ -42,9 +69,25 @@ async function lineReply(replyToken: string, messages: unknown[]) {
   return linePost("/message/reply", { replyToken, messages });
 }
 
+export async function supplierPush(to: string, messages: unknown[]) {
+  return supplierOaPost("/message/push", { to, messages });
+}
+
+export async function fleetPush(to: string, messages: unknown[]) {
+  return fleetOaPost("/message/push", { to, messages });
+}
+
+export async function supplierReply(replyToken: string, messages: unknown[]) {
+  return supplierOaPost("/message/reply", { replyToken, messages });
+}
+
+export async function fleetReply(replyToken: string, messages: unknown[]) {
+  return fleetOaPost("/message/reply", { replyToken, messages });
+}
+
 // ─── URL helpers ──────────────────────────────────────────────────────────────
 
-function liffUrl(path = "") {
+export function liffUrl(path = "") {
   const id = env.LINE_LIFF_ID;
   if (id) return `https://liff.line.me/${id}${path}`;
   return `${env.FRONTEND_URL}/liff${path}`;
@@ -608,4 +651,198 @@ export async function setDefaultRichMenu(richMenuId: string) {
     headers: { Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}` },
   });
   if (!res.ok) throw new Error(`setDefaultRichMenu failed: ${res.status}`);
+}
+
+// ─── Supplier OA ───────────────────────────────────────────────────────────────
+
+export async function sendSupplierGreeting(userId: string, displayName: string) {
+  const poUrl = liffUrl("/supplier/po");
+  await supplierPush(userId, [
+    {
+      type: "flex",
+      altText: `ยินดีต้อนรับ ${displayName} — DNA OS Supplier`,
+      contents: {
+        type: "bubble",
+        body: {
+          type: "box", layout: "vertical", spacing: "md",
+          contents: [
+            { type: "text", text: `สวัสดีครับ ${displayName} 👋`, weight: "bold", size: "lg" },
+            { type: "text", text: "ยินดีต้อนรับสู่ระบบซัพพลายเออร์ DNA OS", wrap: true, color: "#666666", size: "sm" },
+            { type: "separator", margin: "md" },
+            { type: "text", text: "คุณสามารถ:", size: "sm", margin: "md" },
+            { type: "text", text: "• ดูและยืนยัน PO\n• จัดการสินค้าและสต๊อก\n• ดูรายได้และการชำระเงิน", wrap: true, size: "sm", color: "#444444" },
+          ],
+        },
+        footer: {
+          type: "box", layout: "vertical",
+          contents: [{
+            type: "button", style: "primary",
+            action: { type: "uri", label: "เข้าสู่ระบบซัพพลายเออร์", uri: poUrl },
+          }],
+        },
+      },
+    },
+  ]);
+}
+
+export async function pushSupplierNewPO(lineUserId: string, poNo: string, itemCount: number, totalAmount: number) {
+  const poUrl = liffUrl("/supplier/po");
+  await supplierPush(lineUserId, [
+    {
+      type: "flex",
+      altText: `📋 PO ใหม่ ${poNo}`,
+      contents: {
+        type: "bubble",
+        header: {
+          type: "box", layout: "vertical", backgroundColor: "#1DB446",
+          contents: [{ type: "text", text: "📋 มี PO ใหม่เข้ามา!", color: "#ffffff", weight: "bold" }],
+        },
+        body: {
+          type: "box", layout: "vertical", spacing: "sm",
+          contents: [
+            { type: "text", text: poNo, weight: "bold", size: "xl" },
+            { type: "text", text: `${itemCount} รายการ · ฿${totalAmount.toLocaleString("th-TH")}`, color: "#666666", size: "sm" },
+          ],
+        },
+        footer: {
+          type: "box", layout: "vertical",
+          contents: [{
+            type: "button", style: "primary",
+            action: { type: "uri", label: "ดู PO", uri: poUrl },
+          }],
+        },
+      },
+    },
+  ]);
+}
+
+export async function createSupplierRichMenu(): Promise<string> {
+  const poUrl = liffUrl("/supplier/po");
+  const productsUrl = liffUrl("/supplier/products");
+  const inventoryUrl = liffUrl("/supplier/inventory");
+  const paymentsUrl = liffUrl("/supplier/payments");
+
+  const body = {
+    size: { width: 2500, height: 1686 },
+    selected: true,
+    name: "DNA OS Supplier Menu",
+    chatBarText: "เมนูซัพพลายเออร์",
+    areas: [
+      { bounds: { x: 0, y: 0, width: 833, height: 843 }, action: { type: "uri", label: "📋 PO ของฉัน", uri: poUrl } },
+      { bounds: { x: 833, y: 0, width: 834, height: 843 }, action: { type: "uri", label: "🛍️ สินค้า", uri: productsUrl } },
+      { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "uri", label: "📦 สต๊อก", uri: inventoryUrl } },
+      { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "uri", label: "💰 รายได้", uri: paymentsUrl } },
+      { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "message", label: "📞 ติดต่อ", text: "ติดต่อ" } },
+      { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "message", label: "❓ ช่วยเหลือ", text: "ช่วยเหลือ" } },
+    ],
+  };
+
+  const result = (await supplierOaPost("/richmenu", body)) as { richMenuId: string };
+  return result.richMenuId;
+}
+
+export async function setSupplierDefaultRichMenu(richMenuId: string) {
+  if (!env.LINE_SUPPLIER_OA_ACCESS_TOKEN) throw new Error("LINE_SUPPLIER_OA_ACCESS_TOKEN not set");
+  const res = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.LINE_SUPPLIER_OA_ACCESS_TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`setSupplierDefaultRichMenu failed: ${res.status}`);
+}
+
+// ─── Fleet OA ──────────────────────────────────────────────────────────────────
+
+export async function sendFleetGreeting(userId: string, displayName: string) {
+  const jobsUrl = liffUrl("/fleet/jobs");
+  await fleetPush(userId, [
+    {
+      type: "flex",
+      altText: `ยินดีต้อนรับ ${displayName} — DNA OS รถร่วม`,
+      contents: {
+        type: "bubble",
+        body: {
+          type: "box", layout: "vertical", spacing: "md",
+          contents: [
+            { type: "text", text: `สวัสดีครับ ${displayName} 👋`, weight: "bold", size: "lg" },
+            { type: "text", text: "ยินดีต้อนรับสู่ระบบรถร่วม DNA OS", wrap: true, color: "#666666", size: "sm" },
+            { type: "separator", margin: "md" },
+            { type: "text", text: "คุณสามารถ:", size: "sm", margin: "md" },
+            { type: "text", text: "• ดูงานที่ได้รับมอบหมาย\n• อัปเดตสถานะการส่งสินค้า\n• ส่ง Delivery Proof\n• ดูรายได้", wrap: true, size: "sm", color: "#444444" },
+          ],
+        },
+        footer: {
+          type: "box", layout: "vertical",
+          contents: [{
+            type: "button", style: "primary",
+            action: { type: "uri", label: "ดูงานของฉัน", uri: jobsUrl },
+          }],
+        },
+      },
+    },
+  ]);
+}
+
+export async function pushFleetNewJob(lineUserId: string, jobRef: string, from: string, to: string, scheduledAt: string) {
+  const jobsUrl = liffUrl("/fleet/jobs");
+  await fleetPush(lineUserId, [
+    {
+      type: "flex",
+      altText: `🚛 งานใหม่ ${jobRef}`,
+      contents: {
+        type: "bubble",
+        header: {
+          type: "box", layout: "vertical", backgroundColor: "#F4A700",
+          contents: [{ type: "text", text: "🚛 มีงานใหม่เข้ามา!", color: "#ffffff", weight: "bold" }],
+        },
+        body: {
+          type: "box", layout: "vertical", spacing: "sm",
+          contents: [
+            { type: "text", text: jobRef, weight: "bold", size: "xl" },
+            { type: "text", text: `📍 จาก: ${from}`, wrap: true, size: "sm" },
+            { type: "text", text: `📍 ถึง: ${to}`, wrap: true, size: "sm" },
+            { type: "text", text: `🕐 ${scheduledAt}`, size: "sm", color: "#888888" },
+          ],
+        },
+        footer: {
+          type: "box", layout: "vertical",
+          contents: [{
+            type: "button", style: "primary",
+            action: { type: "uri", label: "ดูรายละเอียด", uri: jobsUrl },
+          }],
+        },
+      },
+    },
+  ]);
+}
+
+export async function createFleetRichMenu(): Promise<string> {
+  const jobsUrl = liffUrl("/fleet/jobs");
+  const earningsUrl = liffUrl("/fleet/earnings");
+  const frontendUrl = env.FRONTEND_URL;
+
+  const body = {
+    size: { width: 2500, height: 1686 },
+    selected: true,
+    name: "DNA OS Fleet Menu",
+    chatBarText: "เมนูรถร่วม",
+    areas: [
+      { bounds: { x: 0, y: 0, width: 1250, height: 843 }, action: { type: "uri", label: "🚛 งานของฉัน", uri: jobsUrl } },
+      { bounds: { x: 1250, y: 0, width: 1250, height: 843 }, action: { type: "uri", label: "💰 รายได้", uri: earningsUrl } },
+      { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "uri", label: "👤 โปรไฟล์", uri: `${frontendUrl}/liff/fleet` } },
+      { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "message", label: "📞 ติดต่อ", text: "ติดต่อ" } },
+      { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "message", label: "❓ ช่วยเหลือ", text: "ช่วยเหลือ" } },
+    ],
+  };
+
+  const result = (await fleetOaPost("/richmenu", body)) as { richMenuId: string };
+  return result.richMenuId;
+}
+
+export async function setFleetDefaultRichMenu(richMenuId: string) {
+  if (!env.LINE_FLEET_OA_ACCESS_TOKEN) throw new Error("LINE_FLEET_OA_ACCESS_TOKEN not set");
+  const res = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.LINE_FLEET_OA_ACCESS_TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`setFleetDefaultRichMenu failed: ${res.status}`);
 }
