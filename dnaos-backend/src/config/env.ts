@@ -10,6 +10,8 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   LINE_CHANNEL_ACCESS_TOKEN: z.string().optional(),
+  // Messaging API channel secret (for webhook signature verification)
+  LINE_MESSAGING_CHANNEL_SECRET: z.string().optional(),
   LINE_LIFF_ID: z.string().optional(),
   LINE_NOTIFY_TOKEN: z.string().optional(),
   // Customer LINE Login channel

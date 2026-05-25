@@ -7,8 +7,9 @@ const LINE_API = "https://api.line.me/v2/bot";
 // ─── Signature ────────────────────────────────────────────────────────────────
 
 export function verifyLineSignature(rawBody: string, signature: string): boolean {
-  if (!env.LINE_CHANNEL_SECRET) return false;
-  const expected = createHmac("sha256", env.LINE_CHANNEL_SECRET)
+  const secret = env.LINE_MESSAGING_CHANNEL_SECRET ?? env.LINE_CHANNEL_SECRET;
+  if (!secret) return false;
+  const expected = createHmac("sha256", secret)
     .update(rawBody)
     .digest("base64");
   return expected === signature;
