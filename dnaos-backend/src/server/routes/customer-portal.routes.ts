@@ -56,7 +56,7 @@ const createSiteSchema = z.object({
 export async function registerCustomerPortalRoutes(app: FastifyInstance) {
   app.get("/me", async (request, reply) => {
     const session = await getCurrentLineSession(request);
-    if (!session || session.user.status !== "ACTIVE") {
+    if (!session || session.user.status !== "ACTIVE" || session.company.type !== "CUSTOMER") {
       return reply.code(401).send({ error: "Unauthorized" });
     }
     const prisma = getPrisma();

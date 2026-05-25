@@ -5,6 +5,12 @@ import { createLineSession } from "../services/sessionService.js";
 import { getLineProfile, completeLineLogin } from "../services/lineAuthService.js";
 import type { Role } from "../../generated/prisma/enums.js";
 
+function roleHomePath(role: string): string {
+  if (role === "SUPPLIER") return "/liff/supplier/po";
+  if (role === "FLEET") return "/liff/fleet/jobs";
+  return "/liff/shop";
+}
+
 const authSchema = z.object({
   accessToken: z.string().min(1),
 });
@@ -122,7 +128,7 @@ export async function registerLiffRoutes(app: FastifyInstance) {
         lineUserId: result.lineUserId,
       });
       reply.header("Set-Cookie", sess.cookie);
-      return { ok: true, redirectPath: "/liff/shop" };
+      return { ok: true, redirectPath: roleHomePath(membership.role) };
     }
 
     reply.code(403);

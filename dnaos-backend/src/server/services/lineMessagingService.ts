@@ -4,7 +4,7 @@ import { getPrisma } from "../db/prisma.js";
 
 const LINE_API = "https://api.line.me/v2/bot";
 
-// ─── Signature ───────────────────────────────────────────────────────────────
+// ─── Signature ────────────────────────────────────────────────────────────────
 
 export function verifyLineSignature(rawBody: string, signature: string): boolean {
   if (!env.LINE_CHANNEL_SECRET) return false;
@@ -41,45 +41,134 @@ async function lineReply(replyToken: string, messages: unknown[]) {
   return linePost("/message/reply", { replyToken, messages });
 }
 
+// ─── URL helpers ──────────────────────────────────────────────────────────────
+
+function liffUrl(path = "") {
+  const id = env.LINE_LIFF_ID;
+  if (id) return `https://liff.line.me/${id}${path}`;
+  return `${env.FRONTEND_URL}/liff${path}`;
+}
+
+// ─── Quick Reply helpers ──────────────────────────────────────────────────────
+
+type QuickReplyItem = {
+  type: "action";
+  action:
+    | { type: "postback"; label: string; data: string; displayText?: string }
+    | { type: "uri"; label: string; uri: string }
+    | { type: "message"; label: string; text: string };
+};
+
+function quickReplyItems(items: QuickReplyItem["action"][]) {
+  return {
+    items: items.map((action) => ({ type: "action" as const, action })),
+  };
+}
+
+// Common quick replies
+const qrProductMenu: QuickReplyItem["action"] = {
+  type: "postback", label: "📦 สินค้า", data: "action=products", displayText: "ดูสินค้า",
+};
+const qrOrderMenu: QuickReplyItem["action"] = {
+  type: "postback", label: "📋 ออเดอร์ฉัน", data: "action=orders", displayText: "ดูออเดอร์ฉัน",
+};
+const qrOpenShop: QuickReplyItem["action"] = {
+  type: "uri", label: "🛒 สั่งซื้อใน LIFF", uri: liffUrl("/shop"),
+};
+const qrContact: QuickReplyItem["action"] = {
+  type: "message", label: "📞 ติดต่อเรา", text: "ติดต่อเรา",
+};
+const qrHelp: QuickReplyItem["action"] = {
+  type: "message", label: "❓ ช่วยเหลือ", text: "ช่วยเหลือ",
+};
+
 // ─── Greeting (follow event) ──────────────────────────────────────────────────
 
 export async function sendGreeting(userId: string, displayName: string) {
   const text =
-    `สวัสดี คุณ ${displayName} 🌝\n` +
-    `นี่คือบัญชีทางการของ DNA OS Co., Ltd.\n` +
-    `ขอบคุณที่เป็นเพื่อนกับเรา 😉\n\n` +
-    `เราจะส่งข่าวสารล่าสุดผ่านบัญชีทางการนี้เป็นระยะ 💌\n` +
-    `เตรียมรับได้เลย! 🎁✨✨`;
-  await linePush(userId, [{ type: "text", text }]);
+    `สวัสดีครับ คุณ${displayName} 👋\n` +
+    `ยินดีต้อนรับสู่ DNA OS ระบบสั่งวัสดุก่อสร้าง\n\n` +
+    `📦 ดูสินค้าพิมพ์ "สินค้า"\n` +
+    `📋 ดูออเดอร์พิมพ์ "ออเดอร์"\n` +
+    `🛒 สั่งซื้อผ่าน LINE Mini App ได้เลย`;
+
+  await linePush(userId, [
+    {
+      type: "text",
+      text,
+      quickReply: quickReplyItems([qrProductMenu, qrOpenShop, qrOrderMenu]),
+    },
+  ]);
+}
+
+// ─── Help Menu ────────────────────────────────────────────────────────────────
+
+export async function replyWithHelp(replyToken: string) {
+  await lineReply(replyToken, [
+    {
+      type: "text",
+      text:
+        "สามารถใช้งานผ่านแชทได้เลยครับ:\n\n" +
+        "📦 พิมพ์ \"สินค้า\" — ดูรายการสินค้าทั้งหมด\n" +
+        "📋 พิมพ์ \"ออเดอร์\" — ดูสถานะคำสั่งซื้อ\n" +
+        "🛒 กด \"สั่งซื้อใน LIFF\" — เปิดระบบสั่งซื้อ\n" +
+        "📞 พิมพ์ \"ติดต่อ\" — ข้อมูลติดต่อเจ้าหน้าที่",
+      quickReply: quickReplyItems([qrProductMenu, qrOrderMenu, qrOpenShop]),
+    },
+  ]);
+}
+
+// ─── Contact reply ────────────────────────────────────────────────────────────
+
+export async function replyWithContact(replyToken: string) {
+  await lineReply(replyToken, [
+    {
+      type: "text",
+      text:
+        "📞 ติดต่อ DNA OS\n\n" +
+        "โทร: 02-xxx-xxxx\n" +
+        "เวลาทำการ: จันทร์–เสาร์ 8:00–17:00 น.\n" +
+        "อีเมล: info@dnaos.co.th",
+      quickReply: quickReplyItems([qrProductMenu, qrOrderMenu]),
+    },
+  ]);
 }
 
 // ─── Orders Flex Message ──────────────────────────────────────────────────────
 
-const STATUS_LABEL: Record<string, string> = {
+const ORDER_STATUS_LABEL: Record<string, string> = {
   DRAFT: "ร่าง",
-  PENDING: "รอดำเนินการ",
+  SUBMITTED: "ส่งแล้ว",
+  PRICING: "กำลังเสนอราคา",
+  QUOTED: "ส่ง QT แล้ว",
   CONFIRMED: "ยืนยันแล้ว",
-  IN_PROGRESS: "กำลังดำเนินการ",
-  DELIVERED: "ส่งแล้ว",
+  PROCUREMENT: "จัดหาสินค้า",
+  DISPATCHING: "กำลังจัดส่ง",
+  PARTIALLY_DELIVERED: "ส่งบางส่วน",
+  DELIVERED: "ส่งครบแล้ว",
+  INVOICED: "ออก Invoice แล้ว",
+  PAID: "ชำระแล้ว",
   CANCELLED: "ยกเลิก",
 };
 
-const STATUS_COLOR: Record<string, string> = {
+const ORDER_STATUS_COLOR: Record<string, string> = {
   DRAFT: "#9ca3af",
-  PENDING: "#f59e0b",
-  CONFIRMED: "#3b82f6",
-  IN_PROGRESS: "#f59e0b",
+  SUBMITTED: "#3b82f6",
+  PRICING: "#f59e0b",
+  QUOTED: "#8b5cf6",
+  CONFIRMED: "#10b981",
+  PROCUREMENT: "#f59e0b",
+  DISPATCHING: "#f59e0b",
+  PARTIALLY_DELIVERED: "#f97316",
   DELIVERED: "#22c55e",
+  INVOICED: "#6366f1",
+  PAID: "#22c55e",
   CANCELLED: "#ef4444",
 };
 
 function fmtDate(d: Date | null | undefined) {
-  if (!d) return "-";
-  return new Date(d).toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function orderBubble(order: {
@@ -92,91 +181,76 @@ function orderBubble(order: {
   items: { id: string }[];
 }) {
   const detailUrl = `${env.FRONTEND_URL}/customer/orders/${order.id}`;
-  const color = STATUS_COLOR[order.status] ?? "#9ca3af";
-  const label = STATUS_LABEL[order.status] ?? order.status;
+  const color = ORDER_STATUS_COLOR[order.status] ?? "#9ca3af";
+  const label = ORDER_STATUS_LABEL[order.status] ?? order.status;
 
   return {
     type: "bubble",
     size: "kilo",
-    header: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "box",
-          layout: "horizontal",
-          contents: [
-            {
-              type: "text",
-              text: order.orderNo,
-              weight: "bold",
-              size: "md",
-              color: "#111827",
-              flex: 1,
-            },
-            {
-              type: "text",
-              text: label,
-              size: "xs",
-              color: "#ffffff",
-              align: "center",
-              offsetTop: "2px",
-              background: color,
-              // padding via wrapper box below
-            },
-          ],
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingAll: "12px",
-          backgroundColor: "#f9fafb",
-        },
-      ],
-      paddingAll: "0px",
-    },
     body: {
       type: "box",
       layout: "vertical",
-      spacing: "sm",
-      paddingAll: "12px",
+      paddingAll: "0px",
       contents: [
-        ...(order.customerSite
-          ? [
-              {
-                type: "box",
-                layout: "horizontal",
-                contents: [
-                  { type: "text", text: "สถานที่", size: "xs", color: "#6b7280", flex: 2 },
-                  { type: "text", text: order.customerSite.siteName, size: "xs", color: "#111827", flex: 3, wrap: true },
-                ],
-              },
-            ]
-          : []),
+        // Status bar
         {
           type: "box",
           layout: "horizontal",
+          paddingAll: "12px",
+          backgroundColor: color + "22",
           contents: [
-            { type: "text", text: "วันที่สั่ง", size: "xs", color: "#6b7280", flex: 2 },
-            { type: "text", text: fmtDate(order.createdAt), size: "xs", color: "#111827", flex: 3 },
+            { type: "text", text: order.orderNo, weight: "bold", size: "sm", color: "#111827", flex: 1 },
+            {
+              type: "box",
+              layout: "vertical",
+              backgroundColor: color,
+              cornerRadius: "12px",
+              paddingStart: "8px",
+              paddingEnd: "8px",
+              paddingTop: "3px",
+              paddingBottom: "3px",
+              contents: [
+                { type: "text", text: label, size: "xxs", color: "#ffffff", weight: "bold" },
+              ],
+            },
           ],
+          alignItems: "center",
         },
-        ...(order.requestedDeliveryAt
-          ? [
-              {
-                type: "box",
-                layout: "horizontal",
-                contents: [
-                  { type: "text", text: "ต้องการภายใน", size: "xs", color: "#6b7280", flex: 2 },
-                  { type: "text", text: fmtDate(order.requestedDeliveryAt), size: "xs", color: "#111827", flex: 3 },
-                ],
-              },
-            ]
-          : []),
+        // Details
         {
           type: "box",
-          layout: "horizontal",
+          layout: "vertical",
+          paddingAll: "12px",
+          spacing: "sm",
           contents: [
-            { type: "text", text: "รายการ", size: "xs", color: "#6b7280", flex: 2 },
-            { type: "text", text: `${order.items.length} รายการ`, size: "xs", color: "#111827", flex: 3 },
+            ...(order.customerSite ? [{
+              type: "box", layout: "horizontal",
+              contents: [
+                { type: "text", text: "📍 ส่งที่", size: "xs", color: "#6b7280", flex: 2 },
+                { type: "text", text: order.customerSite.siteName, size: "xs", color: "#111827", flex: 3, wrap: true },
+              ],
+            }] : []),
+            {
+              type: "box", layout: "horizontal",
+              contents: [
+                { type: "text", text: "📅 วันที่สั่ง", size: "xs", color: "#6b7280", flex: 2 },
+                { type: "text", text: fmtDate(order.createdAt), size: "xs", color: "#111827", flex: 3 },
+              ],
+            },
+            ...(order.requestedDeliveryAt ? [{
+              type: "box", layout: "horizontal",
+              contents: [
+                { type: "text", text: "🚚 ต้องการ", size: "xs", color: "#6b7280", flex: 2 },
+                { type: "text", text: fmtDate(order.requestedDeliveryAt), size: "xs", color: "#111827", flex: 3 },
+              ],
+            }] : []),
+            {
+              type: "box", layout: "horizontal",
+              contents: [
+                { type: "text", text: "📦 รายการ", size: "xs", color: "#6b7280", flex: 2 },
+                { type: "text", text: `${order.items.length} รายการ`, size: "xs", color: "#111827", flex: 3 },
+              ],
+            },
           ],
         },
       ],
@@ -185,15 +259,13 @@ function orderBubble(order: {
       type: "box",
       layout: "vertical",
       paddingAll: "10px",
-      contents: [
-        {
-          type: "button",
-          action: { type: "uri", label: "ดูรายละเอียด", uri: detailUrl },
-          style: "primary",
-          height: "sm",
-          color: "#1d4ed8",
-        },
-      ],
+      contents: [{
+        type: "button",
+        action: { type: "uri", label: "ดูรายละเอียด", uri: detailUrl },
+        style: "primary",
+        height: "sm",
+        color: "#1d4ed8",
+      }],
     },
   };
 }
@@ -208,7 +280,7 @@ export async function replyWithOrders(replyToken: string, lineUserId: string) {
         include: {
           memberships: {
             where: { status: "ACTIVE" },
-            include: { company: true },
+            include: { company: { select: { id: true, type: true } } },
             orderBy: { createdAt: "asc" },
             take: 1,
           },
@@ -219,26 +291,44 @@ export async function replyWithOrders(replyToken: string, lineUserId: string) {
 
   if (!identity || !identity.user.memberships[0]) {
     await lineReply(replyToken, [
-      { type: "text", text: "ไม่พบบัญชีผู้ใช้ในระบบ กรุณาติดต่อเจ้าหน้าที่" },
+      {
+        type: "text",
+        text: "ไม่พบบัญชีในระบบครับ กรุณากดเข้าสู่ระบบก่อนใช้งาน",
+        quickReply: quickReplyItems([qrOpenShop, qrContact]),
+      },
     ]);
     return;
   }
 
-  const companyId = identity.user.memberships[0].companyId;
+  const membership = identity.user.memberships[0];
+  if (membership.company.type !== "CUSTOMER") {
+    await lineReply(replyToken, [
+      {
+        type: "text",
+        text: "บัญชีนี้ไม่ใช่บัญชีลูกค้า ไม่สามารถดูคำสั่งซื้อได้",
+        quickReply: quickReplyItems([qrHelp]),
+      },
+    ]);
+    return;
+  }
 
   const orders = await prisma.customerOrder.findMany({
-    where: { customerCompanyId: companyId },
-    include: {
-      customerSite: true,
-      items: { select: { id: true } },
+    where: {
+      customerCompanyId: membership.company.id,
+      status: { notIn: ["CANCELLED", "DRAFT"] },
     },
+    include: { customerSite: true, items: { select: { id: true } } },
     orderBy: { createdAt: "desc" },
     take: 10,
   });
 
   if (orders.length === 0) {
     await lineReply(replyToken, [
-      { type: "text", text: "ยังไม่มีคำสั่งซื้อในระบบ" },
+      {
+        type: "text",
+        text: "ยังไม่มีคำสั่งซื้อที่กำลังดำเนินการครับ",
+        quickReply: quickReplyItems([qrOpenShop, qrProductMenu]),
+      },
     ]);
     return;
   }
@@ -247,10 +337,8 @@ export async function replyWithOrders(replyToken: string, lineUserId: string) {
     {
       type: "flex",
       altText: `คำสั่งซื้อของคุณ (${orders.length} รายการ)`,
-      contents: {
-        type: "carousel",
-        contents: orders.map(orderBubble),
-      },
+      contents: { type: "carousel", contents: orders.map(orderBubble) },
+      quickReply: quickReplyItems([qrOpenShop, qrProductMenu, qrContact]),
     },
   ]);
 }
@@ -269,34 +357,44 @@ function productBubble(p: {
   pricePerTon: number | null;
   pricePerCubic: number | null;
 }) {
-  const orderUrl = `${env.FRONTEND_URL}/customer/order/new?productId=${p.id}`;
+  const shopUrl = liffUrl("/shop");
   const priceRows = [
-    p.pricePerTon !== null
-      ? { type: "box", layout: "horizontal", contents: [
-          { type: "text", text: "ต่อตัน", size: "xs", color: "#6b7280", flex: 2 },
-          { type: "text", text: `฿${fmtPrice(p.pricePerTon)}`, size: "xs", color: "#111827", flex: 3, weight: "bold" },
-        ] }
-      : null,
-    p.pricePerCubic !== null
-      ? { type: "box", layout: "horizontal", contents: [
-          { type: "text", text: "ต่อคิว", size: "xs", color: "#6b7280", flex: 2 },
-          { type: "text", text: `฿${fmtPrice(p.pricePerCubic)}`, size: "xs", color: "#111827", flex: 3, weight: "bold" },
-        ] }
-      : null,
+    p.pricePerTon !== null ? {
+      type: "box", layout: "horizontal",
+      contents: [
+        { type: "text", text: "ต่อตัน", size: "xs", color: "#6b7280", flex: 2 },
+        { type: "text", text: `฿${fmtPrice(p.pricePerTon)}`, size: "xs", color: "#1d4ed8", flex: 3, weight: "bold" },
+      ],
+    } : null,
+    p.pricePerCubic !== null ? {
+      type: "box", layout: "horizontal",
+      contents: [
+        { type: "text", text: "ต่อคิว", size: "xs", color: "#6b7280", flex: 2 },
+        { type: "text", text: `฿${fmtPrice(p.pricePerCubic)}`, size: "xs", color: "#1d4ed8", flex: 3, weight: "bold" },
+      ],
+    } : null,
   ].filter(Boolean);
 
-  const bubble: Record<string, unknown> = {
+  return {
     type: "bubble",
     size: "kilo",
     body: {
       type: "box",
       layout: "vertical",
-      spacing: "sm",
+      spacing: "none",
       paddingAll: "0px",
       contents: [
-        ...(p.imageUrl
-          ? [{ type: "image", url: p.imageUrl, aspectRatio: "4:3", aspectMode: "cover", size: "full" }]
-          : []),
+        ...(p.imageUrl ? [{
+          type: "image", url: p.imageUrl, aspectRatio: "4:3", aspectMode: "cover", size: "full",
+        }] : [{
+          type: "box",
+          layout: "vertical",
+          height: "80px",
+          backgroundColor: "#f3f4f6",
+          contents: [
+            { type: "text", text: "📦", size: "xxl", align: "center", offsetTop: "20px" },
+          ],
+        }]),
         {
           type: "box",
           layout: "vertical",
@@ -307,7 +405,7 @@ function productBubble(p: {
             { type: "text", text: p.name, weight: "bold", size: "sm", color: "#111827", wrap: true },
             { type: "separator", margin: "sm" },
             ...(priceRows.length > 0 ? priceRows : [
-              { type: "text", text: "ติดต่อเพื่อขอราคา", size: "xs", color: "#6b7280" }
+              { type: "text", text: "ติดต่อเพื่อขอราคา", size: "xs", color: "#6b7280" },
             ]),
           ],
         },
@@ -319,53 +417,51 @@ function productBubble(p: {
       paddingAll: "10px",
       contents: [{
         type: "button",
-        action: { type: "uri", label: "ดูและสั่งซื้อ", uri: orderUrl },
+        action: { type: "uri", label: "🛒 สั่งซื้อใน LINE", uri: shopUrl },
         style: "primary",
         height: "sm",
-        color: "#1d4ed8",
+        color: "#00b900",
       }],
     },
   };
-  return bubble;
 }
 
-export async function replyWithProductCatalog(replyToken: string) {
+type ProductEntry = {
+  id: string; name: string; imageUrl: string | null; category: string;
+  pricePerTon: number | null; pricePerCubic: number | null;
+};
+
+async function loadProducts(categoryName?: string): Promise<ProductEntry[]> {
   const prisma = getPrisma();
 
   const supplierProducts = await prisma.supplierProduct.findMany({
-    where: { isAvailable: true },
+    where: {
+      isAvailable: true,
+      ...(categoryName ? {
+        productVariant: { product: { category: { name: { equals: categoryName, mode: "insensitive" } } } },
+      } : {}),
+    },
     include: {
       productVariant: {
-        include: {
-          product: { include: { category: { select: { name: true } } } },
-        },
+        include: { product: { include: { category: { select: { name: true } } } } },
       },
     },
     orderBy: { productVariant: { product: { name: "asc" } } },
   });
 
-  if (supplierProducts.length === 0) {
-    await lineReply(replyToken, [{ type: "text", text: "ยังไม่มีสินค้าในระบบขณะนี้ กรุณาติดต่อเจ้าหน้าที่" }]);
-    return;
-  }
-
-  // Group by Product, cheapest price per unit
-  const productMap = new Map<string, {
-    id: string; name: string; imageUrl: string | null; category: string;
-    pricePerTon: number | null; pricePerCubic: number | null;
-  }>();
-
+  const productMap = new Map<string, ProductEntry>();
   for (const sp of supplierProducts) {
     const pv = sp.productVariant;
     const prod = pv.product;
     const price = Number(sp.price);
     const unit = pv.unit.toLowerCase();
     const isTon = unit.includes("ตัน") || unit === "ton" || unit === "t";
-    const isCubic = unit.includes("คิว") || unit.includes("ลูกบาศก์") || unit.includes("m3");
+    const isCubic = unit.includes("คิว") || unit.includes("ลูกบาศก์") || unit === "m3";
 
     if (!productMap.has(prod.id)) {
       productMap.set(prod.id, {
-        id: prod.id, name: prod.name, imageUrl: (prod as { imageUrl?: string | null }).imageUrl ?? null,
+        id: prod.id, name: prod.name,
+        imageUrl: (prod as { imageUrl?: string | null }).imageUrl ?? null,
         category: prod.category.name,
         pricePerTon: null, pricePerCubic: null,
       });
@@ -375,19 +471,95 @@ export async function replyWithProductCatalog(replyToken: string) {
     if (isCubic && (entry.pricePerCubic === null || price < entry.pricePerCubic)) entry.pricePerCubic = price;
   }
 
-  const bubbles = Array.from(productMap.values()).slice(0, 12).map(productBubble);
+  return Array.from(productMap.values());
+}
 
+export async function replyWithProductCatalog(replyToken: string, categoryName?: string) {
+  const products = await loadProducts(categoryName);
+
+  if (products.length === 0) {
+    await lineReply(replyToken, [{
+      type: "text",
+      text: categoryName
+        ? `ไม่พบสินค้าในหมวด "${categoryName}" ขณะนี้`
+        : "ยังไม่มีสินค้าในระบบขณะนี้ กรุณาติดต่อเจ้าหน้าที่",
+      quickReply: quickReplyItems([qrProductMenu, qrContact]),
+    }]);
+    return;
+  }
+
+  const bubbles = products.slice(0, 12).map(productBubble);
+
+  // Category quick replies
+  const categories = [...new Set(products.map((p) => p.category))].slice(0, 5);
+  const categoryQR: QuickReplyItem["action"][] = categories.map((cat) => ({
+    type: "postback" as const,
+    label: `${cat}`,
+    data: `action=products&category=${encodeURIComponent(cat)}`,
+    displayText: `ดูสินค้า ${cat}`,
+  }));
+
+  await lineReply(replyToken, [
+    {
+      type: "text",
+      text: categoryName
+        ? `สินค้าหมวด "${categoryName}" จำนวน ${bubbles.length} รายการ 👇`
+        : `สินค้าทั้งหมด ${bubbles.length} รายการ\nกดเลือกหมวดหมู่ หรือกด "สั่งซื้อ" ในแต่ละรายการ 👇`,
+      quickReply: quickReplyItems([...categoryQR, qrOpenShop, qrOrderMenu]),
+    },
+    {
+      type: "flex",
+      altText: `สินค้า DNA OS (${bubbles.length} รายการ)`,
+      contents: { type: "carousel", contents: bubbles },
+    },
+  ]);
+}
+
+// ─── Text keyword handler ─────────────────────────────────────────────────────
+
+export async function handleTextMessage(
+  replyToken: string,
+  lineUserId: string,
+  text: string,
+) {
+  const t = text.trim().toLowerCase();
+
+  if (t.includes("สินค้า") || t.includes("product") || t.includes("catalogue") || t.includes("catalog")) {
+    await replyWithProductCatalog(replyToken);
+    return;
+  }
+
+  if (
+    t.includes("ออเดอร์") || t.includes("order") || t.includes("สั่งซื้อ") ||
+    t.includes("คำสั่งซื้อ") || t.includes("สถานะ")
+  ) {
+    await replyWithOrders(replyToken, lineUserId);
+    return;
+  }
+
+  if (t.includes("ติดต่อ") || t.includes("contact") || t.includes("โทร") || t.includes("phone")) {
+    await replyWithContact(replyToken);
+    return;
+  }
+
+  if (t.includes("ช่วยเหลือ") || t.includes("help") || t.includes("วิธีใช้") || t === "?") {
+    await replyWithHelp(replyToken);
+    return;
+  }
+
+  // Default: unknown message
   await lineReply(replyToken, [{
-    type: "flex",
-    altText: `สินค้า DNA OS (${bubbles.length} รายการ)`,
-    contents: { type: "carousel", contents: bubbles },
+    type: "text",
+    text: "สามารถพิมพ์คำสั่งเหล่านี้ได้ครับ:\n• สินค้า\n• ออเดอร์\n• ติดต่อ\n• ช่วยเหลือ",
+    quickReply: quickReplyItems([qrProductMenu, qrOrderMenu, qrOpenShop, qrHelp]),
   }]);
 }
 
-// ─── Rich Menu creation (run once manually) ───────────────────────────────────
+// ─── Rich Menu (ใช้ run ครั้งเดียวผ่าน admin command) ─────────────────────────
 
 export async function createDnaRichMenu(): Promise<string> {
   const frontendUrl = env.FRONTEND_URL;
+  const shopLiffUrl = liffUrl("/shop");
 
   const body = {
     size: { width: 2500, height: 1686 },
@@ -395,31 +567,31 @@ export async function createDnaRichMenu(): Promise<string> {
     name: "DNA OS Main Menu",
     chatBarText: "เมนู",
     areas: [
-      // Row 1
+      // Row 1: primary actions
       {
         bounds: { x: 0, y: 0, width: 833, height: 843 },
-        action: { type: "postback", label: "ข้อมูลออร์เดอร์", data: "action=orders", displayText: "ดูคำสั่งซื้อของฉัน" },
+        action: { type: "postback", label: "📦 สินค้า", data: "action=products", displayText: "ดูสินค้า" },
       },
       {
         bounds: { x: 833, y: 0, width: 834, height: 843 },
-        action: { type: "postback", label: "สินค้า", data: "action=products", displayText: "ดูสินค้าทั้งหมด" },
+        action: { type: "uri", label: "🛒 สั่งซื้อ", uri: shopLiffUrl },
       },
       {
         bounds: { x: 1667, y: 0, width: 833, height: 843 },
-        action: { type: "uri", label: "แนะนำ", uri: `${frontendUrl}/customer/recommend` },
+        action: { type: "postback", label: "📋 ออเดอร์", data: "action=orders", displayText: "ดูออเดอร์ฉัน" },
       },
-      // Row 2
+      // Row 2: secondary
       {
-        bounds: { x: 0, y: 843, width: 833, height: 743 },
+        bounds: { x: 0, y: 843, width: 833, height: 843 },
         action: { type: "uri", label: "ลงทะเบียนรถร่วม", uri: `${frontendUrl}/line/connect?next=/partner` },
       },
       {
-        bounds: { x: 833, y: 843, width: 834, height: 743 },
-        action: { type: "uri", label: "ติดต่อเรา", uri: `${frontendUrl}/contact` },
+        bounds: { x: 833, y: 843, width: 834, height: 843 },
+        action: { type: "message", label: "📞 ติดต่อ", text: "ติดต่อ" },
       },
       {
-        bounds: { x: 1667, y: 843, width: 833, height: 743 },
-        action: { type: "uri", label: "ลงทะเบียนพาร์ทเนอร์", uri: `${frontendUrl}/line/connect?next=/supplier` },
+        bounds: { x: 1667, y: 843, width: 833, height: 843 },
+        action: { type: "message", label: "❓ ช่วยเหลือ", text: "ช่วยเหลือ" },
       },
     ],
   };

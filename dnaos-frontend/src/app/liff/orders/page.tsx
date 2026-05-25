@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight, ClipboardList } from "lucide-react";
+import { useLiff } from "@/hooks/use-liff";
 import { apiFetch } from "@/lib/api";
 import type { CustomerOrder } from "@/features/customer-portal/customer-order-api";
 
@@ -28,14 +29,16 @@ function fmtDate(iso: string) {
 }
 
 export default function LiffOrdersPage() {
+  const liff = useLiff();
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (liff.status !== "ready") return;
     apiFetch<{ orders: CustomerOrder[] }>("/customer/orders")
       .then((r) => setOrders(r.orders))
       .finally(() => setLoading(false));
-  }, []);
+  }, [liff.status]);
 
   return (
     <div className="space-y-4 p-4">

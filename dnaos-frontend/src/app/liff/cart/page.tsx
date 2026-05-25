@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/features/liff/cart-context";
+import { useLiff } from "@/hooks/use-liff";
 import { apiFetch } from "@/lib/api";
 import type { CustomerSite } from "@/features/customer-portal/customer-order-api";
 
 export default function LiffCartPage() {
   const router = useRouter();
+  const liff = useLiff();
   const { items, update, remove, clear, total } = useCart();
   const [sites, setSites] = useState<CustomerSite[]>([]);
   const [siteId, setSiteId] = useState("");
@@ -17,13 +19,14 @@ export default function LiffCartPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (liff.status !== "ready") return;
     apiFetch<{ sites: CustomerSite[] }>("/customer/sites")
       .then((r) => {
         setSites(r.sites);
         if (r.sites[0]) setSiteId(r.sites[0].id);
       })
       .catch(() => {});
-  }, []);
+  }, [liff.status]);
 
   async function handleOrder() {
     if (items.length === 0) return;
