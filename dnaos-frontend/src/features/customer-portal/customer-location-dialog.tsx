@@ -111,9 +111,6 @@ export function CustomerLocationDialog({ onClose, onCreated }: Props) {
 
     mapInstanceRef.current = map;
     markerRef.current = marker;
-
-    // Auto-locate on open
-    locateMe(map, marker);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapsReady]);
 
@@ -155,29 +152,41 @@ export function CustomerLocationDialog({ onClose, onCreated }: Props) {
   }, [mapsReady]);
 
   function locateMe(map?: google.maps.Map, marker?: google.maps.Marker) {
-    const m = map ?? mapInstanceRef.current;
-    const mk = marker ?? markerRef.current;
-    if (!m || !mk) return;
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setError("Browser ไม่รองรับ Geolocation");
+      return;
+    }
+    setError(null);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        m.setCenter({ lat, lng });
-        m.setZoom(17);
-        mk.setPosition({ lat, lng });
-        mk.setVisible(true);
+        const m = map ?? mapInstanceRef.current;
+        const mk = marker ?? markerRef.current;
+        if (m && mk) {
+          m.setCenter({ lat, lng });
+          m.setZoom(17);
+          mk.setPosition({ lat, lng });
+          mk.setVisible(true);
+        }
         try {
           const info = await reverseGeocode(lat, lng);
           setPlace(info);
           if (autocompleteInputRef.current) autocompleteInputRef.current.value = info.formatted;
         } catch {
-          // ignore
+          setError("ไม่สามารถดึงข้อมูลที่อยู่ได้");
         }
         setLocating(false);
       },
-      () => setLocating(false),
+      (err) => {
+        setError(
+          err.code === 1
+            ? "ถูกปฏิเสธสิทธิ์ Location — กรุณาอนุญาตใน browser แล้วลองใหม่"
+            : `ไม่สามารถหาตำแหน่งได้ (${err.message})`
+        );
+        setLocating(false);
+      },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }
@@ -199,8 +208,8 @@ export function CustomerLocationDialog({ onClose, onCreated }: Props) {
         gpsLng: place.lng,
       });
       onCreated(result.site);
-    } catch {
-      setError("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+    } catch (e) {
+      setError(`บันทึกไม่สำเร็จ: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setSaving(false);
     }
@@ -235,7 +244,7 @@ export function CustomerLocationDialog({ onClose, onCreated }: Props) {
         <button
           type="button"
           onClick={() => locateMe()}
-          disabled={!mapsReady || locating}
+          disabled={locating}
           className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-medium shadow-md disabled:opacity-50"
         >
           <Crosshair className={`size-4 ${locating ? "animate-spin text-primary" : ""}`} />

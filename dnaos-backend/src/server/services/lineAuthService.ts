@@ -130,7 +130,8 @@ export async function getLineProfile(accessToken: string): Promise<LineProfile> 
   });
 
   if (!response.ok) {
-    throw new Error(`LINE profile fetch failed: ${response.status}`);
+    const body = await response.text().catch(() => "");
+    throw new Error(`LINE profile fetch failed: ${response.status} — ${body}`);
   }
 
   const profile = (await response.json()) as LineProfile;

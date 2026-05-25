@@ -11,7 +11,7 @@ declare global {
 }
 
 function isMapsReady() {
-  return typeof window !== "undefined" && !!window.google?.maps?.places;
+  return typeof window !== "undefined" && !!window.google?.maps;
 }
 
 export function useGoogleMaps(): boolean {

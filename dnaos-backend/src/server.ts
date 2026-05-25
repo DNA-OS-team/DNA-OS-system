@@ -26,6 +26,7 @@ import { registerWebhookRoutes } from "./server/routes/webhooks.routes.js";
 import { registerLineWebhookRoutes } from "./server/routes/line-webhook.routes.js";
 import { registerPortalRoutes } from "./server/routes/portal.routes.js";
 import { registerCustomerPortalRoutes } from "./server/routes/customer-portal.routes.js";
+import { registerLiffRoutes } from "./server/routes/liff.routes.js";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -69,6 +70,7 @@ export async function buildServer() {
   await app.register(registerLineWebhookRoutes, { prefix: "/webhook/line" });
   await app.register(registerPortalRoutes, { prefix: "/portal" });
   await app.register(registerCustomerPortalRoutes, { prefix: "/customer" });
+  await app.register(registerLiffRoutes, { prefix: "/liff" });
 
   return app;
 }
