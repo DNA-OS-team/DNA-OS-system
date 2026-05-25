@@ -287,6 +287,87 @@ export async function registerLiffSupplierRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
+  // ── My products + submissions ─────────────────────────────────────────────
+  app.get("/products", async (request, reply) => {
+    const session = await requireSupplier(request, reply);
+    if (!session) return reply;
+    const prisma = getPrisma();
+
+    const [products, submissions] = await Promise.all([
+      prisma.supplierProduct.findMany({
+        where: { supplierCompanyId: session.companyId },
+        include: {
+          productVariant: {
+            include: { product: { include: { category: { select: { name: true } } } } },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.partnerProductSubmission.findMany({
+        where: { supplierCompanyId: session.companyId },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+    ]);
+
+    return {
+      products: products.map((p) => ({
+        id: p.id,
+        productName: p.productVariant.product.name,
+        variantName: p.productVariant.name,
+        category: p.productVariant.product.category.name,
+        unit: p.productVariant.unit,
+        price: Number(p.price),
+        isAvailable: p.isAvailable,
+      })),
+      submissions: submissions.map((s) => ({
+        id: s.id,
+        productName: s.requestedProductName,
+        category: s.requestedCategoryName ?? "",
+        unit: s.unit,
+        price: Number(s.price),
+        status: s.status,
+        adminNote: s.adminReviewNote,
+        createdAt: s.createdAt,
+      })),
+    };
+  });
+
+  const submitProductSchema = z.object({
+    requestedProductName: z.string().trim().min(1, "กรุณาระบุชื่อสินค้า"),
+    requestedCategoryName: z.string().trim().optional(),
+    description: z.string().trim().optional(),
+    unit: z.string().trim().min(1, "กรุณาระบุหน่วย"),
+    price: z.coerce.number().positive("กรุณาระบุราคา"),
+    stockQty: z.coerce.number().min(0).default(0),
+    minQty: z.coerce.number().min(0).default(0),
+    serviceArea: z.string().trim().optional(),
+  });
+
+  app.post("/products/submit", async (request, reply) => {
+    const session = await requireSupplier(request, reply);
+    if (!session) return reply;
+    const input = submitProductSchema.parse(request.body);
+    const prisma = getPrisma();
+
+    const submission = await prisma.partnerProductSubmission.create({
+      data: {
+        supplierCompanyId: session.companyId,
+        requestedProductName: input.requestedProductName,
+        requestedCategoryName: input.requestedCategoryName ?? null,
+        description: input.description ?? null,
+        unit: input.unit,
+        price: input.price,
+        stockQty: input.stockQty,
+        minQty: input.minQty,
+        serviceArea: input.serviceArea ?? null,
+      },
+    });
+
+    reply.code(201);
+    return { ok: true, id: submission.id };
+  });
+
   // ── Settlement / payment history ───────────────────────────────────────────
   app.get("/settlements", async (request, reply) => {
     const session = await requireSupplier(request, reply);

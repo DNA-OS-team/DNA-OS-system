@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Package, Banknote } from "lucide-react";
+import { ClipboardList, Package, Banknote, ShoppingBag } from "lucide-react";
 
 function BottomNav() {
   const pathname = usePathname();
 
   const tabs = [
     { href: "/liff/supplier/po", label: "PO", icon: ClipboardList },
+    { href: "/liff/supplier/products", label: "สินค้า", icon: ShoppingBag },
     { href: "/liff/supplier/inventory", label: "สต๊อก", icon: Package },
     { href: "/liff/supplier/payments", label: "รายได้", icon: Banknote },
   ];
